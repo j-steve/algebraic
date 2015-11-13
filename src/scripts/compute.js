@@ -1,4 +1,4 @@
-function compute(equation, formattedInput, prettyInput) {
+function compute(equation, prettyInput, output) {
 	eq = [].slice.call(formatEquation(equation.value));
 	
 	//prettyInput.innerHTML = '';
@@ -12,6 +12,7 @@ function compute(equation, formattedInput, prettyInput) {
 			scope = new Scope(scope);
 			output += scope.open();
 		} else if (thisChar === ')') {
+			if (scope.isRoot) {return error(prettyInput, 'Unmatched ")" at position {0}.', i + 1);}
 			output += scope.close();
 			scope = scope.parentScope;
 		} else if (/[0-9]/.test(thisChar) && lastNode instanceof NumberValue) {
@@ -23,7 +24,7 @@ function compute(equation, formattedInput, prettyInput) {
 			output += thisChar;
 		} else {
 			var op = Operators.all.find(function(operator) {return operator.match(thisChar);});
-			if (!op) {prettyInput.innerHTML = String.format('Unknown character "{0}".', thisChar); return;}
+			if (!op) {return error(prettyInput, 'Invalid character: "{0}" at position {1}.', thisChar, i + 1);}
 			while (scope.nodes.peek() && scope.nodes.peek().tightness > op.tightness) {
 				output += scope.nodes.pop().close();
 			}
@@ -40,6 +41,11 @@ function compute(equation, formattedInput, prettyInput) {
 	
 	//prettyInput.innerHTML = ops.map(function(op) {op.close(); return typeof op === 'string' ? op : op.render();}).join('');
 	//prettyInput.innerHTML = eq.join('');
+}
+
+function error(input, message, args) { 
+	var args = [].slice.call(arguments, 1);
+	input.innerHTML = '<span style="color:red; font-size:80%;">' + String.format.apply(null, args) + '</span>';
 }
 
 function formatEquation(eq) {

@@ -3,12 +3,9 @@ function Node(type) {
 }
 
 
-function Operator(searchPattern, displaySymbol, closeSymbol) {
+function Operator(tightness, searchPattern, displaySymbol, closeSymbol) {
 	this.super();
-
-	//if (displaySymbol) {searchPattern += displaySymbol;}
-
-	
+	this.tightness = tightness;
 
 	this.match = function(subject) {
 		return searchPattern.includes(subject);
@@ -27,11 +24,12 @@ Operator.match = function() {}
 
 
 var Operators = {
-	Multiply: new Operator('*\u22C5', '\u22C5'),
-	Divide: new Operator('/\u2215', '\u2215'),
-	Plus: new Operator('+', '+'),
-	Minus: new Operator('-\u2212', '\u2212'),
-	Exponent: new Operator('^', '<sup>', '</sup>'),
+	Equals: new Operator(1, '=', '='),
+	Plus: new Operator(2, '+', '+'),
+	Minus: new Operator(2, '-\u2212', '\u2212'),
+	Multiply: new Operator(3, '*\u22C5', '\u22C5'),
+	Divide: new Operator(3, '/\u2215', '\u2215'),
+	Exponent: new Operator(4, '^', '<sup>', '</sup>'),
 };
 Operators.all = Operators.toArray();
 

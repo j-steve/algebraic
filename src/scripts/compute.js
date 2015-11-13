@@ -19,11 +19,17 @@ function compute(equation, formattedInput, prettyInput) {
 		} else {
 			var op = Operators.all.find(function(operator) {return operator.match(thisChar);});
 			if (!op) {prettyInput.innerHTML = String.format('Unknown character "{0}".', thisChar); return;}
+			while (ops.peek() && ops.peek().tightness > op.tightness) {
+				output += ops.pop().close();
+			}
 
 			output += op.open();
+			ops.push(op);
 		} 
 	}
-	ops.forEach(function(op) {output += op.close();})
+	while (ops.peek()) {
+		output += ops.pop().close();
+	}
 	prettyInput.innerHTML = output;
 	
 	//prettyInput.innerHTML = ops.map(function(op) {op.close(); return typeof op === 'string' ? op : op.render();}).join('');

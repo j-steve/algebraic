@@ -1,15 +1,18 @@
-function Scope(parent) {
-	this.isRoot = !!parent;
-	this.parent = parent;
-	this.leftNode = null;
-	this.rightNode = null;
-	this.operator = null;
-	
-	this.addNode = function(child) {
-	};
-	
+function Scope(parentScope) {
+	this.isRoot = !parentScope;
+	this.parentScope = parentScope;
+	this.nodes = [];
 
-	this.lastNode = function() {
-		return this.rightNode || this.operator || this.leftNode;
+	this.open = function() {
+		return this.isRoot ? '' : '(';
+	};
+
+	this.close = function() {
+		var result = '';
+		while (this.nodes.peek()) {
+			result += this.nodes.pop().close();
+		}
+		if (!this.isRoot) {result += ')';}
+		return result;
 	};
 }

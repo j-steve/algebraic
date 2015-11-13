@@ -4,12 +4,17 @@ function compute(equation, formattedInput, prettyInput) {
 	//prettyInput.innerHTML = '';
 	var output = '';
 	
-	var currentScope = new Scope();
-	var ops = []
+	var scope = new Scope();
 	for (var i = 0; i < eq.length; i++) {
 		var thisChar = eq[i];
-		var lastNode = currentScope.lastNode();
-		if (/[0-9]/.test(thisChar) && lastNode instanceof NumberValue) {
+		var lastNode = scope.nodes.peek();
+		if (thisChar === '(') {
+			scope = new Scope(scope);
+			output += scope.open();
+		} else if (thisChar === ')') {
+			output += scope.close();
+			scope = scope.parentScope;
+		} else if (/[0-9]/.test(thisChar) && lastNode instanceof NumberValue) {
 			lastNode.value += thisChar;
 			output += thisChar;
 		} else if (/[0-9]/.test(thisChar) || /[A-Z]/i.test(thisChar)) {
@@ -19,16 +24,17 @@ function compute(equation, formattedInput, prettyInput) {
 		} else {
 			var op = Operators.all.find(function(operator) {return operator.match(thisChar);});
 			if (!op) {prettyInput.innerHTML = String.format('Unknown character "{0}".', thisChar); return;}
-			while (ops.peek() && ops.peek().tightness > op.tightness) {
-				output += ops.pop().close();
+			while (scope.nodes.peek() && scope.nodes.peek().tightness > op.tightness) {
+				output += scope.nodes.pop().close();
 			}
 
 			output += op.open();
-			ops.push(op);
+			scope.nodes.push(op);
 		} 
 	}
-	while (ops.peek()) {
-		output += ops.pop().close();
+	while (scope) {
+		output += scope.close();
+		scope = scope.parentScope;
 	}
 	prettyInput.innerHTML = output;
 	

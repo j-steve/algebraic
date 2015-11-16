@@ -1,13 +1,49 @@
-function Node(displayVal) {
-	this.charCount = null;
+/*(function() {
+	var ES6_FLAG_NOTICE = '<p style="margin-bottom:25px; font-size:13px; font-weight:bold;">' +
+		'Note: Please enable expiramental javascript for this page to work.<br/>' +
+		'Copy and paste the following URL intof your browser:<br/>' +
+		'<span style="font-family:monospace; font-size:14px;">chrome://flags/#enable-javascript-harmony</span>' +
+		'</p>';
+	var p = document.createElement('p');
+	p.innerHTML = ES6_FLAG_NOTICE;
+	document.body.insertBefore(p, document.body.childNodes[0]);
+})();
 
-	this.print = function() {
-		return displayVal;
-	};
+
+class Node { 
+	constructor(parentNode, operator, leftNode, rightNode) {
+		this.parentNode = parentNode;
+		this.operator = operator;
+		this.leftNode = leftNode;
+		this.rightNode = rightNode;
+	}
+
+	get this.leftNode() {
+		return this._leftNode;
+	}
+	set this.leftNode(value) {
+		this._leftNode = value;
+		value.parentNode = this;
+	}
+
+	get this.leftNode() {
+		return this._rightNode;
+	}
+	set this.rightNode(value) {
+		this._rightNode = value;
+		value.parentNode = this;
+	}
+}*/
+ 
+/*function OperatorNode(parentNode, operator, leftNode, rightNode) {
+	BinaryTreeNode.call(this, parentNode, leftNode, rightNode);
+	this.operator = operator;
 }
+OperatorNode.prototype = Object.create(BinaryTreeNode.prototype);
+OperatorNode.prototype.constructor = OperatorNode;*/
 
-
-Node.parse = function(substring, lastNode) {
+var Leaf = {};
+Leaf.parse = function(substring, lastNode) {
 	var node;
 	var match;
 	if (match = /^pi|^π/.exec(substring)) {
@@ -37,6 +73,15 @@ Node.parse = function(substring, lastNode) {
 	}
 	else if (match = /^lb/.exec(substring)) {
 		node = new Logarithm(2);
+	}
+
+
+
+	else if (match = /^,\s*|^\(/.exec(substring)) {
+		node = new Scope();
+	}
+	else if (match = /^\)/.exec(substring)) {
+		node = new ScopeTerminator();
 	}
 
 	else if (match = /^sqrt|^√/.exec(substring)) {
@@ -71,27 +116,19 @@ Node.parse = function(substring, lastNode) {
 		node = new Variable(match[0]);
 	}
 
-	/*else if (match = /^,\s*|^\(/.exec(substring)) {
-		node = new Operator('ParenStart', '(', ')', 6);
-	}
-	else if (match = /^\)/.exec(substring)) {
-		node = new Operator('ParenEnd', 7);
-		node.isClosed = true;
-	}*/
-
 	else {
-		node = new Node('');
-		match = [{length: 1}];
+		return null;
 	}
 
 	node.charCount = match[0].length;
 	return node;
 };
 
+/*
 function ValueNode(value) {
-	Node.call(this, value);
+	Leaf.call(this, value);
 };
-Object.extend(Node, ValueNode);
+Object.extend(Leaf, ValueNode);
 
 function NumericNode(displayVal) {
 	ValueNode.call(this, displayVal);
@@ -110,9 +147,12 @@ function Variable(identifier) {
 Object.extend(ValueNode, Variable);
 
 function Operator(name, displaySymbol, closeSymbol, tightness) {
-	Node.call(this, displaySymbol);
 	this.tightness = tightness;
 	this.isClosed = false;
+
+	this.open = function() {
+		return displaySymbol;
+	}
 
 	this.close = function() {
 		this.isClosed = true;
@@ -136,3 +176,15 @@ function Logarithm(base) {
 Object.extend(Operator, Logarithm);
 
 
+function Scope(showParenthesis) {
+	Node.call(this, showParenthesis ? '(' : '');
+	this.parentScope = null;
+	this.nodes = [];
+}
+Object.extend(Node, Scope);
+
+function ScopeTerminator() {
+	Node.call(this, '');
+}
+Object.extend(Node, Scope);
+*/

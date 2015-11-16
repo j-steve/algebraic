@@ -15,3 +15,15 @@ output {
 .sup {
 	vertical-align: super,
 }
+
+output[name=formattedInput] div {
+    display: inline-block;
+}
+output[name=formattedInput] div.operator-node {
+	border:1px solid silver;
+} 
+output[name=formattedInput] div.operator {
+    background: black;
+    color: white;
+}
+ 

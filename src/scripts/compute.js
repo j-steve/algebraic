@@ -12,6 +12,7 @@ function compute(equation, prettyInput, output) {
 					lastOp = findLastOperator(nodes);
 				}
 			} else if (node instanceof ValueNode && nodes.peek() instanceof ValueNode) {
+				// TODO- also include immediately before or after a scope, e.g., "43(4)"" or "log(4)x"
 				nodes.push(new Operator('Coefficent', '&sdot;', '', 5));
 			}
 			nodes.push(node);

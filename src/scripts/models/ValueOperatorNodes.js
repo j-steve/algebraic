@@ -26,6 +26,9 @@ Node.parse = function(substring, lastNode) {
 	else if (match = /^log\(([^\s\(]+)(?=,)/.exec(substring)) {
 		node = new Logarithm(match[1]);
 	}
+	else if (match = /^log/.exec(substring)) {
+		node = new Logarithm(10);
+	}
 	else if (match = /^ln/.exec(substring)) {
 		node = new Logarithm('e');
 	} 
@@ -116,7 +119,7 @@ Object.extend(Node, Operator);
 
 function Logarithm(base) {
 	var baseNode = Node.parse(base);
-	Operator.call(this, 'Logarithm', getDisplayVal(), null, 0);
+	Operator.call(this, 'Logarithm', getDisplayVal(), null, 6);
 
 	function getDisplayVal() {
 		switch (String(base)) {

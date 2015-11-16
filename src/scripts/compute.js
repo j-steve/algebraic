@@ -32,6 +32,7 @@ function compute(equation, prettyInput, output) {
 			} else if (!activeNode.rightNode) {
 				activeNode.rightNode = op;
 			} else {
+				// TODO- make this work.
 				var pivotTarget = activeNode;
 				var pivotTargetParent = activeNode.parentNode;
 				var coefficent = new OperatorNode(Operators.Coefficient);
@@ -39,6 +40,8 @@ function compute(equation, prettyInput, output) {
 					var nodeType = pivotTargetParent.leftNode === pivotTarget ? 'leftNode' : 'rightNode';
 					pivotTargetParent[nodeType] = coefficent;
 				}
+				coefficent.leftNode = pivotTarget;
+				coefficent.rightNode = op;
 				activeNode = coefficent; 
 			}
 		}

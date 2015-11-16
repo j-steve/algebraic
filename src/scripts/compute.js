@@ -4,13 +4,18 @@ function compute(equation, prettyInput, output) {
 	var nodes = [];
 	for (var i = 0; i < eq.length;) {
 		var node = Node.parse(eq.substring(i));
-		if (node instanceof Operator) {
-			var lastOp = findLastOperator(nodes);
-			if (lastOp && lastOp.tightness > node.tightness) {
-				nodes.push(lastOp.close());
+		if (node.type !== 'Unknown') {
+			if (node instanceof Operator) {
+				var lastOp = findLastOperator(nodes);
+				while (lastOp && lastOp.tightness > node.tightness) {
+					nodes.push(lastOp.close());
+					lastOp = findLastOperator(nodes);
+				}
+			} else if (node instanceof ValueNode && nodes.peek() instanceof ValueNode) {
+				nodes.push(new Operator('Coefficent', '&sdot;', '', 5));
 			}
+			nodes.push(node);
 		}
-		nodes.push(node);
 		i += node.charCount;
 	};
 

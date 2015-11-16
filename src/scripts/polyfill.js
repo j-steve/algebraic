@@ -8,9 +8,6 @@
 	Object.extend = function(parent, child) {
 		child.prototype = Object.create(parent.prototype);
 		child.prototype.constructor = child;
-		child.prototype.super = function() {
-			parent.prototype.constructor.apply(this, arguments)
-		}
 	}
 
 	Object.prototype.toArray = function() {

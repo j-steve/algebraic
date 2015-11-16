@@ -1,101 +1,131 @@
-function Node(type, charCount, value, displayVal) {
-	this.type = type;
-	this.charCount = charCount;
-	this.value = value;
+function Node(displayVal) {
+	this.charCount = null;
 
 	this.print = function() {
 		return displayVal;
 	};
 }
 
-Node.parse = function(substring) {
+
+Node.parse = function(substring, lastNode) {
+	var node;
 	var match;
-	if (match = /^[0-9]+/.exec(substring)) {
-		return new Node('Number', match[0].length, Number(match[0]), match[0]);
-	}
-	else if (match = /^pi|^π/.exec(substring)) {
-		return new Node('Constant', match[0].length, Math.PI, 'π');
+	if (match = /^pi|^π/.exec(substring)) {
+		node = new Constant('pi', 'π', Math.PI);
 	}
 	else if (match = /^e/.exec(substring)) {
-		return new Node('Constant', match[0].length, Math.E, '<i>e</i>');
+		node = new Constant('e', '<i>e</i>', Math.E);
 	}
 	else if (match = /^i/.exec(substring)) {
-		return new Node('Constant', match[0].length, 'i', '<i>i</i>');
+		node = new Constant('i', '<i>i</i>');
 	}
 
 	else if (match = /^log([^\s\(]+)(?=\()/.exec(substring)) {
-		return new Logarithm(match[0].length, match[1]);
+		node = new Logarithm(match[1]);
 	}
 	else if (match = /^log\(([^\s\(]+)(?=,)/.exec(substring)) {
-		return new Logarithm(match[0].length, match[1]);
+		node = new Logarithm(match[1]);
 	}
 	else if (match = /^ln/.exec(substring)) {
-		return new Logarithm(match[0].length, 'e');
+		node = new Logarithm('e');
 	} 
 	else if (match = /^lg/.exec(substring)) {
-		return new Logarithm(match[0].length, 10);
+		node = new Logarithm(10);
 	}
 	else if (match = /^lb/.exec(substring)) {
-		return new Logarithm(match[0].length, 2);
+		node = new Logarithm(2);
 	}
 
 	else if (match = /^\^/.exec(substring)) {
-		return new Operator('Exponent', match[0].length, '<sup>', '</sup>', 4);
+		node = new Operator('Exponent', '<sup>', '</sup>', 4);
 	}
 
 	else if (match = /^\+-/.exec(substring)) {
-		return new Operator('PlusMinus', match[0].length, '±', null, 2);
+		node = new Operator('PlusMinus', '±', null, 2);
 	}
 	else if (match = /^\+/.exec(substring)) {
-		return new Operator('Plus', match[0].length, '+', null, 2);
+		node = new Operator('Plus', '+', null, 2);
 	}
 	else if (match = /^[-−]/.exec(substring)) {
-		return new Operator('Minus', match[0].length, '−', null, 2);
+		node = new Operator('Minus', '−', null, 2);
 	}
 
 	else if (match = /^[*·∙×\u22C5]/.exec(substring)) {
-		return new Operator('Minus', match[0].length, '&sdot;', null, 3);
+		node = new Operator('Multiply', '&sdot;', null, 3);
+	}
+	else if (match = /^[\/∕÷]/.exec(substring)) {
+		node = new Operator('Divide', '∕', null, 3);
 	}
 
+	else if (match = /^[0-9]+/.exec(substring)) {
+		node = new NumericNode(match[0]);
+	}
 	else if (match = /^[A-Za-z]/.exec(substring)) {
-		return new Node('Variable', match[0].length, match[0], match[0]);
+		node = new Variable(match[0]);
 	}
 
-	else if (match = /^,\s*|^\(/.exec(substring)) {
-		return new Node('Scope', match[0].length, null, '(');
+	/*else if (match = /^,\s*|^\(/.exec(substring)) {
+		node = new Operator('ParenStart', '(', ')', 6);
 	}
 	else if (match = /^\)/.exec(substring)) {
-		return new Node('ScopeEnd', match[0].length, null, ')');
-	}
+		node = new Operator('ParenEnd', 7);
+		node.isClosed = true;
+	}*/
 
 	else {
-		return new Node('Unknown', 1, null, null);
+		node = new Node('');
+		match = [{length: 1}];
 	}
+
+	node.charCount = match[0].length;
+	return node;
 };
 
-function Logarithm(charCount, base) {
-	this.super('Operator', charCount, [Math.log, base], getDisplayVal());
+function ValueNode(value) {
+	Node.call(this, value);
+};
+Object.extend(Node, ValueNode);
 
-	function getDisplayVal() {
-		switch (String(base)) {
-			case 'e': return 'ln';
-			case '10': return 'lg';
-			default: return 'log<sub>' + base + '</sub>';
-		}
-	}
+function NumericNode(displayVal) {
+	ValueNode.call(this, displayVal);
+	var value = Number(value);
 }
-Object.extend(Node, Logarithm);
+Object.extend(ValueNode, NumericNode);
 
+function Constant(name, displayVal, approxVal) {
+	ValueNode.call(this, displayVal);
+}
+Object.extend(ValueNode, Constant);
 
+function Variable(identifier) {
+	ValueNode.call(this, identifier);
+}
+Object.extend(ValueNode, Variable);
 
-function Operator(name, charCount, displaySymbol, closeSymbol, tightness) {
-	this.super('Operator', charCount, null, displaySymbol);
+function Operator(name, displaySymbol, closeSymbol, tightness) {
+	Node.call(this, displaySymbol);
 	this.tightness = tightness;
 	this.isClosed = false;
 
 	this.close = function() {
 		this.isClosed = true;
-		return new Node('OperatorClose', null, null, closeSymbol || '');
+		return new Node(closeSymbol);
 	};
 }
 Object.extend(Node, Operator);
+
+function Logarithm(base) {
+	var baseNode = Node.parse(base);
+	Operator.call(this, 'Logarithm', getDisplayVal(), null, 0);
+
+	function getDisplayVal() {
+		switch (String(base)) {
+			case 'e': return 'ln';
+			case '10': return 'lg';
+			default: return 'log<sub>' + baseNode.print() + '</sub>';
+		}
+	}
+}
+Object.extend(Operator, Logarithm);
+
+

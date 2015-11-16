@@ -29,7 +29,8 @@ var Operators = {
 	Minus: new Operator(2, '-\u2212', '\u2212'),
 	Multiply: new Operator(3, '*\u22C5', '\u22C5'),
 	Divide: new Operator(3, '/\u2215', '\u2215'),
-	Exponent: new Operator(4, '^', '<sup>', '</sup>')
+	Exponent: new Operator(4, '^', '<sup>', '</sup>'),
+	Coefficent: new Operator(5, '×')
 };
 Operators.all = Operators.toArray();
 

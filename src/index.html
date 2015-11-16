@@ -8,7 +8,10 @@
 <body>
 
 	<form oninput="compute(equation, formattedInput, result); return false;">
-		<input type="text" name="equation" autocomplete="off" autofocus/>
+		<label>
+			<span>Input:</span>
+			<input type="text" name="equation" autocomplete="off" autofocus/>
+		</label>
 		<output name="formattedInput"></output>
 		<output name="result"></output>
 	</form>

@@ -1,46 +1,31 @@
 function compute(equation, prettyInput, output) {
-	eq = [].slice.call(formatEquation(equation.value));
-	
-	//prettyInput.innerHTML = '';
-	var output = '';
-	
-	var scope = new Scope();
-	for (var i = 0; i < eq.length; i++) {
-		var thisChar = eq[i];
-		var lastNode = scope.nodes.peek();
-		if (thisChar === '(') {
-			scope = new Scope(scope);
-			output += scope.open();
-		} else if (thisChar === ')') {
-			if (scope.isRoot) {return error(prettyInput, 'Unmatched ")" at position {0}.', i + 1);}
-			output += scope.close();
-			scope = scope.parentScope;
-		} else if (/[0-9]/.test(thisChar) && lastNode instanceof NumberValue) {
-			lastNode.value += thisChar;
-			output += thisChar;
-		} else if (NUMERIC_CHARS.test(thisChar) || /[A-Z]/i.test(thisChar)) {
-			if (lastNode instanceof Value) {
-			}
-			output += thisChar;
-		} else {
-			var op = Operators.all.find(function(operator) {return operator.match(thisChar);});
-			if (!op) {return error(prettyInput, 'Invalid character: "{0}" at position {1}.', thisChar, i + 1);}
-			while (scope.nodes.peek() && scope.nodes.peek().tightness > op.tightness) {
-				output += scope.nodes.pop().close();
-			}
+	var eq = equation.value;
 
-			output += op.open();
-			scope.nodes.push(op);
-		} 
-	}
-	while (scope) {
-		output += scope.close();
-		scope = scope.parentScope;
-	}
-	prettyInput.innerHTML = output;
+	var nodes = [];
+	for (var i = 0; i < eq.length;) {
+		var node = Node.parse(eq.substring(i));
+		if (node instanceof Operator) {
+			var lastOp = findLastOperator(nodes);
+			if (lastOp && lastOp.tightness > node.tightness) {
+				nodes.push(lastOp.close());
+			}
+		}
+		nodes.push(node);
+		i += node.charCount;
+	};
+
+	console.dir(nodes);
+	prettyInput.innerHTML = '<span>' + nodes.map(function(node) {return node.print();}).join('') + '</span>';
+	//prettyInput.innerHTML = nodes;
 	
 	//prettyInput.innerHTML = ops.map(function(op) {op.close(); return typeof op === 'string' ? op : op.render();}).join('');
 	//prettyInput.innerHTML = eq.join('');
+}
+
+function findLastOperator(nodes) {
+	for (var i = nodes.length - 1; i >= 0; i--) {
+		if (nodes[i] instanceof Operator && !nodes[i].isClosed) {return nodes[i];}
+	}
 }
 
 function error(input, message, args) { 

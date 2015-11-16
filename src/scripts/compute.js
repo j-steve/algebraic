@@ -18,7 +18,7 @@ function compute(equation, prettyInput, output) {
 		} else if (/[0-9]/.test(thisChar) && lastNode instanceof NumberValue) {
 			lastNode.value += thisChar;
 			output += thisChar;
-		} else if (/[0-9]/.test(thisChar) || /[A-Z]/i.test(thisChar)) {
+		} else if (NUMERIC_CHARS.test(thisChar) || /[A-Z]/i.test(thisChar)) {
 			if (lastNode instanceof Value) {
 			}
 			output += thisChar;
@@ -52,10 +52,17 @@ function formatEquation(eq) {
 	eq = eq.trim();
 	
 	var patterns = [
+		[/lb|log2/gi, '①'],
+		[/ln/gi, '②'],
+		[/lg|log10/gi, '③'],
+		[/log/gi, '④'],
 		[/×/g, '*'],
-		[/([A-Z])()([A-Z0-9])/gi, '$1×$3'],
-		[/([A-Z0-9])()([A-Z])/gi, '$1×$3'],
-		[/([)])()([A-Z0-9])/gi, '$1×$3'],
+
+		[/pi/gi, 'π'],
+
+		[/([A-Z])()([A-Z0-9①②③④])/gi, '$1×$3'],
+		[/([A-Z0-9])()([A-Z①②③④])/gi, '$1×$3'],
+		[/([)])()([A-Z0-9①②③④])/gi, '$1×$3'],
 		[/([A-Z0-9])()([(])/gi, '$1×$3']
 	/*,
 		[/([A-Z])()([A-Z0-9])/gi, '$1' + Operators.Multiply.Symbol + '$3'],

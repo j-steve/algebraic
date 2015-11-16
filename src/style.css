@@ -18,6 +18,7 @@ output {
 
 output[name=formattedInput] div {
     display: inline-block;
+    margin: 5px;
 }
 output[name=formattedInput] div.operator-node {
 	border:1px solid silver;

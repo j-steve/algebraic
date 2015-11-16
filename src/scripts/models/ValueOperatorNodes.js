@@ -39,11 +39,15 @@ Node.parse = function(substring, lastNode) {
 		node = new Logarithm(2);
 	}
 
+	else if (match = /^sqrt|^√/.exec(substring)) {
+		node = new Operator('SquareRoot', '√', null, 5);
+	}
+
 	else if (match = /^\^/.exec(substring)) {
 		node = new Operator('Exponent', '<sup>', '</sup>', 4);
 	}
 
-	else if (match = /^\+-/.exec(substring)) {
+	else if (match = /^\+[-−]|^±/.exec(substring)) {
 		node = new Operator('PlusMinus', '±', null, 2);
 	}
 	else if (match = /^\+/.exec(substring)) {

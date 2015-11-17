@@ -58,13 +58,13 @@ function OperatorNode(operator, parenthesis) {
 
 	this.print = function(parentElement) {
 		var newElement = document.createElement('div');
-		newElement.className = 'operator-node';
+		newElement.className = 'node operator-node';
 
 		if (self.parenthesis) {newElement.innerHTML += '(';}
 		if (self.leftNode) {self.leftNode.print(newElement);} 
 
 		var operatorElement = document.createElement('div');
-		operatorElement.className = 'operator';
+		operatorElement.className = 'operator' + (operator ? '' : ' operator-unknown');
 		operatorElement.innerHTML += operator ? operator.debugSymbol : '?';
 		newElement.appendChild(operatorElement); 
 
@@ -102,7 +102,7 @@ function LeafNode(value) {
 
 	this.print = function(parentElement) { 
 		var newElement = document.createElement('div');
-		newElement.className = 'leaf-node';
+		newElement.className = 'node leaf-node';
 		newElement.innerHTML += this.value;
 		parentElement.appendChild(newElement);
 	};

@@ -27,4 +27,9 @@ output[name=treeTable] div.operator {
     background: black;
     color: white;
 }
+
+output[name=treeTable] div.operator.operator-unknown {
+    background: gray; 
+    font-weight:normal;
+}
  

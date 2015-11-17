@@ -28,14 +28,17 @@ function Operator(regex, tightness, openSymbol, closeSymbol, debugSymbol, rightT
 	});
 
 	this.isTighterThan = function(otherOperator) {
+		var effectiveTightness = self.tightness + (rightToLeft ? .5 : 0);
+		return effectiveTightness > otherOperator.tightness;/*
+
 		if (!self.tightness) {
 			return true; // ops without tightness (e.g. parenthesis) are always tightest
 		} else if (!otherOperator.tightness) {
 			return false;
 		} else {
-			var effectiveTightness = self.tightness + (rightToLeft ? .5 : 0);
+			var effectiveTightness = self.tightness; + (rightToLeft ? .5 : 0);
 			return effectiveTightness > otherOperator.tightness;
-		}
+		}*/
 	};
 
 	Object.seal(this);
@@ -60,7 +63,7 @@ var Operators = {
 
 	Coefficient: new Operator(null, 5, '&sdot;'),
 
-	Parenthesis: new Operator(/^,\s*|^\(/, null, '(', ')'),
+	//Parenthesis: new Operator(/^,\s*|^\(/, null, '(', ')'),
 };
 
 /*

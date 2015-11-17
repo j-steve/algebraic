@@ -11,17 +11,34 @@ function compute(equation, treeTable, prettyInput, output) {
 	for (var i = 0; i < eq.length;) {
 		var substring = eq.substring(i);
 		var match = null;
-		var operator = Operator.find(substring);
-		if (operator) {
+		var operator;
+		if (match = /^,\s*|^\(/.exec(substring)) {
+			if (activeNode.rightNode) {
+				activeNode = activeNode.replaceChildNode(null, true);
+			} else {
+				activeNode = activeNode.addChildNode(null, true);
+			}
+		} else if (match = /^\)/.exec(substring)) {
+			while (!activeNode.parenthesis) {
+				activeNode = activeNode.parentNode;
+				if (!activeNode) {return error(prettyInput, 'Unmatched parenthesis at position {0}.', i+1);}
+			}
+			activeNode = activeNode.parentNode;
+		} else if (operator = Operator.find(substring)) {
 			match = operator.regex.exec(substring);
 			if (!activeNode.operator) {
 				activeNode.operator = operator;
 			} else {
-				while (!operator.isTighterThan(activeNode.operator) && activeNode.parentNode) {
+				while (!activeNode.parenthesis && !operator.isTighterThan(activeNode.operator) && activeNode.parentNode) {
 					activeNode = activeNode.parentNode;
 				}
-				if (operator.isTighterThan(activeNode.operator)) {
+				if (activeNode.rightNode && operator.isTighterThan(activeNode.operator)) {
 					activeNode = activeNode.replaceChildNode(operator);
+				} else if (activeNode.parenthesis) {
+					activeNode.parenthesis = false;
+					activeNode = activeNode.parentNode.replaceChildNode(operator)
+					activeNode.parenthesis = true;
+
 				} else {
 					activeNode = activeNode.addChildNode(operator);
 				}

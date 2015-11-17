@@ -1,4 +1,4 @@
-function OperatorNode(operator) {
+function OperatorNode(operator, parenthesis) {
 	'use strict';
 
 	var self = this;
@@ -8,6 +8,7 @@ function OperatorNode(operator) {
 	this.parentNode = null;
 	this.leftNode = null;
 	this.rightNode = null;
+	this.parenthesis = !!parenthesis;
 
 	Object.defineProperty(this, 'operator', {
 		configurable: false,
@@ -35,8 +36,8 @@ function OperatorNode(operator) {
 		}
 	};
 
-	this.addChildNode = function(operator) {
-		var opNode = new OperatorNode(operator);
+	this.addChildNode = function(operator, parenthesis) {
+		var opNode = new OperatorNode(operator, parenthesis);
 		var emptySide = ['leftNode', 'rightNode'].find(function(s) {return !self[s];})
 		if (emptySide) {
 			self[emptySide] = opNode._setParent(self, emptySide);
@@ -47,10 +48,10 @@ function OperatorNode(operator) {
 		return opNode;
 	};
 
-	this.replaceChildNode = function(operator) {
+	this.replaceChildNode = function(operator, parenthesis) {
 		var occupiedSide = ['rightNode', 'leftNode'].find(function(s) {return !!self[s];})
 		if (!occupiedSide) {throw new Error('No nodes to replace.');}
-		var opNode = new OperatorNode(operator);
+		var opNode = new OperatorNode(operator, parenthesis);
 		opNode.leftNode = self[occupiedSide];
 		return self[occupiedSide] = opNode._setParent(self, occupiedSide);
 	};
@@ -58,14 +59,18 @@ function OperatorNode(operator) {
 	this.print = function(parentElement) {
 		var newElement = document.createElement('div');
 		newElement.className = 'operator-node';
-		if (self.leftNode) {self.leftNode.print(newElement);}
-		if (operator) {
-			var operatorElement = document.createElement('div');
-			operatorElement.className = 'operator';
-			operatorElement.innerHTML = operator.debugSymbol;
-			newElement.appendChild(operatorElement);
-		};
+
+		if (self.parenthesis) {newElement.innerHTML += '(';}
+		if (self.leftNode) {self.leftNode.print(newElement);} 
+
+		var operatorElement = document.createElement('div');
+		operatorElement.className = 'operator';
+		operatorElement.innerHTML += operator ? operator.debugSymbol : '?';
+		newElement.appendChild(operatorElement); 
+
 		if (self.rightNode) {self.rightNode.print(newElement);}
+		if (self.parenthesis) {newElement.innerHTML += ')';}
+
 		parentElement.appendChild(newElement);
 	};
 

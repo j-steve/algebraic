@@ -58,7 +58,7 @@ function compute(equation, treeTable, prettyInput, output) {
 
 	prettyInput.innerHTML = '<span>' + activeNode.prettyInput() + '</span>';
 
-	console.dir(activeNode);
+	output.innerHTML = activeNode.solve();
 }
 
 

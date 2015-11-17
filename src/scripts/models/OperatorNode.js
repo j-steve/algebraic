@@ -83,6 +83,19 @@ function OperatorNode(operator, parenthesis) {
 		return result;
 	};
 
+	this.solve = function() {
+		var left = self.leftNode ? self.leftNode.solve() : null;
+		var right = self.rightNode ? self.rightNode.solve() : null;
+
+		if (operator) {
+			return operator.solve(left, right);
+		} else if (!self.rightNode) {
+			return left;
+		} else {
+			return 'ERR!';
+		}
+	}
+
 	Object.seal(this);
 }
 
@@ -110,6 +123,10 @@ function LeafNode(value) {
 	this.prettyInput = function() {
 		return this.value;
 	};
+
+	this.solve = function() {
+		return Number(value);
+	}
 
 	Object.seal(this);
 };

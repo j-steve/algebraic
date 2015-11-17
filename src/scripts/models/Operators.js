@@ -3,6 +3,8 @@ function Operator(regex, tightness, openSymbol, closeSymbol, debugSymbol, rightT
 
 	var self = this;
 
+	var equation = null;
+
 	Object.defineProperty(this, 'regex', {
 		get: function() {return regex;}
 	});
@@ -29,16 +31,14 @@ function Operator(regex, tightness, openSymbol, closeSymbol, debugSymbol, rightT
 
 	this.isTighterThan = function(otherOperator) {
 		var effectiveTightness = self.tightness + (rightToLeft ? .5 : 0);
-		return effectiveTightness > otherOperator.tightness;/*
+		return effectiveTightness > otherOperator.tightness;
+	};
 
-		if (!self.tightness) {
-			return true; // ops without tightness (e.g. parenthesis) are always tightest
-		} else if (!otherOperator.tightness) {
-			return false;
-		} else {
-			var effectiveTightness = self.tightness; + (rightToLeft ? .5 : 0);
-			return effectiveTightness > otherOperator.tightness;
-		}*/
+	this.solve = function(a, b) {return equation ? equation.call(self, a, b) : null;}
+
+	this._equation = function(newEquation) {
+		equation = newEquation;
+		return self;
 	};
 
 	Object.seal(this);
@@ -53,17 +53,15 @@ Operator.find = function(substring) {
 var Operators = { 
 
 	PlusMinus: new Operator(/^\+[-−]|^±/, 2, '±'),
-	Addition: new Operator(/^\+/, 2, '+'),
-	Subtraction: new Operator(/^[-−]/, 2, '−'),
+	Addition: new Operator(/^\+/, 2, '+')._equation(function(a, b) {return a + b;}),
+	Subtraction: new Operator(/^[-−]/, 2, '−')._equation(function(a, b) {return a - b;}),
 
-	Multiply: new Operator(/^[*·∙×\u22C5]/, 3, '&sdot;'),
-	Divide: new Operator(/^[\/∕÷]/, 3, '∕'),
+	Multiply: new Operator(/^[*·∙×\u22C5]/, 3, '&sdot;')._equation(function(a, b) {return a * b;}),
+	Divide: new Operator(/^[\/∕÷]/, 3, '∕')._equation(function(a, b) {return a / b;}),
 
-	Exponent: new Operator(/^\^/, 6, '<sup>', '</sup>', '^', true),
+	Exponent: new Operator(/^\^/, 6, '<sup>', '</sup>', '^', true)._equation(function(a, b) {return Math.pow(a, b);}),
 
-	Coefficient: new Operator(null, 5, '&sdot;'),
-
-	//Parenthesis: new Operator(/^,\s*|^\(/, null, '(', ')'),
+	Coefficient: new Operator(null, 5, '&sdot;')._equation(function(a, b) {return a * b;})
 };
 
 /*

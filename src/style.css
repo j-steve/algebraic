@@ -16,14 +16,14 @@ output {
 	vertical-align: super,
 }
 
-output[name=formattedInput] div {
+output[name=treeTable] div {
     display: inline-block;
     margin: 5px;
 }
-output[name=formattedInput] div.operator-node {
+output[name=treeTable] div.operator-node {
 	border:1px solid silver;
 } 
-output[name=formattedInput] div.operator {
+output[name=treeTable] div.operator {
     background: black;
     color: white;
 }

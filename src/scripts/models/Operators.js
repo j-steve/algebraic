@@ -1,23 +1,36 @@
-function Operator(tightness, openSymbol, closeSymbol) {
+function Operator(regex, tightness, openSymbol, closeSymbol) {
 	'use strict';
+
+	Object.defineProperty(this, 'regex', {
+		get: function() {return regex;}
+	});
 
 	Object.defineProperty(this, 'tightness', {
 		get: function() {return tightness;}
 	});
 
 	Object.defineProperty(this, 'openSymbol', {
-		get: function() {return openSymbol;}
+		get: function() {return openSymbol || '';}
 	});
 
 	Object.defineProperty(this, 'closeSymbol', {
-		get: function() {return closeSymbol;}
+		get: function() {return closeSymbol || '';}
+	});
+
+	Object.seal(this);
+}
+
+Operator.find = function(substring) {
+	return Operators.toArray().find(function(op) {
+		return op.regex && op.regex.test(substring)
 	});
 }
 
 var Operators = { 
-	Parenthesis: new Operator(/*/^,\s*|^\(/, */null, '(', ')'),
-	Multiply: new Operator(/*/^[*·∙×\u22C5]/, */3, '&sdot;'),
-	Coefficient: new Operator(5, '&sdot;'),
+	Addition: new Operator(/^\+/, 2, '+'),
+	Parenthesis: new Operator(/^,\s*|^\(/, null, '(', ')'),
+	Multiply: new Operator(/^[*·∙×\u22C5]/, 3, '&sdot;'),
+	Coefficient: new Operator(null, 5, '&sdot;'),
 };
 
 /*

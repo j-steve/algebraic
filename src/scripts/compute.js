@@ -17,18 +17,14 @@ function compute(equation, treeTable, prettyInput, output) {
 			if (!activeNode.operator) {
 				activeNode.operator = operator;
 			} else {
-				while (activeNode.operator.tightness && activeNode.operator.tightness > operator.tightness && activeNode.parentNode) {
+				while (!operator.isTighterThan(operator) && activeNode.parentNode) {
 					activeNode = activeNode.parentNode;
 				}
-				if (operator.tightness > activeNode.operator.tightness) {
+				if (operator.isTighterThan(activeNode.operator)) {
 					activeNode = activeNode.replaceChildNode(operator);
 				} else {
 					activeNode = activeNode.addChildNode(operator);
 				}
-				//if (activeNode.operator.tightness && activeNode.operator.tightness >= operator.tightness) {
-				//activeNode = activeNode.addChildNode(operator);
-			//} else {
-				//activeNode = activeNode.replaceChildNode(operator);
 			}
 		} else if (match = /^[0-9]+/.exec(substring)) {
 			activeNode.setLeaf(match[0]);
@@ -42,6 +38,8 @@ function compute(equation, treeTable, prettyInput, output) {
 	}
 
 	activeNode.print(treeTable);
+
+	prettyInput.innerHTML = '<span>' + activeNode.prettyInput() + '</span>';
 
 	console.dir(activeNode);
 }

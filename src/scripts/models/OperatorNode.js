@@ -1,6 +1,6 @@
 function OperatorNode(operator) {
 	'use strict';
-	
+
 	var self = this;
 
 	var side = null;
@@ -69,6 +69,15 @@ function OperatorNode(operator) {
 		parentElement.appendChild(newElement);
 	};
 
+	this.prettyInput = function() {
+		var result = ''; 
+		if (self.leftNode) {result += self.leftNode.prettyInput();}
+		if (operator) {result += operator.openSymbol;}
+		if (self.rightNode) {result += self.rightNode.prettyInput();}
+		if (operator) {result += operator.closeSymbol;}
+		return result;
+	};
+
 	Object.seal(this);
 }
 
@@ -91,7 +100,11 @@ function LeafNode(value) {
 		newElement.className = 'leaf-node';
 		newElement.innerHTML += this.value;
 		parentElement.appendChild(newElement);
-	}
+	};
+
+	this.prettyInput = function() {
+		return this.value;
+	};
 
 	Object.seal(this);
 };

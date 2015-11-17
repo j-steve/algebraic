@@ -1,5 +1,7 @@
-function Operator(regex, tightness, openSymbol, closeSymbol, debugSymbol) {
+function Operator(regex, tightness, openSymbol, closeSymbol, debugSymbol, rightToLeft) {
 	'use strict';
+
+	var self = this;
 
 	Object.defineProperty(this, 'regex', {
 		get: function() {return regex;}
@@ -21,6 +23,21 @@ function Operator(regex, tightness, openSymbol, closeSymbol, debugSymbol) {
 		get: function() {return debugSymbol || this.openSymbol + this.closeSymbol;}
 	});
 
+	Object.defineProperty(this, 'rightToLeft', {
+		get: function() {return !!rightToLeft;}
+	});
+
+	this.isTighterThan = function(otherOperator) {
+		if (!self.tightness) {
+			return true; // ops without tightness (e.g. parenthesis) are always tightest
+		} else if (!otherOperator.tightness) {
+			return false;
+		} else {
+			var effectiveTightness = self.tightness + (rightToLeft ? .5 : 0);
+			return effectiveTightness > otherOperator.tightness;
+		}
+	};
+
 	Object.seal(this);
 }
 
@@ -39,7 +56,7 @@ var Operators = {
 	Multiply: new Operator(/^[*·∙×\u22C5]/, 3, '&sdot;'),
 	Divide: new Operator(/^[\/∕÷]/, 3, '∕'),
 
-	Exponent: new Operator(/^\^/, 4, '<sup>', '</sup>', '^'),
+	Exponent: new Operator(/^\^/, 6, '<sup>', '</sup>', '^', true),
 
 	Coefficient: new Operator(null, 5, '&sdot;'),
 

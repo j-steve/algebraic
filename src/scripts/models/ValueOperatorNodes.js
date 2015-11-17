@@ -45,26 +45,7 @@ Leaf.parse = function(substring, lastNode) {
 		node = new Operator('SquareRoot', '√', null, 5);
 	}
 
-	else if (match = /^\^/.exec(substring)) {
-		node = new Operator('Exponent', '<sup>', '</sup>', 4);
-	}
 
-	else if (match = /^\+[-−]|^±/.exec(substring)) {
-		node = new Operator('PlusMinus', '±', null, 2);
-	}
-	else if (match = /^\+/.exec(substring)) {
-		node = new Operator('Plus', '+', null, 2);
-	}
-	else if (match = /^[-−]/.exec(substring)) {
-		node = new Operator('Minus', '−', null, 2);
-	}
-
-	else if (match = /^[*·∙×\u22C5]/.exec(substring)) {
-		node = new Operator('Multiply', '&sdot;', null, 3);
-	}
-	else if (match = /^[\/∕÷]/.exec(substring)) {
-		node = new Operator('Divide', '∕', null, 3);
-	}
 
 	else if (match = /^[0-9]+/.exec(substring)) {
 		node = new NumericNode(match[0]);

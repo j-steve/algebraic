@@ -1,4 +1,4 @@
-function Operator(regex, tightness, openSymbol, closeSymbol) {
+function Operator(regex, tightness, openSymbol, closeSymbol, debugSymbol) {
 	'use strict';
 
 	Object.defineProperty(this, 'regex', {
@@ -17,6 +17,10 @@ function Operator(regex, tightness, openSymbol, closeSymbol) {
 		get: function() {return closeSymbol || '';}
 	});
 
+	Object.defineProperty(this, 'debugSymbol', {
+		get: function() {return debugSymbol || this.openSymbol + this.closeSymbol;}
+	});
+
 	Object.seal(this);
 }
 
@@ -27,10 +31,19 @@ Operator.find = function(substring) {
 }
 
 var Operators = { 
+
+	PlusMinus: new Operator(/^\+[-−]|^±/, 2, '±'),
 	Addition: new Operator(/^\+/, 2, '+'),
-	Parenthesis: new Operator(/^,\s*|^\(/, null, '(', ')'),
+	Subtraction: new Operator(/^[-−]/, 2, '−'),
+
 	Multiply: new Operator(/^[*·∙×\u22C5]/, 3, '&sdot;'),
+	Divide: new Operator(/^[\/∕÷]/, 3, '∕'),
+
+	Exponent: new Operator(/^\^/, 4, '<sup>', '</sup>', '^'),
+
 	Coefficient: new Operator(null, 5, '&sdot;'),
+
+	Parenthesis: new Operator(/^,\s*|^\(/, null, '(', ')'),
 };
 
 /*

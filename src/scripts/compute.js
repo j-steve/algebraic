@@ -17,7 +17,18 @@ function compute(equation, treeTable, prettyInput, output) {
 			if (!activeNode.operator) {
 				activeNode.operator = operator;
 			} else {
-				activeNode = activeNode.setChildNode(operator);
+				while (activeNode.operator.tightness && activeNode.operator.tightness > operator.tightness && activeNode.parentNode) {
+					activeNode = activeNode.parentNode;
+				}
+				if (operator.tightness > activeNode.operator.tightness) {
+					activeNode = activeNode.replaceChildNode(operator);
+				} else {
+					activeNode = activeNode.addChildNode(operator);
+				}
+				//if (activeNode.operator.tightness && activeNode.operator.tightness >= operator.tightness) {
+				//activeNode = activeNode.addChildNode(operator);
+			//} else {
+				//activeNode = activeNode.replaceChildNode(operator);
 			}
 		} else if (match = /^[0-9]+/.exec(substring)) {
 			activeNode.setLeaf(match[0]);

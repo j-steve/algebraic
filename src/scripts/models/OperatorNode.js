@@ -1,18 +1,13 @@
 function OperatorNode(operator) {
 	'use strict';
+	
+	var self = this;
 
 	var side = null;
 
 	this.parentNode = null;
 	this.leftNode = null;
-	this.rightNode = null; 
-
-	/*
-	var parentNode = null;
-	var side = null;
-	var leftNode = null;
-	var rightNode = null;
-	*/
+	this.rightNode = null;
 
 	Object.defineProperty(this, 'operator', {
 		configurable: false,
@@ -24,46 +19,53 @@ function OperatorNode(operator) {
 	});
 
 	this._setParent = function(newParentNode, newSide) {
-		this.parentNode = newParentNode;
+		self.parentNode = newParentNode;
 		side = newSide;
-		return this;
+		return self;
 	}
 
 	this.setLeaf = function(leafValue) {
 		var leaf = new LeafNode(leafValue);
-		if (!this.leftNode) {
-			this.leftNode = leaf;
-		} else if (!this.rightNode) {
-			this.rightNode = leaf;
+		if (!self.leftNode) {
+			self.leftNode = leaf;
+		} else if (!self.rightNode) {
+			self.rightNode = leaf;
 		} else {
 			throw new Error('both set already');
 		}
 	};
 
-	this.setChildNode = function(operator) {
+	this.addChildNode = function(operator) {
 		var opNode = new OperatorNode(operator);
-		if (!this.leftNode) {
-			this.leftNode = opNode._setParent(this, 'leftNode');
-		} else if (!this.rightNode) {
-			this.rightNode = opNode._setParent(this, 'rightNode');
+		var emptySide = ['leftNode', 'rightNode'].find(function(s) {return !self[s];})
+		if (emptySide) {
+			self[emptySide] = opNode._setParent(self, emptySide);
 		} else {
-			if (this.parentNode) {this.parentNode[side] = opNode._setParent(this.parentNode, side);}
-			opNode.leftNode = this._setParent(opNode, 'leftNode');
+			if (self.parentNode) {self.parentNode[side] = opNode._setParent(self.parentNode, side);}
+			opNode.leftNode = self._setParent(opNode, 'leftNode');
 		}
 		return opNode;
+	};
+
+	this.replaceChildNode = function(operator) {
+		var occupiedSide = ['rightNode', 'leftNode'].find(function(s) {return !!self[s];})
+		if (!occupiedSide) {throw new Error('No nodes to replace.');}
+		var opNode = new OperatorNode(operator);
+		opNode.leftNode = self[occupiedSide];
+		return self[occupiedSide] = opNode._setParent(self, occupiedSide);
 	};
 
 	this.print = function(parentElement) {
 		var newElement = document.createElement('div');
 		newElement.className = 'operator-node';
-		if (this.leftNode) {this.leftNode.print(newElement);}
+		if (self.leftNode) {self.leftNode.print(newElement);}
 		if (operator) {
 			var operatorElement = document.createElement('div');
 			operatorElement.className = 'operator';
-			operatorElement.innerHTML = operator.openSymbol + operator.closeSymbol;
+			operatorElement.innerHTML = operator.debugSymbol;
 			newElement.appendChild(operatorElement);
 		};
-		if (this.rightNode) {this.rightNode.print(newElement);}
+		if (self.rightNode) {self.rightNode.print(newElement);}
 		parentElement.appendChild(newElement);
 	};
 

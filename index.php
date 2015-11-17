@@ -6,7 +6,6 @@
 	<link rel="stylesheet" href="src/style.css">
 </head>
 <body>
-
 	<form oninput="compute(equation, formattedInput, result); return false;">
 		<input type="text" name="equation" autocomplete="off" autofocus/>
 		<output name="formattedInput"></output>
@@ -14,7 +13,8 @@
 	</form>
 
 	<script src="src/scripts/polyfill.js"></script>
-	<script src="src/scripts/models/Scope.js"></script>  
+	<script src="src/scripts/models/Operators.js"></script>
+	<script src="src/scripts/models/OperatorNode.js"></script>
 	<script src="src/scripts/models/ValueOperatorNodes.js"></script>  
 	<script src="src/scripts/compute.js"></script>
 

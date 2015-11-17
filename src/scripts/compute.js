@@ -17,7 +17,7 @@ function compute(equation, treeTable, prettyInput, output) {
 			if (!activeNode.operator) {
 				activeNode.operator = operator;
 			} else {
-				while (!operator.isTighterThan(operator) && activeNode.parentNode) {
+				while (!operator.isTighterThan(activeNode.operator) && activeNode.parentNode) {
 					activeNode = activeNode.parentNode;
 				}
 				if (operator.isTighterThan(activeNode.operator)) {

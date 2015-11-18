@@ -3,11 +3,38 @@ function OperatorNode(operator, parenthesis) {
 
 	var self = this;
 
+	/**
+	 * The side of the parent node on which this node appears: either 'leftNode' or 'rightNode'. 
+	 * @type {string}
+	 */
 	var side = null;
 
+    // ================================================================================
+    // Public Properties
+    // ================================================================================
+
+	/**
+	 * The parent of this node.
+	 * @type {OperatorNode}
+	 */
 	this.parentNode = null;
+
+	/**
+	 * This node's first (i.e. left) child
+	 * @type {LeafNode|OperatorNode}
+	 */
 	this.leftNode = null;
+
+	/**
+	 * This node's second (i.e. right) child
+	 * @type {LeafNode|OperatorNode}
+	 */
 	this.rightNode = null;
+
+	/**
+	 * Set to {@code true} if this node is surrounded by parenthesis.
+	 * @type {boolean}
+	 */
 	this.parenthesis = !!parenthesis;
 
 	Object.defineProperty(this, 'operator', {
@@ -18,6 +45,10 @@ function OperatorNode(operator, parenthesis) {
 			operator = value;
 		}
 	});
+
+    // ================================================================================
+    // Methods
+    // ================================================================================
 
 	this._setParent = function(newParentNode, newSide) {
 		self.parentNode = newParentNode;
@@ -96,10 +127,19 @@ function OperatorNode(operator, parenthesis) {
 		}
 	}
 
+    // ================================================================================
+    // Initialization
+    // ================================================================================
+
 	Object.seal(this);
 }
 
-
+/**
+ * The representation of operands, i.e., the terminus ("leaf") nodes 
+ * representing numbers, variables, or constants rather than functions/mathmematical operations.
+ * 
+ * @param {*} value
+ */
 function LeafNode(value) {
 	'use strict';
 

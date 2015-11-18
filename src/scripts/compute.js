@@ -13,11 +13,18 @@ function compute(equation, treeTableElement, prettyInputElement, resultElement) 
 		var match = null;
 		var operator;
 		if (match = /^,\s*|^\(/.exec(substring)) {
-			// TODO- add support for coefficent mutliplication like 4(54)
-			if (activeNode.rightNode) {
-				activeNode = activeNode.replaceChildNode(null, true);
-			} else {
+			if (activeNode.rightNode) {   // catches "1^2(3..."
+				activeNode = activeNode.replaceChildNode(Operators.Multiply)
 				activeNode = activeNode.addChildNode(null, true);
+			} else if (activeNode.operator) { // catches "1^2(..."
+				activeNode = activeNode.addChildNode(null, true);
+			} else if (activeNode.leftNode) { // catches "2(3..."
+				activeNode.operator = Operators.Multiply;
+				activeNode = activeNode.addChildNode(null, true);
+			} else if (activeNode.parentNode && !activeNode.parenthesis) {
+				activeNode = activeNode.addChildNode(null, true);
+			} else {
+				activeNode.parenthesis = true
 			}
 		} else if (match = /^\)/.exec(substring)) {
 			while (!activeNode.parenthesis) {
@@ -44,8 +51,21 @@ function compute(equation, treeTableElement, prettyInputElement, resultElement) 
 					activeNode = activeNode.addChildNode(operator);
 				}
 			}
-		} else if (match = /^[0-9]+/.exec(substring)) {
-			activeNode.setLeaf(match[0]);
+		} else if (match = /^[0-9]+|^[A-Za-z]/.exec(substring)) {
+			if (activeNode.rightNode) { // catches "43^4x..."
+				// TODO - make "5xy" evaluate left to right
+				if (!activeNode.parentNode) {
+					activeNode.parentNode = new OperatorNode();
+					activeNode.parentNode.leftNode = activeNode._setParent(activeNode.parentNode, 'leftNode');
+				}
+				activeNode = activeNode.parentNode.replaceChildNode(Operators.Coefficient)
+				activeNode.setLeaf(match[0]);
+			} else if (activeNode.operator || !activeNode.leftNode) { // If it's totally empty or has operator but no rightNode then it's ready for a leaf. (Catches "4+x...")
+				activeNode.setLeaf(match[0]);
+			} else { // catches "4x..." 
+				activeNode.operator = Operators.Coefficient;
+				activeNode.setLeaf(match[0]);
+			}
 		}
 
 		i += match ? match[0].length : 1;
@@ -60,6 +80,8 @@ function compute(equation, treeTableElement, prettyInputElement, resultElement) 
 	prettyInputElement.innerHTML = '<span>' + activeNode.prettyInput() + '</span>';
 
 	resultElement.innerHTML = activeNode.solve();
+
+	//resultElement.innerHTML = activeNode.simplify();
 }
 
 function error(input, message, args) { 

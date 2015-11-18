@@ -114,12 +114,12 @@ function OperatorNode(operator, parenthesis) {
 		return result;
 	};
 
-	this.solve = function() {
-		var left = self.leftNode ? self.leftNode.solve() : null;
-		var right = self.rightNode ? self.rightNode.solve() : null;
+	this.solve = function(exact) {
+		var left = self.leftNode ? self.leftNode.solve(exact) : null;
+		var right = self.rightNode ? self.rightNode.solve(exact) : null;
 
 		if (operator) {
-			return operator.solve(left, right);
+			return operator.solve(exact, left, right);
 		} else if (!self.rightNode) {
 			return left;
 		} else {
@@ -133,40 +133,3 @@ function OperatorNode(operator, parenthesis) {
 
 	Object.seal(this);
 }
-
-/**
- * The representation of operands, i.e., the terminus ("leaf") nodes 
- * representing numbers, variables, or constants rather than functions/mathmematical operations.
- * 
- * @param {*} value
- */
-function LeafNode(value) {
-	'use strict';
-
-	this._parentNode = null;
-
-	Object.defineProperty(this, 'parentNode', {
-		get: function() {return this._parentNode;}
-	});
-
-	Object.defineProperty(this, 'value', {
-		get: function() {return value;}
-	});
-
-	this.print = function(parentElement) { 
-		var newElement = document.createElement('div');
-		newElement.className = 'node leaf-node';
-		newElement.innerHTML += this.value;
-		parentElement.appendChild(newElement);
-	};
-
-	this.prettyInput = function() {
-		return this.value;
-	};
-
-	this.solve = function() {
-		return Number(value);
-	}
-
-	Object.seal(this);
-};

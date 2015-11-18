@@ -87,14 +87,15 @@ var Operators = {
 	Addition: new Operator(/^\+/, 2, '+').setEquation(function(a, b) {return a + b;}),
 	Subtraction: new Operator(/^[-−]/, 2, '−').setEquation(function(a, b) {return a - b;}),
 
+
 	Multiply: new Operator(/^[*·∙×\u22C5]/, 3, '&sdot;').setEquation(function(a, b) {return a * b;}),
 	Divide: new Operator(/^[\/∕÷]/, 3, '∕').setEquation(function(a, b) {return a / b;}),
 
-	Exponent: new Operator(/^\^/, 6, '<sup>', '</sup>', '^', true).setEquation(function(a, b) {return Math.pow(a, b);}),
+	Exponent: new Operator(/^\^/, 4, '<sup>', '</sup>', '^', true).setEquation(function(a, b) {return Math.pow(a, b);}),
 
-	Coefficient: new Operator(null, 5, '&sdot;').setEquation(function(a, b) {return a * b;}),
+	SquareRoot: new Operator(/^sqrt|^√/, 4, '√').setEquation(function(a, b) {return (a != null ? a : 1) * Math.sqrt(b);}),
 
-	SquareRoot: new Operator(/^sqrt|^√/, 5, '√').setEquation(function(a, b) {return (a != null ? a : 1) * Math.sqrt(b);})
+	Coefficient: new Operator(null, 5, '&sdot;').setEquation(function(a, b) {return a * b;})
 
 };
 

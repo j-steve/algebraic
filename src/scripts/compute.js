@@ -1,9 +1,9 @@
-function compute(equation, treeTable, prettyInput, output) {
+function compute(equation, treeTableElement, prettyInputElement, resultElement) {
 	'use strict';
 
-	treeTable.innerHTML = '';
-	prettyInput.innerHTML = '';
-	output.innerHTML = '';
+	treeTableElement.innerHTML = '';
+	prettyInputElement.innerHTML = '';
+	resultElement.innerHTML = '';
 
 	var eq = equation.value;
 
@@ -22,7 +22,7 @@ function compute(equation, treeTable, prettyInput, output) {
 		} else if (match = /^\)/.exec(substring)) {
 			while (!activeNode.parenthesis) {
 				activeNode = activeNode.parentNode;
-				if (!activeNode) {return error(prettyInput, 'Unmatched parenthesis at position {0}.', i+1);}
+				if (!activeNode) {return error(prettyInputElement, 'Unmatched parenthesis at position {0}.', i+1);}
 			}
 			activeNode = activeNode.parentNode;
 		} else if (operator = Operator.find(substring)) {
@@ -55,11 +55,11 @@ function compute(equation, treeTable, prettyInput, output) {
 		activeNode = activeNode.parentNode;
 	}
 
-	activeNode.print(treeTable);
+	activeNode.print(treeTableElement);
 
-	prettyInput.innerHTML = '<span>' + activeNode.prettyInput() + '</span>';
+	prettyInputElement.innerHTML = '<span>' + activeNode.prettyInput() + '</span>';
 
-	output.innerHTML = activeNode.solve();
+	resultElement.innerHTML = activeNode.solve();
 }
 
 function error(input, message, args) { 

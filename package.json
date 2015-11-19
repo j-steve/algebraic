@@ -2,11 +2,14 @@
 	"name": "Algebraic",
 	"version": "1.0.0",
 	"keywords": ["util", "functional", "server", "client", "browser"],
-	"author": "John.Sichina",
+	"author": "J.Stephen.Sichina",
 	"repository": {
-		"type": "svn",
-		"url": "https://v8.googlecode.com/svn/trunk/"
+		"type": "git",
+		"url": "https://github.com/j-steve/algebraic.git"
 	},
 	"contributors": [],
-	"dependencies": {}
+	"dependencies": {},
+	"devDependencies": {
+		
+	}
 }

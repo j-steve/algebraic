@@ -1,6 +1,6 @@
 <?php
 
-header("Location: http://algebraic.herokuapp.com/www/");
+header("Location: http://algebraic.herokuapp.com/www-built/");
 die();
 
 ?>

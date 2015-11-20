@@ -1,4 +1,5 @@
 /* global Operator */
+/* global LeafNode */
 
 /**
  * @constructor
@@ -65,12 +66,14 @@ function OperatorNode(operator, parenthesis) {
 		return self;
 	};
 
-	this.setLeaf = function(leafValue) {
-		var leaf = new LeafNode(leafValue);
+	/**
+	 * @param {LeafNode} newLeafNode 
+	 */
+	this.setLeaf = function(newLeafNode) {
 		if (!self.leftNode) {
-			self.leftNode = leaf;
+			self.leftNode = newLeafNode;
 		} else if (!self.rightNode) {
-			self.rightNode = leaf;
+			self.rightNode = newLeafNode;
 		} else {
 			throw new Error('both set already');
 		}
@@ -123,19 +126,6 @@ function OperatorNode(operator, parenthesis) {
 		if (operator) {result += operator.closeSymbol;}
 		return result;
 	};
-
-	this.solve = function() {
-		var left = self.leftNode ? self.leftNode.solve() : null;
-		var right = self.rightNode ? self.rightNode.solve() : null;
-
-		if (operator) {
-			return operator.solve(left, right);
-		} else if (!self.rightNode) {
-			return left;
-		} else {
-			throw new Error('Cannot solve: missing operator.');
-		}
-	};
 	
 	this.simplify = function() {
 		var left = self.leftNode ? self.leftNode.simplify() : null;
@@ -147,6 +137,19 @@ function OperatorNode(operator, parenthesis) {
 			return left;
 		} else {
 			throw new Error('Cannot simplify: missing operator.');
+		}
+	};
+
+	this.calculate = function() {
+		var left = self.leftNode ? self.leftNode.calculate() : null;
+		var right = self.rightNode ? self.rightNode.calculate() : null;
+
+		if (operator) {
+			return operator.calculate(left, right);
+		} else if (!self.rightNode) {
+			return left;
+		} else {
+			throw new Error('Cannot solve: missing operator.');
 		}
 	};
 

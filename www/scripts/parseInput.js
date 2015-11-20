@@ -1,4 +1,5 @@
 /* global Operators */
+/* global LeafNode */
 
 /**
  * 
@@ -19,7 +20,7 @@ function parseInput(substring) {
 	
 	for (var opKey in Operators) {
 		if (Operators.hasOwnProperty(opKey) && Operators[opKey].regex) {
-			if (match = Operators[opKey].regex.match(substring)) {  // jshint ignore:line
+			if (match = Operators[opKey].regex.exec(substring)) {  // jshint ignore:line
 				return new ParseInputResult(match, Operators[opKey]);
 			}
 
@@ -27,7 +28,7 @@ function parseInput(substring) {
 	}
 	
 	if (match = /^[0-9]+|^[A-Za-z]/.exec(substring)) { // jshint ignore:line
-		return new ParseInputResult(match, 'ALPHANUMERIC'); 
+		return new ParseInputResult(match, new LeafNode(match[0])); 
 	}
 	
 	return new ParseInputResult(['1'], 'BAD_CHAR');
@@ -45,5 +46,5 @@ function ParseInputResult(match, type) {
 	this.match = match[0];
 	
 	/** @type {Operator|*} */
-	this.type = nodeType;
+	this.type = type;
 }

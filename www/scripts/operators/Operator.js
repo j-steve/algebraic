@@ -5,8 +5,8 @@
  * @typedef {Object} OperatorProps
  * @property {RegExp} regex   the match pattern to identify an operator in an equation
  * @property {number} tightness   how tightly bound an operator is to its value, e.g., its rank in the order of operations heirchy
- * @property {Function} solve
  * @property {Function simplify
+ * @property {Function} calculate
  * @property {string} [openSymbol]
  * @property {string} [closeSymbol]
  * @property {string} [debugSymbol]
@@ -79,12 +79,12 @@ function Operator(prop) {
 		return effectiveTightness > otherOperator.tightness;
 	};
 
-	this.solve = function (a, b) {
-		return prop.solve ? prop.solve.call(self, a, b) : null;
-	};
-
 	this.simplify = function (a, b) {
 		return prop.simplify ? prop.simplify.call(self, a, b) : null;
+	};
+
+	this.calculate = function (a, b) {
+		return prop.calculate ? prop.calculate.call(self, a, b) : null;
 	};
 
 	// ================================================================================

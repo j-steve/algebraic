@@ -1,5 +1,6 @@
 /* global Operators */
 /* global Operator */
+/* global LeafNode */
 /* global parseInput */
 
 /**
@@ -51,7 +52,10 @@ function makeEquationTree(inputEquation) {
 					activeNode = activeNode.addChildNode(operator);
 				}
 			}
-		} else if (match.type === 'ALPHANUMERIC') {
+		} else if (match.type instanceof LeafNode) {
+			
+			/** @type {LeafNode} */ var leafNode = match.type;
+			
 			if (activeNode.rightNode) { // catches "43^4x..."
 				// TODO - make "5xy" evaluate left to right
 				if (!activeNode.parentNode) {
@@ -59,12 +63,12 @@ function makeEquationTree(inputEquation) {
 					activeNode.parentNode.leftNode = activeNode._setParent(activeNode.parentNode, 'leftNode');
 				}
 				activeNode = activeNode.parentNode.replaceChildNode(Operators.Coefficient);
-				activeNode.setLeaf(match[0]);
+				activeNode.setLeaf(leafNode);
 			} else if (activeNode.operator || !activeNode.leftNode) { // If it's totally empty or has operator but no rightNode then it's ready for a leaf. (Catches "4+x...")
-				activeNode.setLeaf(match[0]);
+				activeNode.setLeaf(leafNode);
 			} else { // catches "4x..." 
 				activeNode.operator = Operators.Coefficient;
-				activeNode.setLeaf(match[0]);
+				activeNode.setLeaf(leafNode);
 			}
 		}
 
@@ -74,4 +78,6 @@ function makeEquationTree(inputEquation) {
 	while (activeNode.parentNode) {
 		activeNode = activeNode.parentNode;
 	}
+	
+	return activeNode;
 }

@@ -10,16 +10,16 @@
  */
 function LeafNode(value) {
 	'use strict';
+	
+	var self = this;
 
     // ================================================================================
     // Read-Only Properties
     // ================================================================================
 
-	Object.defineProperty(this, 'value', {
-		get: function() {return value;}
-	});
+	this.value = value;
 	
-	this.isNumeric = Number(value) == value; // jshint ignore:line
+	this.isNumeric = String(Number(this.value)) === this.value;
 	
     // ================================================================================
     // Methods
@@ -28,20 +28,20 @@ function LeafNode(value) {
 	this.print = function(parentElement) { 
 		var newElement = document.createElement('div');
 		newElement.className = 'node leaf-node';
-		newElement.innerHTML += this.value;
+		newElement.innerHTML += self.value;
 		parentElement.appendChild(newElement);
 	};
 
 	this.prettyInput = function() {
-		return this.value;
-	};
-
-	this.solve = function() {
-		return Number(value);
+		return self.value;
 	};
 
 	this.simplify = function() {
-		return Number(value);
+		return Number(self.value);
+	};
+
+	this.calculate = function() {
+		return Number(self.value);
 	};
 
     // ================================================================================

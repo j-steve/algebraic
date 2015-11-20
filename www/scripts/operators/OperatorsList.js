@@ -13,7 +13,7 @@ var Operators = {
 		regex: /^\+/,
 		tightness: 2,
 		openSymbol: '+',
-		solve: function (a, b) {
+		calculate: function (a, b) {
 			return a + b;
 		}
 	}),
@@ -22,7 +22,7 @@ var Operators = {
 		regex: /^[-−]/,
 		tightness: 2,
 		openSymbol: '−',
-		solve: function (a, b) {
+		calculate: function (a, b) {
 			return a - b;
 		}
 	}),
@@ -31,7 +31,7 @@ var Operators = {
 		regex: /^[*·∙×\u22C5]/,
 		tightness: 3,
 		openSymbol: '&sdot;',
-		solve: function (a, b) {
+		calculate: function (a, b) {
 			return a * b;
 		}
 	}),
@@ -40,7 +40,7 @@ var Operators = {
 		regex: /^[\/∕÷]/,
 		tightness: 3,
 		openSymbol: '∕',
-		solve: function (a, b) {
+		calculate: function (a, b) {
 			return a / b;
 		}
 	}),
@@ -52,7 +52,7 @@ var Operators = {
 		closeSymbol: '</sup>',
 		debugSymbol: '^',
 		rightToLeft: true,
-		solve: function (a, b) {
+		calculate: function (a, b) {
 			return Math.pow(a, b);
 		}
 	})

@@ -18,33 +18,53 @@ module.exports = function (grunt) {
 		copy: {
 			build: {
 				cwd: 'www',
-				src: ['**'],
+				src: ['**', '!scripts/**'],
 				dest: 'www-built',
 				expand: true
+			}
+		},
+		concat: {
+			options: {
+				separator: ';'
+			},
+			dist: {
+				src: ['www/scripts/**/*.js'],
+				dest: 'www-built/scripts/algebraic.js'
 			}
 		},
 		clean: {
 			build: {
 				src: 'www-built'
 			}
-		}
+		}/*,
+		 requirejs: {
+		 compile: {
+		 options: {
+		 baseUrl: "www/scripts/requirejs",
+		 mainConfigFile: "path/to/config.js",
+		 out: "www/scripts/requirejs.js"
+		 }
+		 }
+		 }*/
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-clean');
-	
+	grunt.loadNpmTasks('grunt-contrib-concat');
+	//grunt.loadNpmTasks('grunt-contrib-requirejs');
+
 	grunt.registerTask(
-	  'default', 
-	  'Watches the project for changes, automatically builds them and runs a server.', 
-	  [ 'build', 'watch' ]
+		'default',
+		'Watches the project for changes, automatically builds them and runs a server.',
+		['build', 'watch']
 	);
-	
+
 	grunt.registerTask(
-	  'build', 
-	  'Compiles all of the assets and copies the files to the build directory.', 
-	  ['jshint', 'clean', 'copy' ]
+		'build',
+		'Compiles all of the assets and copies the files to the build directory.',
+		['jshint', 'clean', 'copy', 'concat']
 	);
 
 };

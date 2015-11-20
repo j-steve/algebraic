@@ -7,7 +7,7 @@
 </head>
 <body>
 
-	<form oninput="compute(equation, treeTable, formattedInput, result); return false;">
+	<form oninput="compute(equation, treeTable, formattedInput, exactResult, approxResult); return false;">
 		<label>
 			<span>Input:</span>
 			<input type="text" name="equation" autocomplete="off" autofocus/>
@@ -22,21 +22,16 @@
 				<output name="formattedInput"></output>
 			</label>
 			<label>
-				<span>Simplified Output:</span>
-				<output name="result"></output>
+				<span>Result (Exact):</span>
+				<output name="exactResult"></output>
 			</label>
 			<label>
-				<span>Calculated Output:</span>
-				<output name="result"></output>
+				<span>Result (Apprx.):</span>
+				<output name="approxResult"></output>
 			</label>
 		</div>
 	</form>
 
-	<script src="scripts/polyfill.js"></script>
-	<script src="scripts/models/Operators.js"></script>
-	<script src="scripts/models/OperatorNode.js"></script> 
-	<script src="scripts/models/LeafNode.js"></script>
-	<script src="scripts/compute.js"></script>
-
+	<script src="scripts/algebraic.js"></script> 
 </body>
 </html>

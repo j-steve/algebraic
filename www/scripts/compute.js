@@ -14,11 +14,11 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		// Output results
 		rootNode.print(treeTableElement);
 		prettyInputElement.innerHTML = '<span>' + rootNode.prettyInput() + '</span>';
-		calculateElement.innerHTML = rootNode.calculate();
 		rootNode.simplify();
 		
 		rootNode.print(simplifyElement);
 		simplifyElement.className = 'treeTable';
+		calculateElement.innerHTML = rootNode.calculate();
 		//simplifyElement.innerHTML = rootNode.prettyInput();
 	} catch (err) {
 		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';

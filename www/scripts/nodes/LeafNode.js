@@ -44,7 +44,7 @@ function LeafNode(value) {
 	};
 
 	this.calculate = function() {
-		return Number(self.value);
+		return self.isNumeric() ? Number(self.value) : self.value;
 	};
 
     // ================================================================================

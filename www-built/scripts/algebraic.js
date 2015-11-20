@@ -14,11 +14,11 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		// Output results
 		rootNode.print(treeTableElement);
 		prettyInputElement.innerHTML = '<span>' + rootNode.prettyInput() + '</span>';
-		calculateElement.innerHTML = rootNode.calculate();
 		rootNode.simplify();
 		
 		rootNode.print(simplifyElement);
 		simplifyElement.className = 'treeTable';
+		calculateElement.innerHTML = rootNode.calculate();
 		//simplifyElement.innerHTML = rootNode.prettyInput();
 	} catch (err) {
 		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
@@ -155,7 +155,7 @@ function LeafNode(value) {
 	};
 
 	this.calculate = function() {
-		return Number(self.value);
+		return self.isNumeric() ? Number(self.value) : self.value;
 	};
 
     // ================================================================================
@@ -303,7 +303,7 @@ function OperatorNode(operator, parenthesis) {
 			var sides = ['rightNode', 'leftNode'];
 			var numericSide = sides.find(function(s) {return self[s] && self[s].isNumeric();});
 			var nonNumericSide = sides.find(function(s) {return self[s] && !self[s].isNumeric();});
-			if (numericSide && nonNumericSide) {
+			while (numericSide && nonNumericSide && self[nonNumericSide].operator) {
 				var operandSide = sides.find(function(s) {return self[nonNumericSide][s] && self[nonNumericSide][s].isNumeric();});
 				var variableSide = sides.find(function(s) {return self[nonNumericSide][s] && !self[nonNumericSide][s].isNumeric();});
 				var operandNode = self[nonNumericSide][operandSide];
@@ -312,15 +312,26 @@ function OperatorNode(operator, parenthesis) {
 				var opNode = new OperatorNode(self[nonNumericSide].operator.inverse, parenthesis);
 				opNode.leftNode = self[numericSide];//.setParent(opNode, 'leftNode');
 				opNode.rightNode = self[nonNumericSide][operandSide];//.setParent(opNode, 'rightNode');
-				self[nonNumericSide] = opNode;//.setParent(self, nonNumericSide);
-				self[numericSide] = variableNode;//.setParent(self, numericSide);
+				self.leftNode = variableNode;//.setParent(self, numericSide);
+				self.rightNode = opNode;//.setParent(self, nonNumericSide);
+				
+				
+				numericSide = sides.find(function(s) {return self[s] && self[s].isNumeric();});
+				nonNumericSide = sides.find(function(s) {return self[s] && !self[s].isNumeric();});
 			}
 		}
 	};
 
 	this.calculate = function() {
+		
 		var left = self.leftNode ? self.leftNode.calculate() : null;
 		var right = self.rightNode ? self.rightNode.calculate() : null;
+		
+		if (operator === Operators.Equals) { //jshint ignore:line
+			return left + '=' + right;
+		}
+		if (!self.isNumeric()) {return self.prettyInput();}
+	
 
 		if (operator) {
 			return operator.calculate(left, right);

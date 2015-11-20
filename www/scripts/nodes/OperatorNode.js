@@ -138,7 +138,7 @@ function OperatorNode(operator, parenthesis) {
 			var sides = ['rightNode', 'leftNode'];
 			var numericSide = sides.find(function(s) {return self[s] && self[s].isNumeric();});
 			var nonNumericSide = sides.find(function(s) {return self[s] && !self[s].isNumeric();});
-			if (numericSide && nonNumericSide) {
+			while (numericSide && nonNumericSide && self[nonNumericSide].operator) {
 				var operandSide = sides.find(function(s) {return self[nonNumericSide][s] && self[nonNumericSide][s].isNumeric();});
 				var variableSide = sides.find(function(s) {return self[nonNumericSide][s] && !self[nonNumericSide][s].isNumeric();});
 				var operandNode = self[nonNumericSide][operandSide];
@@ -149,6 +149,10 @@ function OperatorNode(operator, parenthesis) {
 				opNode.rightNode = self[nonNumericSide][operandSide];//.setParent(opNode, 'rightNode');
 				self.leftNode = variableNode;//.setParent(self, numericSide);
 				self.rightNode = opNode;//.setParent(self, nonNumericSide);
+				
+				
+				numericSide = sides.find(function(s) {return self[s] && self[s].isNumeric();});
+				nonNumericSide = sides.find(function(s) {return self[s] && !self[s].isNumeric();});
 			}
 		}
 	};

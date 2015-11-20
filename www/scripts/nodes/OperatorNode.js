@@ -99,6 +99,12 @@ function OperatorNode(operator, parenthesis) {
 		self[occupiedSide] = opNode._setParent(self, occupiedSide);
 		return self[occupiedSide];
 	};
+	
+	
+	this.isNumeric = function() {
+		return (!this.leftNode || this.leftNode.isNumeric()) && (!this.rightNode || this.rightNode.isNumeric());
+	};
+	
 
 	this.print = function(parentElement) {
 		var newElement = document.createElement('div');

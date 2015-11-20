@@ -60,10 +60,10 @@ function makeEquationTree(inputEquation) {
 			if (!activeNode.operator) {
 				activeNode.operator = operator;
 			} else {
-				while (!activeNode.parenthesis && !operator.isTighterThan(activeNode.operator) && activeNode.parentNode) {
+				while (!activeNode.parenthesis && activeNode.operator.isTighterThan(operator) && activeNode.parentNode) {
 					activeNode = activeNode.parentNode;
 				}
-				if (activeNode.rightNode && operator.isTighterThan(activeNode.operator)) {
+				if (activeNode.rightNode && !activeNode.operator.isTighterThan(operator)) {
 					activeNode = activeNode.replaceChildNode(operator);
 				} else if (activeNode.parenthesis) {
 					activeNode.parenthesis = false;
@@ -118,16 +118,19 @@ function LeafNode(value) {
 	var self = this;
 
     // ================================================================================
-    // Read-Only Properties
+    // Public Properties
     // ================================================================================
 
 	this.value = value;
 	
-	this.isNumeric = String(Number(this.value)) === this.value;
-	
     // ================================================================================
     // Methods
     // ================================================================================
+	
+	this.isNumeric = function() {
+		return String(Number(this.value)) === this.value;
+	};
+	
 
 	this.print = function(parentElement) { 
 		var newElement = document.createElement('div');
@@ -254,6 +257,12 @@ function OperatorNode(operator, parenthesis) {
 		self[occupiedSide] = opNode._setParent(self, occupiedSide);
 		return self[occupiedSide];
 	};
+	
+	
+	this.isNumeric = function() {
+		return (!this.leftNode || this.leftNode.isNumeric()) && (!this.rightNode || this.rightNode.isNumeric());
+	};
+	
 
 	this.print = function(parentElement) {
 		var newElement = document.createElement('div');
@@ -390,12 +399,12 @@ function Operator(prop) {
 	// ================================================================================
 
 	this.isTighterThan = function (otherOperator) {
-		var effectiveTightness = self.tightness + (prop.rightToLeft ? 0.5 : 0);
+		var effectiveTightness = self.tightness - (prop.rightToLeft ? 0.5 : 0);
 		return effectiveTightness > otherOperator.tightness;
 	};
 
 	this.simplify = function (a, b) {
-		return prop.simplify ? prop.simplify.call(self, a, b) : null;
+		return prop.simplify ? prop.simplify.call(self, a, b) : this.calculate(a, b);
 	};
 
 	this.calculate = function (a, b) {
@@ -411,6 +420,18 @@ function Operator(prop) {
  * A list of all basic operator types.
  */
 var Operators = {
+	
+	Equals: new Operator({
+		regex: /^[=]/,
+		tightness: 1,
+		openSymbol: '=',
+		calculate: function(a, b) {
+			return a === b;
+		},
+		simplify: function(a, b) {
+			return a === b;
+		}
+	}),
 	
 	PlusMinus: new Operator({
 		regex: /^\+[-−]|^±/,
@@ -442,6 +463,17 @@ var Operators = {
 		openSymbol: '&sdot;',
 		calculate: function (a, b) {
 			return a * b;
+		},
+		simplify: function(a, b) {
+			
+		}
+	}),
+	Coefficient: new Operator({ 
+		tightness: 4,
+		//openSymbol: '&sdot;',
+		debugSymbol: '&sdot;',
+		calculate: function (a, b) {
+			return a * b;
 		}
 	}),
 	
@@ -467,6 +499,7 @@ var Operators = {
 	})
 
 };
+
 
 /*
  OPERATORS TO ADD:

@@ -3,6 +3,18 @@
  */
 var Operators = {
 	
+	Equals: new Operator({
+		regex: /^[=]/,
+		tightness: 1,
+		openSymbol: '=',
+		calculate: function(a, b) {
+			return a === b;
+		},
+		simplify: function(a, b) {
+			return a === b;
+		}
+	}),
+	
 	PlusMinus: new Operator({
 		regex: /^\+[-−]|^±/,
 		tightness: 2,
@@ -33,6 +45,17 @@ var Operators = {
 		openSymbol: '&sdot;',
 		calculate: function (a, b) {
 			return a * b;
+		},
+		simplify: function(a, b) {
+			
+		}
+	}),
+	Coefficient: new Operator({ 
+		tightness: 4,
+		//openSymbol: '&sdot;',
+		debugSymbol: '&sdot;',
+		calculate: function (a, b) {
+			return a * b;
 		}
 	}),
 	
@@ -58,6 +81,7 @@ var Operators = {
 	})
 
 };
+
 
 /*
  OPERATORS TO ADD:

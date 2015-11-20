@@ -38,10 +38,10 @@ function makeEquationTree(inputEquation) {
 			if (!activeNode.operator) {
 				activeNode.operator = operator;
 			} else {
-				while (!activeNode.parenthesis && !operator.isTighterThan(activeNode.operator) && activeNode.parentNode) {
+				while (!activeNode.parenthesis && activeNode.operator.isTighterThan(operator) && activeNode.parentNode) {
 					activeNode = activeNode.parentNode;
 				}
-				if (activeNode.rightNode && operator.isTighterThan(activeNode.operator)) {
+				if (activeNode.rightNode && !activeNode.operator.isTighterThan(operator)) {
 					activeNode = activeNode.replaceChildNode(operator);
 				} else if (activeNode.parenthesis) {
 					activeNode.parenthesis = false;

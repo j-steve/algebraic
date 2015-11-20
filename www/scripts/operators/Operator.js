@@ -75,12 +75,12 @@ function Operator(prop) {
 	// ================================================================================
 
 	this.isTighterThan = function (otherOperator) {
-		var effectiveTightness = self.tightness + (prop.rightToLeft ? 0.5 : 0);
+		var effectiveTightness = self.tightness - (prop.rightToLeft ? 0.5 : 0);
 		return effectiveTightness > otherOperator.tightness;
 	};
 
 	this.simplify = function (a, b) {
-		return prop.simplify ? prop.simplify.call(self, a, b) : null;
+		return prop.simplify ? prop.simplify.call(self, a, b) : this.calculate(a, b);
 	};
 
 	this.calculate = function (a, b) {

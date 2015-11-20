@@ -13,7 +13,7 @@ module.exports = function (grunt) {
 		},
 		watch: {
 			files: ['<%= jshint.files %>'],
-			tasks: ['build']
+			tasks: ['clean', 'copy', 'concat']
 		},
 		copy: {
 			build: {

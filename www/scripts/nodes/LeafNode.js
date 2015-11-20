@@ -14,16 +14,19 @@ function LeafNode(value) {
 	var self = this;
 
     // ================================================================================
-    // Read-Only Properties
+    // Public Properties
     // ================================================================================
 
 	this.value = value;
 	
-	this.isNumeric = String(Number(this.value)) === this.value;
-	
     // ================================================================================
     // Methods
     // ================================================================================
+	
+	this.isNumeric = function() {
+		return String(Number(this.value)) === this.value;
+	};
+	
 
 	this.print = function(parentElement) { 
 		var newElement = document.createElement('div');

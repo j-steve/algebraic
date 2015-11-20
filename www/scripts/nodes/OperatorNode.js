@@ -147,15 +147,22 @@ function OperatorNode(operator, parenthesis) {
 				var opNode = new OperatorNode(self[nonNumericSide].operator.inverse, parenthesis);
 				opNode.leftNode = self[numericSide];//.setParent(opNode, 'leftNode');
 				opNode.rightNode = self[nonNumericSide][operandSide];//.setParent(opNode, 'rightNode');
-				self[nonNumericSide] = opNode;//.setParent(self, nonNumericSide);
-				self[numericSide] = variableNode;//.setParent(self, numericSide);
+				self.leftNode = variableNode;//.setParent(self, numericSide);
+				self.rightNode = opNode;//.setParent(self, nonNumericSide);
 			}
 		}
 	};
 
 	this.calculate = function() {
+		
 		var left = self.leftNode ? self.leftNode.calculate() : null;
 		var right = self.rightNode ? self.rightNode.calculate() : null;
+		
+		if (operator === Operators.Equals) { //jshint ignore:line
+			return left + '=' + right;
+		}
+		if (!self.isNumeric()) {return self.prettyInput();}
+	
 
 		if (operator) {
 			return operator.calculate(left, right);

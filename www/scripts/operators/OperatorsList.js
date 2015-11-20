@@ -44,7 +44,7 @@ var Operators = {
 	Multiply: new Operator({
 		regex: /^[*·∙×\u22C5]/,
 		tightness: 3,
-		inverse: 'Division',
+		inverse: 'Divide',
 		openSymbol: '&sdot;',
 		calculate: function (a, b) {
 			return a * b;
@@ -55,7 +55,7 @@ var Operators = {
 	}),
 	Coefficient: new Operator({ 
 		tightness: 4,
-		inverse: 'Division',
+		inverse: 'Divide',
 		//openSymbol: '&sdot;',
 		debugSymbol: '&sdot;',
 		calculate: function (a, b) {

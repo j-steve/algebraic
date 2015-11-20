@@ -20,7 +20,7 @@ input {
 
 .output label > span {
 	display: inline-block;
-	width:125px;
+	width:150px;
 	text-align:right;
 }
 
@@ -31,19 +31,19 @@ input {
 	font-size:20px;
 }
 
-output[name=treeTable] div {
+output.treeTable div {
     display: inline-block;
     margin: 5px;
 }
-output[name=treeTable] div.operator-node {
+output.treeTable div.operator-node {
 	border:1px solid silver;
 } 
-output[name=treeTable] div.operator {
+output.treeTable div.operator {
     background: black;
     color: white;
 }
 
-output[name=treeTable] div.operator.operator-unknown {
+output.treeTable div.operator.operator-unknown {
     background: gray; 
     font-weight:normal;
 }

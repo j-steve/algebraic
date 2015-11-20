@@ -1,0 +1,50 @@
+input {
+	font-size:16px;
+} 
+
+.op {
+	margin:0px 5px;
+}
+.sup {
+	vertical-align: super;
+}
+
+.output {
+	padding:10px 15px;
+}
+
+.output label {
+	min-height:50px;
+	display:block;
+}
+
+.output label > span {
+	display: inline-block;
+	width:125px;
+	text-align:right;
+}
+
+.output output {
+	display:inline-block;
+	margin-top:10px;
+	font-family:monospace;
+	font-size:20px;
+}
+
+output[name=treeTable] div {
+    display: inline-block;
+    margin: 5px;
+}
+output[name=treeTable] div.operator-node {
+	border:1px solid silver;
+} 
+output[name=treeTable] div.operator {
+    background: black;
+    color: white;
+}
+
+output[name=treeTable] div.operator.operator-unknown {
+    background: gray; 
+    font-weight:normal;
+}
+ 

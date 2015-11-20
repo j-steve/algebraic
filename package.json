@@ -10,6 +10,12 @@
 	"contributors": [],
 	"dependencies": {},
 	"devDependencies": {
+        "grunt": "*",
+        "grunt-cli": "*",
+		"grunt-contrib-jshint": "~0.11.3",
+		"grunt-contrib-watch": "~0.6.1",
+		"grunt-contrib-copy": "~0.8.2",
+		"grunt-contrib-clean": "~0.7.0"
 		
 	}
 }

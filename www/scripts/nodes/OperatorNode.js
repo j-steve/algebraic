@@ -134,15 +134,22 @@ function OperatorNode(operator, parenthesis) {
 	};
 	
 	this.simplify = function() {
-		var left = self.leftNode ? self.leftNode.simplify() : null;
-		var right = self.rightNode ? self.rightNode.simplify() : null;
-		
-		if (operator) {
-			return operator.simplify(left, right);
-		} else if (!self.rightNode) {
-			return left;
-		} else {
-			throw new Error('Cannot simplify: missing operator.');
+		if (operator === Operators.Equals) { //jshint ignore:line
+			var sides = ['rightNode', 'leftNode'];
+			var numericSide = sides.find(function(s) {return self[s] && self[s].isNumeric();});
+			var nonNumericSide = sides.find(function(s) {return self[s] && !self[s].isNumeric();});
+			if (numericSide && nonNumericSide) {
+				var operandSide = sides.find(function(s) {return self[nonNumericSide][s] && self[nonNumericSide][s].isNumeric();});
+				var variableSide = sides.find(function(s) {return self[nonNumericSide][s] && !self[nonNumericSide][s].isNumeric();});
+				var operandNode = self[nonNumericSide][operandSide];
+				var variableNode = self[nonNumericSide][variableSide];
+				
+				var opNode = new OperatorNode(self[nonNumericSide].operator.inverse, parenthesis);
+				opNode.leftNode = self[numericSide];//.setParent(opNode, 'leftNode');
+				opNode.rightNode = self[nonNumericSide][operandSide];//.setParent(opNode, 'rightNode');
+				self[nonNumericSide] = opNode;//.setParent(self, nonNumericSide);
+				self[numericSide] = variableNode;//.setParent(self, numericSide);
+			}
 		}
 	};
 

@@ -59,11 +59,14 @@ function makeEquationTree(inputEquation) {
 			if (activeNode.rightNode) { // catches "43^4x..."
 				// TODO - make "5xy" evaluate left to right
 				if (!activeNode.parentNode) {
-					activeNode.parentNode = new OperatorNode();
-					activeNode.parentNode.leftNode = activeNode._setParent(activeNode.parentNode, 'leftNode');
+					var opNode = new OperatorNode(Operators.Coefficient);
+					opNode.leftNode = activeNode._setParent(opNode, 'leftNode');
+					opNode.setLeaf(leafNode);
+					activeNode = activeNode.parentNode;
+				} else {
+					activeNode = activeNode.parentNode.replaceChildNode(Operators.Coefficient);
+					activeNode.setLeaf(leafNode);
 				}
-				activeNode = activeNode.parentNode.replaceChildNode(Operators.Coefficient);
-				activeNode.setLeaf(leafNode);
 			} else if (activeNode.operator || !activeNode.leftNode) { // If it's totally empty or has operator but no rightNode then it's ready for a leaf. (Catches "4+x...")
 				activeNode.setLeaf(leafNode);
 			} else { // catches "4x..." 

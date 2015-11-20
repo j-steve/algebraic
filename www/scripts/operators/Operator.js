@@ -70,6 +70,12 @@ function Operator(prop) {
 		}
 	});
 
+	Object.defineProperty(this, 'inverse', {
+		get: function () {
+			return Operators[prop.inverse]; // jshint ignore:line
+		}
+	});
+
 	// ================================================================================
 	// Methods
 	// ================================================================================

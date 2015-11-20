@@ -14,8 +14,9 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		// Output results
 		rootNode.print(treeTableElement);
 		prettyInputElement.innerHTML = '<span>' + rootNode.prettyInput() + '</span>';
-		simplifyElement.innerHTML = rootNode.simplify();
 		calculateElement.innerHTML = rootNode.calculate();
+		rootNode.simplify();
+		simplifyElement.innerHTML = rootNode.prettyInput();
 	} catch (err) {
 		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
 	}
@@ -81,11 +82,14 @@ function makeEquationTree(inputEquation) {
 			if (activeNode.rightNode) { // catches "43^4x..."
 				// TODO - make "5xy" evaluate left to right
 				if (!activeNode.parentNode) {
-					activeNode.parentNode = new OperatorNode();
-					activeNode.parentNode.leftNode = activeNode._setParent(activeNode.parentNode, 'leftNode');
+					var opNode = new OperatorNode(Operators.Coefficient);
+					opNode.leftNode = activeNode._setParent(opNode, 'leftNode');
+					opNode.setLeaf(leafNode);
+					activeNode = activeNode.parentNode;
+				} else {
+					activeNode = activeNode.parentNode.replaceChildNode(Operators.Coefficient);
+					activeNode.setLeaf(leafNode);
 				}
-				activeNode = activeNode.parentNode.replaceChildNode(Operators.Coefficient);
-				activeNode.setLeaf(leafNode);
 			} else if (activeNode.operator || !activeNode.leftNode) { // If it's totally empty or has operator but no rightNode then it's ready for a leaf. (Catches "4+x...")
 				activeNode.setLeaf(leafNode);
 			} else { // catches "4x..." 
@@ -292,15 +296,22 @@ function OperatorNode(operator, parenthesis) {
 	};
 	
 	this.simplify = function() {
-		var left = self.leftNode ? self.leftNode.simplify() : null;
-		var right = self.rightNode ? self.rightNode.simplify() : null;
-		
-		if (operator) {
-			return operator.simplify(left, right);
-		} else if (!self.rightNode) {
-			return left;
-		} else {
-			throw new Error('Cannot simplify: missing operator.');
+		if (operator === Operators.Equals) { //jshint ignore:line
+			var sides = ['rightNode', 'leftNode'];
+			var numericSide = sides.find(function(s) {return self[s] && self[s].isNumeric();});
+			var nonNumericSide = sides.find(function(s) {return self[s] && !self[s].isNumeric();});
+			if (numericSide && nonNumericSide) {
+				var operandSide = sides.find(function(s) {return self[nonNumericSide][s] && self[nonNumericSide][s].isNumeric();});
+				var variableSide = sides.find(function(s) {return self[nonNumericSide][s] && !self[nonNumericSide][s].isNumeric();});
+				var operandNode = self[nonNumericSide][operandSide];
+				var variableNode = self[nonNumericSide][variableSide];
+				
+				var opNode = new OperatorNode(self[nonNumericSide].operator.inverse, parenthesis);
+				opNode.leftNode = self[numericSide];//.setParent(opNode, 'leftNode');
+				opNode.rightNode = self[nonNumericSide][operandSide];//.setParent(opNode, 'rightNode');
+				self[nonNumericSide] = opNode;//.setParent(self, nonNumericSide);
+				self[numericSide] = variableNode;//.setParent(self, numericSide);
+			}
 		}
 	};
 
@@ -394,6 +405,12 @@ function Operator(prop) {
 		}
 	});
 
+	Object.defineProperty(this, 'inverse', {
+		get: function () {
+			return Operators[prop.inverse]; // jshint ignore:line
+		}
+	});
+
 	// ================================================================================
 	// Methods
 	// ================================================================================
@@ -442,6 +459,7 @@ var Operators = {
 	Addition: new Operator({
 		regex: /^\+/,
 		tightness: 2,
+		inverse: 'Subtraction',
 		openSymbol: '+',
 		calculate: function (a, b) {
 			return a + b;
@@ -451,6 +469,7 @@ var Operators = {
 	Subtraction: new Operator({
 		regex: /^[-−]/,
 		tightness: 2,
+		inverse: 'Addition',
 		openSymbol: '−',
 		calculate: function (a, b) {
 			return a - b;
@@ -460,6 +479,7 @@ var Operators = {
 	Multiply: new Operator({
 		regex: /^[*·∙×\u22C5]/,
 		tightness: 3,
+		inverse: 'Division',
 		openSymbol: '&sdot;',
 		calculate: function (a, b) {
 			return a * b;
@@ -470,6 +490,7 @@ var Operators = {
 	}),
 	Coefficient: new Operator({ 
 		tightness: 4,
+		inverse: 'Division',
 		//openSymbol: '&sdot;',
 		debugSymbol: '&sdot;',
 		calculate: function (a, b) {
@@ -480,6 +501,7 @@ var Operators = {
 	Divide: new Operator({
 		regex: /^[\/∕÷]/,
 		tightness: 3,
+		inverse: 'Multiply',
 		openSymbol: '∕',
 		calculate: function (a, b) {
 			return a / b;
@@ -489,6 +511,7 @@ var Operators = {
 	Exponent: new Operator({
 		regex: /^\^/,
 		tightness: 4,
+		inverse: 'Logarithm',
 		openSymbol: '<sup>',
 		closeSymbol: '</sup>',
 		debugSymbol: '^',

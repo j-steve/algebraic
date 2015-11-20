@@ -24,6 +24,7 @@ var Operators = {
 	Addition: new Operator({
 		regex: /^\+/,
 		tightness: 2,
+		inverse: 'Subtraction',
 		openSymbol: '+',
 		calculate: function (a, b) {
 			return a + b;
@@ -33,6 +34,7 @@ var Operators = {
 	Subtraction: new Operator({
 		regex: /^[-−]/,
 		tightness: 2,
+		inverse: 'Addition',
 		openSymbol: '−',
 		calculate: function (a, b) {
 			return a - b;
@@ -42,6 +44,7 @@ var Operators = {
 	Multiply: new Operator({
 		regex: /^[*·∙×\u22C5]/,
 		tightness: 3,
+		inverse: 'Division',
 		openSymbol: '&sdot;',
 		calculate: function (a, b) {
 			return a * b;
@@ -52,6 +55,7 @@ var Operators = {
 	}),
 	Coefficient: new Operator({ 
 		tightness: 4,
+		inverse: 'Division',
 		//openSymbol: '&sdot;',
 		debugSymbol: '&sdot;',
 		calculate: function (a, b) {
@@ -62,6 +66,7 @@ var Operators = {
 	Divide: new Operator({
 		regex: /^[\/∕÷]/,
 		tightness: 3,
+		inverse: 'Multiply',
 		openSymbol: '∕',
 		calculate: function (a, b) {
 			return a / b;
@@ -71,6 +76,7 @@ var Operators = {
 	Exponent: new Operator({
 		regex: /^\^/,
 		tightness: 4,
+		inverse: 'Logarithm',
 		openSymbol: '<sup>',
 		closeSymbol: '</sup>',
 		debugSymbol: '^',

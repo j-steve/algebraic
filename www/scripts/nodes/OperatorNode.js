@@ -168,7 +168,7 @@ function OperatorNode(operator, parenthesis) {
 				
 				var opNode;
 				if (self[nonNumericSide].operator === Operators.Exponent) {
-					var inverseOp = (operandSide === 'leftNode') ? Operators.Logarithm : Operators.Exponent;
+					var inverseOp = (operandSide === 'leftNode') ? Operators.Logarithm : Operators.Root;
 					opNode = new OperatorNode(inverseOp, parenthesis);
 					opNode.leftNode = self[nonNumericSide][operandSide];
 					opNode.rightNode = self[numericSide];

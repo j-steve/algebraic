@@ -126,11 +126,33 @@ function OperatorNode(operator, parenthesis) {
 
 	this.prettyInput = function() {
 		var result = ''; 
+		if (this.parenthesis) {result += '(';}
+		if (operator) {result += operator.leftNodeSymbol;}
 		if (self.leftNode) {result += self.leftNode.prettyInput();}
 		if (operator) {result += operator.openSymbol;}
 		if (self.rightNode) {result += self.rightNode.prettyInput();}
 		if (operator) {result += operator.closeSymbol;}
+		if (this.parenthesis) {result += ')';}
 		return result;
+	};
+	
+	/**
+	 * @param {OperatorNode} parentNode
+	 */
+	this.cleanup = function(parentNode) {
+		if (self.parenthesis) {
+			if (!self.rightNode) { // If operator is parenthesis with just 1 value, no need for parenthesis.
+				self.parenthesis = false;
+			}
+			if (!self.operator || !parentNode || !parentNode.operator || parentNode.operator.isTighterThan(self.operator)) {
+				//this.parenthesis = false;
+			}
+		}
+		['leftNode', 'rightNode'].forEach(function(side) {
+			if (self[side] instanceof OperatorNode) {
+				self[side].cleanup(self);
+			}
+		});
 	};
 	
 	this.simplify = function() {
@@ -144,9 +166,17 @@ function OperatorNode(operator, parenthesis) {
 				var operandNode = self[nonNumericSide][operandSide];
 				var variableNode = self[nonNumericSide][variableSide];
 				
-				var opNode = new OperatorNode(self[nonNumericSide].operator.inverse, parenthesis);
-				opNode.leftNode = self[numericSide];//.setParent(opNode, 'leftNode');
-				opNode.rightNode = self[nonNumericSide][operandSide];//.setParent(opNode, 'rightNode');
+				var opNode;
+				if (self[nonNumericSide].operator === Operators.Exponent) {
+					var inverseOp = (operandSide === 'leftNode') ? Operators.Logarithm : Operators.Exponent;
+					opNode = new OperatorNode(inverseOp, parenthesis);
+					opNode.leftNode = self[nonNumericSide][operandSide];
+					opNode.rightNode = self[numericSide];
+				} else {
+					opNode = new OperatorNode(self[nonNumericSide].operator.inverse, parenthesis);
+					opNode.leftNode = self[numericSide];//.setParent(opNode, 'leftNode');
+					opNode.rightNode = self[nonNumericSide][operandSide];//.setParent(opNode, 'rightNode');
+				}
 				self.leftNode = variableNode;//.setParent(self, numericSide);
 				self.rightNode = opNode;//.setParent(self, nonNumericSide);
 				

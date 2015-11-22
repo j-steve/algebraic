@@ -47,4 +47,7 @@ output.treeTable div.operator.operator-unknown {
     background: gray; 
     font-weight:normal;
 }
- 
+
+.n-root {
+	color:blue;
+}

@@ -16,6 +16,7 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		prettyInputElement.innerHTML = '<span>' + rootNode.prettyInput() + '</span>';
 		rootNode.simplify();
 		
+		rootNode.cleanup();
 		rootNode.print(simplifyElement);
 		simplifyElement.className = 'treeTable';
 		calculateElement.innerHTML = rootNode.calculate();
@@ -53,9 +54,13 @@ function makeEquationTree(inputEquation) {
 				activeNode.parenthesis = true;
 			}
 		} else if (match.type === 'CLOSE-PAREN') {
-			while (!activeNode.parenthesis) {
+			while (!activeNode.parenthesis && activeNode.parentNode) {
 				activeNode = activeNode.parentNode;
-				if (!activeNode) {throw new Error(String.format('Unmatched parenthesis at position {0}.', i+1));}
+				//if (!activeNode) {throw new Error(String.format('Unmatched parenthesis at position {0}.', i+1));}
+			}
+			if (!activeNode.parentNode) { // The root-level node had parenthesis closed.
+				var newRoot = new OperatorNode();
+				newRoot.leftNode = activeNode._setParent(newRoot, 'leftNode');
 			}
 			activeNode = activeNode.parentNode;
 		} else if (match.type instanceof Operator) {
@@ -291,11 +296,33 @@ function OperatorNode(operator, parenthesis) {
 
 	this.prettyInput = function() {
 		var result = ''; 
+		if (this.parenthesis) {result += '(';}
+		if (operator) {result += operator.leftNodeSymbol;}
 		if (self.leftNode) {result += self.leftNode.prettyInput();}
 		if (operator) {result += operator.openSymbol;}
 		if (self.rightNode) {result += self.rightNode.prettyInput();}
 		if (operator) {result += operator.closeSymbol;}
+		if (this.parenthesis) {result += ')';}
 		return result;
+	};
+	
+	/**
+	 * @param {OperatorNode} parentNode
+	 */
+	this.cleanup = function(parentNode) {
+		if (self.parenthesis) {
+			if (!self.rightNode) { // If operator is parenthesis with just 1 value, no need for parenthesis.
+				self.parenthesis = false;
+			}
+			if (!self.operator || !parentNode || !parentNode.operator || parentNode.operator.isTighterThan(self.operator)) {
+				//this.parenthesis = false;
+			}
+		}
+		['leftNode', 'rightNode'].forEach(function(side) {
+			if (self[side] instanceof OperatorNode) {
+				self[side].cleanup(self);
+			}
+		});
 	};
 	
 	this.simplify = function() {
@@ -309,9 +336,17 @@ function OperatorNode(operator, parenthesis) {
 				var operandNode = self[nonNumericSide][operandSide];
 				var variableNode = self[nonNumericSide][variableSide];
 				
-				var opNode = new OperatorNode(self[nonNumericSide].operator.inverse, parenthesis);
-				opNode.leftNode = self[numericSide];//.setParent(opNode, 'leftNode');
-				opNode.rightNode = self[nonNumericSide][operandSide];//.setParent(opNode, 'rightNode');
+				var opNode;
+				if (self[nonNumericSide].operator === Operators.Exponent) {
+					var inverseOp = (operandSide === 'leftNode') ? Operators.Logarithm : Operators.Exponent;
+					opNode = new OperatorNode(inverseOp, parenthesis);
+					opNode.leftNode = self[nonNumericSide][operandSide];
+					opNode.rightNode = self[numericSide];
+				} else {
+					opNode = new OperatorNode(self[nonNumericSide].operator.inverse, parenthesis);
+					opNode.leftNode = self[numericSide];//.setParent(opNode, 'leftNode');
+					opNode.rightNode = self[nonNumericSide][operandSide];//.setParent(opNode, 'rightNode');
+				}
 				self.leftNode = variableNode;//.setParent(self, numericSide);
 				self.rightNode = opNode;//.setParent(self, nonNumericSide);
 				
@@ -392,6 +427,11 @@ function Operator(prop) {
 		},
 		set: function(value) {
 			prop.tightness = value;
+		}
+	});
+	Object.defineProperty(this, 'leftNodeSymbol', {
+		get: function () {
+			return prop.leftNodeSymbol || '';
 		}
 	});
 
@@ -533,7 +573,34 @@ var Operators = {
 		calculate: function (a, b) {
 			return Math.pow(a, b);
 		}
+	}),
+	
+	Root: new Operator({
+		regex: null,
+		tightness: 4,
+		inverse: 'Exponent',
+		leftNodeSymbol: '<span class="n-root">',
+		openSymbol: '</span>&radic;(',
+		closeSymbol: ')',
+		debugSymbol: '&radic;',
+		calculate: function (a, b) {
+			return Math.pow(b, 1/a);
+		}
+	}),
+	
+	Logarithm: new Operator({
+		regex: null,
+		tightness: 4,
+		inverse: 'Exponent',
+		leftNodeSymbol: 'log<span class="n-log">',
+		openSymbol: '</span>',
+		closeSymbol: '',
+		debugSymbol: 'log',
+		calculate: function (a, b) {
+			return Math.log(b) / Math.log(a);
+		}
 	})
+
 
 };
 

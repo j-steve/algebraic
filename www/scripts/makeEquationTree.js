@@ -27,9 +27,13 @@ function makeEquationTree(inputEquation) {
 				activeNode.parenthesis = true;
 			}
 		} else if (match.type === 'CLOSE-PAREN') {
-			while (!activeNode.parenthesis) {
+			while (!activeNode.parenthesis && activeNode.parentNode) {
 				activeNode = activeNode.parentNode;
-				if (!activeNode) {throw new Error(String.format('Unmatched parenthesis at position {0}.', i+1));}
+				//if (!activeNode) {throw new Error(String.format('Unmatched parenthesis at position {0}.', i+1));}
+			}
+			if (!activeNode.parentNode) { // The root-level node had parenthesis closed.
+				var newRoot = new OperatorNode();
+				newRoot.leftNode = activeNode._setParent(newRoot, 'leftNode');
 			}
 			activeNode = activeNode.parentNode;
 		} else if (match.type instanceof Operator) {

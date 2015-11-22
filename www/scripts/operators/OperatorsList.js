@@ -84,7 +84,34 @@ var Operators = {
 		calculate: function (a, b) {
 			return Math.pow(a, b);
 		}
+	}),
+	
+	Root: new Operator({
+		regex: null,
+		tightness: 4,
+		inverse: 'Exponent',
+		leftNodeSymbol: '<span class="n-root">',
+		openSymbol: '</span>&radic;(',
+		closeSymbol: ')',
+		debugSymbol: '&radic;',
+		calculate: function (a, b) {
+			return Math.pow(b, 1/a);
+		}
+	}),
+	
+	Logarithm: new Operator({
+		regex: null,
+		tightness: 4,
+		inverse: 'Exponent',
+		leftNodeSymbol: 'log<span class="n-log">',
+		openSymbol: '</span>',
+		closeSymbol: '',
+		debugSymbol: 'log',
+		calculate: function (a, b) {
+			return Math.log(b) / Math.log(a);
+		}
 	})
+
 
 };
 

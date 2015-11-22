@@ -45,6 +45,11 @@ function Operator(prop) {
 			prop.tightness = value;
 		}
 	});
+	Object.defineProperty(this, 'leftNodeSymbol', {
+		get: function () {
+			return prop.leftNodeSymbol || '';
+		}
+	});
 
 	Object.defineProperty(this, 'openSymbol', {
 		get: function () {

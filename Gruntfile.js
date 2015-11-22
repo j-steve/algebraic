@@ -9,6 +9,7 @@ module.exports = function (grunt) {
 		jshint: {
 			files: ['Gruntfile.js', 'www/scripts/**/*.js'],
 			options: {
+				loopfunc: true
 			}
 		},
 		watch: {

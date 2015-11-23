@@ -10,14 +10,17 @@
  */
 function LeafNode(value) {
 	'use strict';
-	
 	var self = this;
+	
+	BaseNode.call(this);
 
     // ================================================================================
     // Public Properties
     // ================================================================================
 
 	this.value = value;
+	
+	this.printVals.middle = value;
 	
     // ================================================================================
     // Methods
@@ -53,3 +56,4 @@ function LeafNode(value) {
 
 	Object.seal(this);
 }
+Object.extend(BaseNode, LeafNode);

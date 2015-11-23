@@ -9,6 +9,12 @@
 		child.prototype = Object.create(parent.prototype);
 		child.prototype.constructor = child; 
 	};
+	
+	/*Object.iterate = function(target, callback, thisContext) {
+		Object.keys(target).forEach(function(key) {
+			callback.call(thisContext, target[key], key, target);
+		});
+	};*/
 
 	Object.prototype.toArray = function() {
 		var self = this;

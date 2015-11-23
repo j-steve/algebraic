@@ -12,7 +12,9 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		var rootNode = makeEquationTree(equation.value);
 
 		// Output results
-		rootNode.print(treeTableElement);
+		treeTableElement.innerHTML = rootNode.toString();
+		return;
+		//rootNode.print(treeTableElement);
 		prettyInputElement.innerHTML = '<span>' + rootNode.prettyInput() + '</span>';
 		rootNode.simplify();
 		

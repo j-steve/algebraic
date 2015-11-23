@@ -10,48 +10,23 @@
  */
 function OperatorNode(operator, parenthesis) {
 	'use strict';
-
 	var self = this;
-
-	/**
-	 * The side of the parent node on which this node appears: either 'leftNode' or 'rightNode'. 
-	 * @type {string}
-	 */
-	var side = null;
-
-    // ================================================================================
-    // Public Properties
-    // ================================================================================
-
-	/**
-	 * The parent of this node.
-	 * @type {OperatorNode}
-	 */
-	this.parentNode = null;
-
-	/**
-	 * This node's first (i.e. left) child
-	 * @type {LeafNode|OperatorNode}
-	 */
-	this.leftNode = null;
-
-	/**
-	 * This node's second (i.e. right) child
-	 * @type {LeafNode|OperatorNode}
-	 */
-	this.rightNode = null;
+	
+	BaseNode.call(this);
 
 	/**
 	 * Set to {@code true} if this node is surrounded by parenthesis.
 	 * @type {boolean}
 	 */
 	this.parenthesis = !!parenthesis;
+	
+	this.printVals.before =  '<div class="node operator-node">';
 
 	Object.defineProperty(this, 'operator', {
 		configurable: false,
 		get: function() {return operator;},
 		set: function(value) {
-			if (!(value instanceof Operator)) {throw new TypeError('Invalid type: ' + value);}
+			this.printVals.middle = operator ? ('<div class="operator">' + operator.debugSymbol + '</div>') : '';
 			operator = value;
 		}
 	});
@@ -61,8 +36,7 @@ function OperatorNode(operator, parenthesis) {
     // ================================================================================
 
 	this._setParent = function(newParentNode, newSide) {
-		self.parentNode = newParentNode;
-		side = newSide;
+		self.parent = newParentNode; 
 		return self;
 	};
 
@@ -85,21 +59,11 @@ function OperatorNode(operator, parenthesis) {
 		if (emptySide) {
 			self[emptySide] = opNode._setParent(self, emptySide);
 		} else {
-			if (self.parentNode) {self.parentNode[side] = opNode._setParent(self.parentNode, side);}
+			if (self.parent) {self.parent[side] = opNode._setParent(self.parent, side);}
 			opNode.leftNode = self._setParent(opNode, 'leftNode');
 		}
 		return opNode;
 	};
-
-	this.replaceChildNode = function(operator, parenthesis) {
-		var occupiedSide = ['rightNode', 'leftNode'].find(function(s) {return !!self[s];});
-		if (!occupiedSide) {throw new Error('No nodes to replace.');}
-		var opNode = new OperatorNode(operator, parenthesis);
-		opNode.leftNode = self[occupiedSide];
-		self[occupiedSide] = opNode._setParent(self, occupiedSide);
-		return self[occupiedSide];
-	};
-	
 	
 	this.isNumeric = function() {
 		return (!this.leftNode || this.leftNode.isNumeric()) && (!this.rightNode || this.rightNode.isNumeric());
@@ -211,7 +175,9 @@ function OperatorNode(operator, parenthesis) {
     // Initialization
     // ================================================================================
 
+	this.operator = operator;
+
 	Object.seal(this);
 }
 
-Object.extend()
+Object.extend(BaseNode, OperatorNode);

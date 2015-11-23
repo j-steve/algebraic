@@ -1,4 +1,57 @@
-/* global makeEquationTree */
+(function() {
+	'use strict';
+
+	Array.prototype.peek = function() {
+		return this.length ? this[this.length - 1] : false;
+	};
+
+	Object.extend = function(parent, child) {
+		child.prototype = Object.create(parent.prototype);
+		child.prototype.constructor = child; 
+	};
+	
+	/*Object.iterate = function(target, callback, thisContext) {
+		Object.keys(target).forEach(function(key) {
+			callback.call(thisContext, target[key], key, target);
+		});
+	};*/
+
+	Object.prototype.toArray = function() {
+		var self = this;
+		return Object.keys(self).map(function(key) {
+			return self[key];
+		});
+	};
+	 
+    /**
+     * The pattern for matching parseMessage replacements, e.g. "{0}", "{1}", etc.
+     *
+     * @type {RegEx}
+     */
+    var PARSE_MSG_REGEX = /{(\d+)}/;
+
+    /**
+     * Parses through the passed String looking for place holders (i.e.: {0} ). When it finds a placeholder it
+     * looks for a corresponding extra argument passed to the method. If it finds one, it replaces every
+     * instance of the place holder with the String value of the passed argument. Otherwise it will remove the
+     * place holder.
+     *
+     * @param {string} message - the message to parse.
+     * @param {...Object} replacements - the items to use for replacing the place holders.
+     * @returns {string} - the modified String.
+     */
+	String.format = function(message) {
+        if (typeof message === 'string') { 
+            for (var match; match = PARSE_MSG_REGEX.exec(message);) { //jshint ignore:line
+                var index = parseInt(match[1]) + 1;
+                var replaceVal = index < arguments.length ? arguments[index] : '';
+                message = message.replace(match[0], replaceVal);
+            }
+        }
+        return message;
+    };
+
+})();;/* global makeEquationTree */
 
 function compute(equation, treeTableElement, prettyInputElement, simplifyElement, calculateElement) {
 	'use strict';
@@ -12,7 +65,9 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		var rootNode = makeEquationTree(equation.value);
 
 		// Output results
-		rootNode.print(treeTableElement);
+		treeTableElement.innerHTML = rootNode.toString();
+		return;
+		//rootNode.print(treeTableElement);
 		prettyInputElement.innerHTML = '<span>' + rootNode.prettyInput() + '</span>';
 		rootNode.simplify();
 		
@@ -30,54 +85,105 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 /* global LeafNode */
 /* global parseInput */
 
+/* global ParenthesisNode */
+/* global OperatorNode */
+/* global LeafNode */
+
+var activeNode;
+
 /**
  * @param {string} inputEquation
  * @returns {OperatorNode}
  */
 function makeEquationTree(inputEquation) {
 	
+	
+	activeNode = new BaseNode();
+	for (var i = 0; i < inputEquation.length;) {
+		var match = parseInput(inputEquation.substring(i));
+		if (match.node instanceof ParenthesisNode) { 
+			addImplicitMultiply();
+			activeNode.addChild(match.node);
+			activeNode = match.node;
+		} else if (match.node instanceof OperatorNode) { 
+			activeNode.rotateLeft(match.node); 
+			activeNode = match.node;
+		} else if (match.node instanceof LeafNode) {
+			addImplicitMultiply();
+			activeNode.addChild(match.node);
+		}
+		i += match.match.length;
+	}
+	
+	return getRoot(activeNode);
+	
+	
+
+	function addImplicitMultiply() {
+		if (activeNode.leftNode && (activeNode.rightNode || !(activeNode instanceof OperatorNode))) {
+			var implicitMultiplyNode = new OperatorNode(Operators.Multiply);
+			activeNode.rotateLeft(implicitMultiplyNode);
+			activeNode = implicitMultiplyNode;
+		}
+	}
+}
+	
+	
+function makeEquationTree_old(inputEquation) {
 	var activeNode = new OperatorNode();
 	for (var i = 0; i < inputEquation.length;) {
 		var match = parseInput(inputEquation.substring(i));
 		if (match.type === 'OPEN-PAREN') {
+			var opNode = new ParenthesisNode();
+			if (!activeNode.operator) {
+				var implicitMultiplyNode = new OperatorNode(Operators.Multiply);
+				activeNode.rotateLeft(implicitMultiplyNode);
+				implicitMultiplyNode.rightNode = opNode; 
+			}
 			if (activeNode.rightNode) {   // catches "1^2(3..."
-				activeNode = activeNode.replaceChildNode(Operators.Multiply);
-				activeNode = activeNode.addChildNode(null, true);
+				activeNode.rightNode.rotateLeft(opNode);
 			} else if (activeNode.operator) { // catches "1^2(..."
 				activeNode = activeNode.addChildNode(null, true);
 			} else if (activeNode.leftNode) { // catches "2(3..."
 				activeNode.operator = Operators.Multiply;
 				activeNode = activeNode.addChildNode(null, true);
-			} else if (activeNode.parentNode && !activeNode.parenthesis) {
+			} else if (activeNode.parent && !activeNode.parenthesis) {
 				activeNode = activeNode.addChildNode(null, true);
 			} else {
-				activeNode.parenthesis = true;
+				alert('whoops');
+				throw new Error('whoops');
+				//activeNode.parenthesis = true;
 			}
+			activeNode = opNode;
 		} else if (match.type === 'CLOSE-PAREN') {
-			while (!activeNode.parenthesis && activeNode.parentNode) {
-				activeNode = activeNode.parentNode;
+			while (!activeNode.parenthesis && activeNode.parent) {
+				activeNode = activeNode.parent;
 				//if (!activeNode) {throw new Error(String.format('Unmatched parenthesis at position {0}.', i+1));}
 			}
-			if (!activeNode.parentNode) { // The root-level node had parenthesis closed.
+			if (!activeNode.parent) { // The root-level node had parenthesis closed.
 				var newRoot = new OperatorNode();
 				newRoot.leftNode = activeNode._setParent(newRoot, 'leftNode');
 			}
-			activeNode = activeNode.parentNode;
+			activeNode = activeNode.parent;
 		} else if (match.type instanceof Operator) {
 			
 			/** @type {Operator} */ var operator = match.type;
 			if (!activeNode.operator) {
 				activeNode.operator = operator;
 			} else {
-				while (!activeNode.parenthesis && activeNode.operator.isTighterThan(operator) && activeNode.parentNode) {
-					activeNode = activeNode.parentNode;
+				while (!activeNode.parenthesis && activeNode.operator.isTighterThan(operator) && activeNode.parent) {
+					activeNode = activeNode.parent;
 				}
 				if (activeNode.rightNode && !activeNode.operator.isTighterThan(operator)) {
-					activeNode = activeNode.replaceChildNode(operator);
+					var opNode = new OperatorNode(new OperatorNode(operator));
+					activeNode.rightNode.rotateLeft(opNode);
+					activeNode = opNode;
 				} else if (activeNode.parenthesis) {
 					activeNode.parenthesis = false;
-					activeNode = activeNode.parentNode.replaceChildNode(operator);
-					activeNode.parenthesis = true;
+					var opNode = new OperatorNode(new OperatorNode(operator));
+					activeNode.rotateLeft(opNode);
+					opNode.parenthesis = true;
+					activeNode = opNode;
 
 				} else {
 					activeNode = activeNode.addChildNode(operator);
@@ -89,14 +195,16 @@ function makeEquationTree(inputEquation) {
 			
 			if (activeNode.rightNode) { // catches "43^4x..."
 				// TODO - make "5xy" evaluate left to right
-				if (!activeNode.parentNode) {
+				if (!activeNode.parent) {
 					var opNode = new OperatorNode(Operators.Coefficient);
-					opNode.leftNode = activeNode._setParent(opNode, 'leftNode');
-					opNode.setLeaf(leafNode);
-					activeNode = activeNode.parentNode;
+					opNode.leftNode = activeNode;
+					opNode.rightNode = leafNode;
+					activeNode = opNode;
 				} else {
-					activeNode = activeNode.parentNode.replaceChildNode(Operators.Coefficient);
-					activeNode.setLeaf(leafNode);
+					var opNode = new OperatorNode(Operators.Coefficient);
+					activeNode.rotateLeft(opNode);
+					opNode.setLeaf(leafNode);
+					activeNode = opNode;
 				}
 			} else if (activeNode.operator || !activeNode.leftNode) { // If it's totally empty or has operator but no rightNode then it's ready for a leaf. (Catches "4+x...")
 				activeNode.setLeaf(leafNode);
@@ -108,13 +216,95 @@ function makeEquationTree(inputEquation) {
 
 		i += match.match.length;
 	}
-
-	while (activeNode.parentNode) {
-		activeNode = activeNode.parentNode;
-	}
 	
-	return activeNode;
-};/**
+	return getRoot(activeNode);
+
+}
+
+function getRoot(node) {
+	while (node.parent) {
+		node = node.parent;
+	}
+
+	return node;
+}
+;var SIDES = ['leftNode', 'rightNode'];
+
+/**
+ * @constructor
+ * @param {BaseNode} parentNode
+ * 
+ * @property {BaseNode} parent
+ * @property {Array} nodes
+ * @property {BaseNode} leftNode
+ * @property {BaseNode} rightNode
+ */
+function BaseNode(parentNode) {
+	'use strict';
+	var self = this;
+
+    // ================================================================================
+    // Properties
+    // ================================================================================
+	
+	this.parent = parentNode;
+	
+	this.nodes = [];
+	
+	SIDES.forEach(function(side, index) {
+		Object.defineProperty(self, side, {
+			get: function() {return self.nodes[index];},
+			set: function(value) {
+				value.parent = self;
+				self.nodes[index] = value;
+			}
+		});
+	});
+	
+	this.printVals = {
+		before: '<div class="node">',
+		middle: '',
+		after: '</div>'
+	};
+
+    // ================================================================================
+    // Methods
+    // ================================================================================
+	
+	this.addChild = function(newChild) {
+		var nextNode = self.nodes.length;
+		if (nextNode >= SIDES.length) {throw new Error('Cannot add child, already has all children.');}
+		self[SIDES[nextNode]] = newChild;
+	};
+	
+	this.rotateLeft = function(newNode) {
+		if (self.parent) {
+			var side = SIDES[self.parent.nodes.indexOf(self)];
+			self.parent[side] = newNode;
+		}
+		newNode.leftNode = self;
+	};
+	
+	this.toString = function() {
+		var nodes = self.nodes.concat(['', '']).slice(0, 2);
+		return self.printVals.before + nodes.join(self.printVals.middle) + self.printVals.after;
+	};
+	
+	/*this.replaceChild = function(oldChild, newChild) {
+		if (!oldChild) {throw new TypeError('oldChild cannot be null.');}
+		if (!newChild) {throw new TypeError('newChild cannot be null.');}
+		
+		var i = self.nodes.indexOf(oldChild);
+		if (i === -1) {throw new Error('Cannot replace ' + oldChild + ': not a child of this node.');}
+		
+		self[SIDES[i]] = newChild; 
+		newChild.leftNode = oldChild;
+	};*/
+	
+	
+}
+
+;/**
  * The node representation of an operand, i.e., a terminus ("leaf") node 
  * representing a number, variable, or constant rather than a mathmematical operation.
  * 
@@ -126,14 +316,17 @@ function makeEquationTree(inputEquation) {
  */
 function LeafNode(value) {
 	'use strict';
-	
 	var self = this;
+	
+	BaseNode.call(this);
 
     // ================================================================================
     // Public Properties
     // ================================================================================
 
 	this.value = value;
+	
+	this.printVals.middle = value;
 	
     // ================================================================================
     // Methods
@@ -168,7 +361,8 @@ function LeafNode(value) {
     // ================================================================================
 
 	Object.seal(this);
-};/* global Operator */
+}
+Object.extend(BaseNode, LeafNode);;/* global Operator */
 /* global LeafNode */
 
 /**
@@ -180,48 +374,23 @@ function LeafNode(value) {
  */
 function OperatorNode(operator, parenthesis) {
 	'use strict';
-
 	var self = this;
-
-	/**
-	 * The side of the parent node on which this node appears: either 'leftNode' or 'rightNode'. 
-	 * @type {string}
-	 */
-	var side = null;
-
-    // ================================================================================
-    // Public Properties
-    // ================================================================================
-
-	/**
-	 * The parent of this node.
-	 * @type {OperatorNode}
-	 */
-	this.parentNode = null;
-
-	/**
-	 * This node's first (i.e. left) child
-	 * @type {LeafNode|OperatorNode}
-	 */
-	this.leftNode = null;
-
-	/**
-	 * This node's second (i.e. right) child
-	 * @type {LeafNode|OperatorNode}
-	 */
-	this.rightNode = null;
+	
+	BaseNode.call(this);
 
 	/**
 	 * Set to {@code true} if this node is surrounded by parenthesis.
 	 * @type {boolean}
 	 */
 	this.parenthesis = !!parenthesis;
+	
+	this.printVals.before =  '<div class="node operator-node">';
 
 	Object.defineProperty(this, 'operator', {
 		configurable: false,
 		get: function() {return operator;},
 		set: function(value) {
-			if (!(value instanceof Operator)) {throw new TypeError('Invalid type: ' + value);}
+			this.printVals.middle = operator ? ('<div class="operator">' + operator.debugSymbol + '</div>') : '';
 			operator = value;
 		}
 	});
@@ -231,8 +400,7 @@ function OperatorNode(operator, parenthesis) {
     // ================================================================================
 
 	this._setParent = function(newParentNode, newSide) {
-		self.parentNode = newParentNode;
-		side = newSide;
+		self.parent = newParentNode; 
 		return self;
 	};
 
@@ -255,21 +423,11 @@ function OperatorNode(operator, parenthesis) {
 		if (emptySide) {
 			self[emptySide] = opNode._setParent(self, emptySide);
 		} else {
-			if (self.parentNode) {self.parentNode[side] = opNode._setParent(self.parentNode, side);}
+			if (self.parent) {self.parent[side] = opNode._setParent(self.parent, side);}
 			opNode.leftNode = self._setParent(opNode, 'leftNode');
 		}
 		return opNode;
 	};
-
-	this.replaceChildNode = function(operator, parenthesis) {
-		var occupiedSide = ['rightNode', 'leftNode'].find(function(s) {return !!self[s];});
-		if (!occupiedSide) {throw new Error('No nodes to replace.');}
-		var opNode = new OperatorNode(operator, parenthesis);
-		opNode.leftNode = self[occupiedSide];
-		self[occupiedSide] = opNode._setParent(self, occupiedSide);
-		return self[occupiedSide];
-	};
-	
 	
 	this.isNumeric = function() {
 		return (!this.leftNode || this.leftNode.isNumeric()) && (!this.rightNode || this.rightNode.isNumeric());
@@ -381,8 +539,29 @@ function OperatorNode(operator, parenthesis) {
     // Initialization
     // ================================================================================
 
+	this.operator = operator;
+
 	Object.seal(this);
-};
+}
+
+Object.extend(BaseNode, OperatorNode);;/* global BaseNode */
+/* global OperatorNode */
+
+function ParenthesisNode() {
+	'use strict';
+	var self = this;
+	
+	OperatorNode.call(this);
+	
+	this.prettyInput = function() {
+		return '(' + self.nodes.map(function(node) {return node.prettyInput();}).join('') + ')';
+	};
+	
+	this.printVals.before += '('
+	this.printVals.after = ')' + this.printVals.after;
+	
+}
+Object.extend(OperatorNode, ParenthesisNode);;
 /**
  * The constructors properities for {@link Operator}.
  * 
@@ -654,7 +833,7 @@ function parseInput(substring) {
 	var match = null; 
 	
 	if (match = /^,\s*|^\(/.exec(substring)) { // jshint ignore:line
-		return new ParseInputResult(match, 'OPEN-PAREN');
+		return new ParseInputResult(match, 'OPEN-PAREN', new ParenthesisNode);
 	}
 		
 	if (match = /^\)/.exec(substring)) { // jshint ignore:line
@@ -664,14 +843,14 @@ function parseInput(substring) {
 	for (var opKey in Operators) {
 		if (Operators.hasOwnProperty(opKey) && Operators[opKey].regex) {
 			if (match = Operators[opKey].regex.exec(substring)) {  // jshint ignore:line
-				return new ParseInputResult(match, Operators[opKey]);
+				return new ParseInputResult(match, Operators[opKey], new OperatorNode(Operators[opKey]));
 			}
 
 		}
 	}
 	
 	if (match = /^[0-9]+|^[A-Za-z]/.exec(substring)) { // jshint ignore:line
-		return new ParseInputResult(match, new LeafNode(match[0])); 
+		return new ParseInputResult(match, new LeafNode(match[0]), new LeafNode(match[0])); 
 	}
 	
 	return new ParseInputResult(['1'], 'BAD_CHAR');
@@ -682,59 +861,16 @@ function parseInput(substring) {
  * 
  * @param {Array} match
  * @param {Operator|*} type 
+ * @param {BaseNode} node 
  */
-function ParseInputResult(match, type) {
+function ParseInputResult(match, type, node) {
 	
 	/** @type {string} */
 	this.match = match[0];
 	
 	/** @type {Operator|*} */
 	this.type = type;
-};(function() {
-	'use strict';
-
-	Array.prototype.peek = function() {
-		return this.length ? this[this.length - 1] : false;
-	};
-
-	Object.extend = function(parent, child) {
-		child.prototype = Object.create(parent.prototype);
-		child.prototype.constructor = child; 
-	};
-
-	Object.prototype.toArray = function() {
-		var self = this;
-		return Object.keys(self).map(function(key) {
-			return self[key];
-		});
-	};
-	 
-    /**
-     * The pattern for matching parseMessage replacements, e.g. "{0}", "{1}", etc.
-     *
-     * @type {RegEx}
-     */
-    var PARSE_MSG_REGEX = /{(\d+)}/;
-
-    /**
-     * Parses through the passed String looking for place holders (i.e.: {0} ). When it finds a placeholder it
-     * looks for a corresponding extra argument passed to the method. If it finds one, it replaces every
-     * instance of the place holder with the String value of the passed argument. Otherwise it will remove the
-     * place holder.
-     *
-     * @param {string} message - the message to parse.
-     * @param {...Object} replacements - the items to use for replacing the place holders.
-     * @returns {string} - the modified String.
-     */
-	String.format = function(message) {
-        if (typeof message === 'string') { 
-            for (var match; match = PARSE_MSG_REGEX.exec(message);) { //jshint ignore:line
-                var index = parseInt(match[1]) + 1;
-                var replaceVal = index < arguments.length ? arguments[index] : '';
-                message = message.replace(match[0], replaceVal);
-            }
-        }
-        return message;
-    };
-
-})();
+	
+	/** @type {BaseNode} */
+	this.node = node;
+}

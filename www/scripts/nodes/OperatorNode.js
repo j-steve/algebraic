@@ -213,3 +213,5 @@ function OperatorNode(operator, parenthesis) {
 
 	Object.seal(this);
 }
+
+Object.extend()

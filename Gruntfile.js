@@ -29,7 +29,10 @@ module.exports = function (grunt) {
 				separator: ';'
 			},
 			dist: {
-				src: ['www/scripts/**/*.js'],
+				src: [
+					'www/scripts/polyfill.js',
+					'www/scripts/**/*.js'
+				],
 				dest: 'www-built/scripts/algebraic.js'
 			}
 		},

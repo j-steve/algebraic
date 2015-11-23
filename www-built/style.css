@@ -9,22 +9,22 @@ input {
 	vertical-align: super;
 }
 
-.output {
+#output {
 	padding:10px 15px;
 }
 
-.output label {
+#output label {
 	min-height:50px;
 	display:block;
 }
 
-.output label > span {
+#output label > span {
 	display: inline-block;
 	width:150px;
 	text-align:right;
 }
 
-.output output {
+#output output {
 	display:inline-block;
 	margin-top:10px;
 	font-family:monospace;

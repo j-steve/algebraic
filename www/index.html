@@ -4,34 +4,30 @@
 	<meta charset="utf-8">
 	<title>Algebraic</title>
 	<link rel="stylesheet" href="style.css">
+	<script data-main="js/main" src="js/lib/require.js"></script> 
 </head>
 <body>
-
-	<form oninput="compute(equation, treeTable, formattedInput, exactResult, approxResult); return false;">
+	<label>
+		<span>Input:</span>
+		<input type="text" id="equation" autocomplete="off" autofocus/>
+	</label>
+	<div id="output">
 		<label>
-			<span>Input:</span>
-			<input type="text" name="equation" autocomplete="off" autofocus/>
+			<span>Tree Structure:</span>
+			<output name="treeTable" class="treeTable"></output>
 		</label>
-		<div class="output">
-			<label>
-				<span>Tree Structure:</span>
-				<output name="treeTable" class="treeTable"></output>
-			</label>
-			<label>
-				<span>Formatted Input:</span>
-				<output name="formattedInput"></output>
-			</label>
-			<label>
-				<span>Result (Simplified):</span>
-				<output name="exactResult"></output>
-			</label>
-			<label>
-				<span>Result (Calculated):</span>
-				<output name="approxResult"></output>
-			</label>
-		</div>
-	</form>
-
-	<script src="scripts/algebraic.js"></script> 
+		<label>
+			<span>Formatted Input:</span>
+			<output name="formattedInput"></output>
+		</label>
+		<label>
+			<span>Result (Simplified):</span>
+			<output name="exactResult"></output>
+		</label>
+		<label>
+			<span>Result (Calculated):</span>
+			<output name="approxResult"></output>
+		</label>
+	</div> 
 </body>
 </html>

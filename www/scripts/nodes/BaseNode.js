@@ -32,7 +32,7 @@ function BaseNode(parentNode) {
 	});
 	
 	this.printVals = {
-		before: '<div class="node">',
+		before: '<div class="node operator-node">',
 		middle: '',
 		after: '</div>'
 	};
@@ -59,18 +59,6 @@ function BaseNode(parentNode) {
 		var nodes = self.nodes.concat(['', '']).slice(0, 2);
 		return self.printVals.before + nodes.join(self.printVals.middle) + self.printVals.after;
 	};
-	
-	/*this.replaceChild = function(oldChild, newChild) {
-		if (!oldChild) {throw new TypeError('oldChild cannot be null.');}
-		if (!newChild) {throw new TypeError('newChild cannot be null.');}
-		
-		var i = self.nodes.indexOf(oldChild);
-		if (i === -1) {throw new Error('Cannot replace ' + oldChild + ': not a child of this node.');}
-		
-		self[SIDES[i]] = newChild; 
-		newChild.leftNode = oldChild;
-	};*/
-	
 	
 }
 

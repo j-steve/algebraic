@@ -62,13 +62,13 @@ module.exports = function (grunt) {
 	grunt.registerTask(
 		'default',
 		'Watches the project for changes, automatically builds them and runs a server.',
-		['build', 'watch']
+		['watch']
 	);
 
 	grunt.registerTask(
 		'build',
 		'Compiles all of the assets and copies the files to the build directory.',
-		['jshint', 'clean', 'copy', 'concat']
+		['jshint', 'clean', 'copy', 'concat', 'watch']
 	);
 
 };

@@ -1,3 +1,5 @@
+/* global BaseNode */
+
 /**
  * The node representation of an operand, i.e., a terminus ("leaf") node 
  * representing a number, variable, or constant rather than a mathmematical operation.
@@ -8,52 +10,33 @@
  * 
  * @param {*} value
  */
-function LeafNode(value) {
-	'use strict';
-	var self = this;
+function LeafNode(value) { 
 	
 	BaseNode.call(this);
-
-    // ================================================================================
-    // Public Properties
-    // ================================================================================
 
 	this.value = value;
 	
 	this.printVals.middle = value;
-	
-    // ================================================================================
-    // Methods
-    // ================================================================================
-	
-	this.isNumeric = function() {
-		return String(Number(this.value)) === this.value;
-	};
-	
-
-	this.print = function(parentElement) { 
-		var newElement = document.createElement('div');
-		newElement.className = 'node leaf-node';
-		newElement.innerHTML += self.value;
-		parentElement.appendChild(newElement);
-	};
-
-	this.prettyInput = function() {
-		return self.value;
-	};
-
-	this.simplify = function() {
-		return Number(self.value);
-	};
-
-	this.calculate = function() {
-		return self.isNumeric() ? Number(self.value) : self.value;
-	};
-
-    // ================================================================================
-    // Initialization
-    // ================================================================================
-
-	Object.seal(this);
 }
 Object.extend(BaseNode, LeafNode);
+
+
+function RealNumberNode(value) { 
+	value = Number(value);
+	
+	LeafNode.call(this, value);
+}
+Object.extend(LeafNode, RealNumberNode);
+
+
+function VariableNode(value) { 
+	
+	LeafNode.call(this, value);
+}
+Object.extend(LeafNode, VariableNode);
+
+function ConstantNode(value) { 
+	
+	LeafNode.call(this, value);
+}
+Object.extend(LeafNode, ConstantNode);

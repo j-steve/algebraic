@@ -80,14 +80,7 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
 	}
 }
-;/* global Operators */
-/* global Operator */
-/* global LeafNode */
-/* global parseInput */
-
-/* global ParenthesisNode */
-/* global OperatorNode */
-/* global LeafNode */
+;/* global ParenthesisNode, OperatorNode, LeafNode, parseInput */
 
 var activeNode;
 
@@ -101,6 +94,7 @@ function makeEquationTree(inputEquation) {
 	activeNode = new BaseNode();
 	for (var i = 0; i < inputEquation.length;) {
 		var match = parseInput(inputEquation.substring(i));
+		if (!match) {throw new Error(String.format('Invalid character: "{0}"', inputEquation[i]));}
 		if (match.node instanceof ParenthesisNode) { 
 			addImplicitMultiply();
 			activeNode.addChild(match.node);
@@ -112,113 +106,18 @@ function makeEquationTree(inputEquation) {
 			addImplicitMultiply();
 			activeNode.addChild(match.node);
 		}
-		i += match.match.length;
+		i += match.charCount;
 	}
 	
 	return getRoot(activeNode);
-	
-	
+} 
 
-	function addImplicitMultiply() {
-		if (activeNode.leftNode && (activeNode.rightNode || !(activeNode instanceof OperatorNode))) {
-			var implicitMultiplyNode = new OperatorNode(Operators.Multiply);
-			activeNode.rotateLeft(implicitMultiplyNode);
-			activeNode = implicitMultiplyNode;
-		}
+function addImplicitMultiply() {
+	if (activeNode.leftNode && (activeNode.rightNode || !(activeNode instanceof OperatorNode))) {
+		var implicitMultiplyNode = new MultiplicationNode();
+		activeNode.rotateLeft(implicitMultiplyNode);
+		activeNode = implicitMultiplyNode;
 	}
-}
-	
-	
-function makeEquationTree_old(inputEquation) {
-	var activeNode = new OperatorNode();
-	for (var i = 0; i < inputEquation.length;) {
-		var match = parseInput(inputEquation.substring(i));
-		if (match.type === 'OPEN-PAREN') {
-			var opNode = new ParenthesisNode();
-			if (!activeNode.operator) {
-				var implicitMultiplyNode = new OperatorNode(Operators.Multiply);
-				activeNode.rotateLeft(implicitMultiplyNode);
-				implicitMultiplyNode.rightNode = opNode; 
-			}
-			if (activeNode.rightNode) {   // catches "1^2(3..."
-				activeNode.rightNode.rotateLeft(opNode);
-			} else if (activeNode.operator) { // catches "1^2(..."
-				activeNode = activeNode.addChildNode(null, true);
-			} else if (activeNode.leftNode) { // catches "2(3..."
-				activeNode.operator = Operators.Multiply;
-				activeNode = activeNode.addChildNode(null, true);
-			} else if (activeNode.parent && !activeNode.parenthesis) {
-				activeNode = activeNode.addChildNode(null, true);
-			} else {
-				alert('whoops');
-				throw new Error('whoops');
-				//activeNode.parenthesis = true;
-			}
-			activeNode = opNode;
-		} else if (match.type === 'CLOSE-PAREN') {
-			while (!activeNode.parenthesis && activeNode.parent) {
-				activeNode = activeNode.parent;
-				//if (!activeNode) {throw new Error(String.format('Unmatched parenthesis at position {0}.', i+1));}
-			}
-			if (!activeNode.parent) { // The root-level node had parenthesis closed.
-				var newRoot = new OperatorNode();
-				newRoot.leftNode = activeNode._setParent(newRoot, 'leftNode');
-			}
-			activeNode = activeNode.parent;
-		} else if (match.type instanceof Operator) {
-			
-			/** @type {Operator} */ var operator = match.type;
-			if (!activeNode.operator) {
-				activeNode.operator = operator;
-			} else {
-				while (!activeNode.parenthesis && activeNode.operator.isTighterThan(operator) && activeNode.parent) {
-					activeNode = activeNode.parent;
-				}
-				if (activeNode.rightNode && !activeNode.operator.isTighterThan(operator)) {
-					var opNode = new OperatorNode(new OperatorNode(operator));
-					activeNode.rightNode.rotateLeft(opNode);
-					activeNode = opNode;
-				} else if (activeNode.parenthesis) {
-					activeNode.parenthesis = false;
-					var opNode = new OperatorNode(new OperatorNode(operator));
-					activeNode.rotateLeft(opNode);
-					opNode.parenthesis = true;
-					activeNode = opNode;
-
-				} else {
-					activeNode = activeNode.addChildNode(operator);
-				}
-			}
-		} else if (match.type instanceof LeafNode) {
-			
-			/** @type {LeafNode} */ var leafNode = match.type;
-			
-			if (activeNode.rightNode) { // catches "43^4x..."
-				// TODO - make "5xy" evaluate left to right
-				if (!activeNode.parent) {
-					var opNode = new OperatorNode(Operators.Coefficient);
-					opNode.leftNode = activeNode;
-					opNode.rightNode = leafNode;
-					activeNode = opNode;
-				} else {
-					var opNode = new OperatorNode(Operators.Coefficient);
-					activeNode.rotateLeft(opNode);
-					opNode.setLeaf(leafNode);
-					activeNode = opNode;
-				}
-			} else if (activeNode.operator || !activeNode.leftNode) { // If it's totally empty or has operator but no rightNode then it's ready for a leaf. (Catches "4+x...")
-				activeNode.setLeaf(leafNode);
-			} else { // catches "4x..." 
-				activeNode.operator = Operators.Coefficient;
-				activeNode.setLeaf(leafNode);
-			}
-		}
-
-		i += match.match.length;
-	}
-	
-	return getRoot(activeNode);
-
 }
 
 function getRoot(node) {
@@ -227,8 +126,7 @@ function getRoot(node) {
 	}
 
 	return node;
-}
-;var SIDES = ['leftNode', 'rightNode'];
+};var SIDES = ['leftNode', 'rightNode'];
 
 /**
  * @constructor
@@ -262,7 +160,7 @@ function BaseNode(parentNode) {
 	});
 	
 	this.printVals = {
-		before: '<div class="node">',
+		before: '<div class="node operator-node">',
 		middle: '',
 		after: '</div>'
 	};
@@ -290,21 +188,11 @@ function BaseNode(parentNode) {
 		return self.printVals.before + nodes.join(self.printVals.middle) + self.printVals.after;
 	};
 	
-	/*this.replaceChild = function(oldChild, newChild) {
-		if (!oldChild) {throw new TypeError('oldChild cannot be null.');}
-		if (!newChild) {throw new TypeError('newChild cannot be null.');}
-		
-		var i = self.nodes.indexOf(oldChild);
-		if (i === -1) {throw new Error('Cannot replace ' + oldChild + ': not a child of this node.');}
-		
-		self[SIDES[i]] = newChild; 
-		newChild.leftNode = oldChild;
-	};*/
-	
-	
 }
 
-;/**
+;/* global BaseNode */
+
+/**
  * The node representation of an operand, i.e., a terminus ("leaf") node 
  * representing a number, variable, or constant rather than a mathmematical operation.
  * 
@@ -314,563 +202,250 @@ function BaseNode(parentNode) {
  * 
  * @param {*} value
  */
-function LeafNode(value) {
-	'use strict';
-	var self = this;
+function LeafNode(value) { 
 	
 	BaseNode.call(this);
-
-    // ================================================================================
-    // Public Properties
-    // ================================================================================
 
 	this.value = value;
 	
 	this.printVals.middle = value;
-	
-    // ================================================================================
-    // Methods
-    // ================================================================================
-	
-	this.isNumeric = function() {
-		return String(Number(this.value)) === this.value;
-	};
-	
-
-	this.print = function(parentElement) { 
-		var newElement = document.createElement('div');
-		newElement.className = 'node leaf-node';
-		newElement.innerHTML += self.value;
-		parentElement.appendChild(newElement);
-	};
-
-	this.prettyInput = function() {
-		return self.value;
-	};
-
-	this.simplify = function() {
-		return Number(self.value);
-	};
-
-	this.calculate = function() {
-		return self.isNumeric() ? Number(self.value) : self.value;
-	};
-
-    // ================================================================================
-    // Initialization
-    // ================================================================================
-
-	Object.seal(this);
 }
-Object.extend(BaseNode, LeafNode);;/* global Operator */
-/* global LeafNode */
+Object.extend(BaseNode, LeafNode);
+
+
+function RealNumberNode(value) { 
+	value = Number(value);
+	
+	LeafNode.call(this, value);
+}
+Object.extend(LeafNode, RealNumberNode);
+
+
+function VariableNode(value) { 
+	
+	LeafNode.call(this, value);
+}
+Object.extend(LeafNode, VariableNode);
+
+function ConstantNode(value) { 
+	
+	LeafNode.call(this, value);
+}
+Object.extend(LeafNode, ConstantNode);;/* global BaseNode */ 
 
 /**
  * @constructor
  * 
- * @param {Operator} operator
- * @param {boolean} parenthesis
+ * @param {string} debugSymbol
  * @returns {OperatorNode}
  */
-function OperatorNode(operator, parenthesis) {
+function OperatorNode(debugSymbol) {
 	'use strict';
 	var self = this;
 	
 	BaseNode.call(this);
-
-	/**
-	 * Set to {@code true} if this node is surrounded by parenthesis.
-	 * @type {boolean}
-	 */
-	this.parenthesis = !!parenthesis;
 	
-	this.printVals.before =  '<div class="node operator-node">';
+	this.printVals.middle =  '<div class="operator">' + debugSymbol + '<div>';
+}
 
-	Object.defineProperty(this, 'operator', {
-		configurable: false,
-		get: function() {return operator;},
-		set: function(value) {
-			this.printVals.middle = operator ? ('<div class="operator">' + operator.debugSymbol + '</div>') : '';
-			operator = value;
-		}
-	});
+Object.extend(BaseNode, OperatorNode);;/* global OperatorNode */
 
-    // ================================================================================
-    // Methods
-    // ================================================================================
-
-	this._setParent = function(newParentNode, newSide) {
-		self.parent = newParentNode; 
-		return self;
-	};
-
-	/**
-	 * @param {LeafNode} newLeafNode 
-	 */
-	this.setLeaf = function(newLeafNode) {
-		if (!self.leftNode) {
-			self.leftNode = newLeafNode;
-		} else if (!self.rightNode) {
-			self.rightNode = newLeafNode;
-		} else {
-			throw new Error('both set already');
-		}
-	};
-
-	this.addChildNode = function(operator, parenthesis) {
-		var opNode = new OperatorNode(operator, parenthesis);
-		var emptySide = ['leftNode', 'rightNode'].find(function(s) {return !self[s];});
-		if (emptySide) {
-			self[emptySide] = opNode._setParent(self, emptySide);
-		} else {
-			if (self.parent) {self.parent[side] = opNode._setParent(self.parent, side);}
-			opNode.leftNode = self._setParent(opNode, 'leftNode');
-		}
-		return opNode;
-	};
+function AdditionNode() {
 	
-	this.isNumeric = function() {
-		return (!this.leftNode || this.leftNode.isNumeric()) && (!this.rightNode || this.rightNode.isNumeric());
-	};
+	OperatorNode.call(this, '+');
 	
-
-	this.print = function(parentElement) {
-		var newElement = document.createElement('div');
-		newElement.className = 'node operator-node';
-
-		if (self.parenthesis) {newElement.innerHTML += '(';}
-		if (self.leftNode) {self.leftNode.print(newElement);} 
-
-		var operatorElement = document.createElement('div');
-		operatorElement.className = 'operator' + (operator ? '' : ' operator-unknown');
-		operatorElement.innerHTML += operator ? operator.debugSymbol : '?';
-		newElement.appendChild(operatorElement); 
-
-		if (self.rightNode) {self.rightNode.print(newElement);}
-		if (self.parenthesis) {newElement.innerHTML += ')';}
-
-		parentElement.appendChild(newElement);
-	};
-
-	this.prettyInput = function() {
-		var result = ''; 
-		if (this.parenthesis) {result += '(';}
-		if (operator) {result += operator.leftNodeSymbol;}
-		if (self.leftNode) {result += self.leftNode.prettyInput();}
-		if (operator) {result += operator.openSymbol;}
-		if (self.rightNode) {result += self.rightNode.prettyInput();}
-		if (operator) {result += operator.closeSymbol;}
-		if (this.parenthesis) {result += ')';}
-		return result;
-	};
+	this.printVals.before += '(';
 	
-	/**
-	 * @param {OperatorNode} parentNode
-	 */
-	this.cleanup = function(parentNode) {
-		if (self.parenthesis) {
-			if (!self.rightNode) { // If operator is parenthesis with just 1 value, no need for parenthesis.
-				self.parenthesis = false;
-			}
-			if (!self.operator || !parentNode || !parentNode.operator || parentNode.operator.isTighterThan(self.operator)) {
-				//this.parenthesis = false;
-			}
-		}
-		['leftNode', 'rightNode'].forEach(function(side) {
-			if (self[side] instanceof OperatorNode) {
-				self[side].cleanup(self);
-			}
-		});
-	};
+	this.printVals.after = ')' + this.printVals.after;
+
+	Object.seal(this);
 	
-	this.simplify = function() {
-		if (operator === Operators.Equals) { //jshint ignore:line
-			var sides = ['rightNode', 'leftNode'];
-			var numericSide = sides.find(function(s) {return self[s] && self[s].isNumeric();});
-			var nonNumericSide = sides.find(function(s) {return self[s] && !self[s].isNumeric();});
-			while (numericSide && nonNumericSide && self[nonNumericSide].operator) {
-				var operandSide = sides.find(function(s) {return self[nonNumericSide][s] && self[nonNumericSide][s].isNumeric();});
-				var variableSide = sides.find(function(s) {return self[nonNumericSide][s] && !self[nonNumericSide][s].isNumeric();});
-				var operandNode = self[nonNumericSide][operandSide];
-				var variableNode = self[nonNumericSide][variableSide];
-				
-				var opNode;
-				if (self[nonNumericSide].operator === Operators.Exponent) {
-					var inverseOp = (operandSide === 'leftNode') ? Operators.Logarithm : Operators.Root;
-					opNode = new OperatorNode(inverseOp, parenthesis);
-					opNode.leftNode = self[nonNumericSide][operandSide];
-					opNode.rightNode = self[numericSide];
-				} else {
-					opNode = new OperatorNode(self[nonNumericSide].operator.inverse, parenthesis);
-					opNode.leftNode = self[numericSide];//.setParent(opNode, 'leftNode');
-					opNode.rightNode = self[nonNumericSide][operandSide];//.setParent(opNode, 'rightNode');
-				}
-				self.leftNode = variableNode;//.setParent(self, numericSide);
-				self.rightNode = opNode;//.setParent(self, nonNumericSide);
-				
-				
-				numericSide = sides.find(function(s) {return self[s] && self[s].isNumeric();});
-				nonNumericSide = sides.find(function(s) {return self[s] && !self[s].isNumeric();});
-			}
-		}
-	};
+}
+Object.extend(OperatorNode, AdditionNode);
 
-	this.calculate = function() {
-		
-		var left = self.leftNode ? self.leftNode.calculate() : null;
-		var right = self.rightNode ? self.rightNode.calculate() : null;
-		
-		if (operator === Operators.Equals) { //jshint ignore:line
-			return left + '=' + right;
-		}
-		if (!self.isNumeric()) {return self.prettyInput();}
+
+function SubtractionNode() {
 	
+	OperatorNode.call(this, '&minus;');
 
-		if (operator) {
-			return operator.calculate(left, right);
-		} else if (!self.rightNode) {
-			return left;
-		} else {
-			throw new Error('Cannot solve: missing operator.');
-		}
-	};
+	Object.seal(this);
+	
+}
+Object.extend(OperatorNode, SubtractionNode);
 
-    // ================================================================================
-    // Initialization
-    // ================================================================================
 
-	this.operator = operator;
+function PlusOrMinusNode() {
+	
+	OperatorNode.call(this, '&plusmn;');
+
+	Object.seal(this);
+	
+}
+Object.extend(OperatorNode, PlusOrMinusNode);;/* global OperatorNode */
+
+function ComparisonNode(debugSymbol) {
+	OperatorNode.call(this, debugSymbol);
 
 	Object.seal(this);
 }
+Object.extend(OperatorNode, ComparisonNode);
 
-Object.extend(BaseNode, OperatorNode);;/* global BaseNode */
+function EqualsNode() {
+	
+	ComparisonNode.call(this, '=');
+
+	Object.seal(this);
+	
+}
+Object.extend(ComparisonNode, EqualsNode);
+
+
+function GreaterThanNode() {
+	 
+	ComparisonNode.call(this, '&gt;');
+
+	Object.seal(this);
+	
+}
+Object.extend(ComparisonNode, GreaterThanNode);
+
+
+function LessThanNode() {
+	
+	ComparisonNode.call(this, '&lt;');
+
+	Object.seal(this);
+	
+}
+Object.extend(ComparisonNode, LessThanNode);
+
+
+function GreaterOrEqualNode() {
+	
+	ComparisonNode.call(this, '&ge;');
+
+	Object.seal(this);
+	
+}
+Object.extend(ComparisonNode, GreaterOrEqualNode);
+
+
+function LessOrEqualNode() {
+	
+	ComparisonNode.call(this, '&le;');
+
+	Object.seal(this);
+	
+}
+Object.extend(ComparisonNode, LessOrEqualNode);;/* global OperatorNode */
+
+function ExponentNode() {
+	
+	OperatorNode.call(this, '^');
+
+	Object.seal(this);
+	
+}
+Object.extend(OperatorNode, ExponentNode);
+
+
+function RootNode() {
+	
+	OperatorNode.call(this, '&radic;');
+
+	Object.seal(this);
+	
+}
+Object.extend(OperatorNode, RootNode);
+
+
+function LogarithmNode() {
+	
+	OperatorNode.call(this, 'log');
+
+	Object.seal(this);
+	
+}
+Object.extend(OperatorNode, LogarithmNode);;/* global OperatorNode */
+
+function MultiplicationNode() {
+	
+	OperatorNode.call(this, '&sdot;');
+
+	Object.seal(this);
+	
+}
+Object.extend(OperatorNode, MultiplicationNode);
+
+
+function DivisionNode() {
+	
+	OperatorNode.call(this, '∕');
+
+	Object.seal(this);
+	
+}
+Object.extend(OperatorNode, DivisionNode);;/* global BaseNode */
 /* global OperatorNode */
 
 function ParenthesisNode() {
 	'use strict';
 	var self = this;
 	
-	OperatorNode.call(this);
+	BaseNode.call(this);
 	
 	this.prettyInput = function() {
 		return '(' + self.nodes.map(function(node) {return node.prettyInput();}).join('') + ')';
 	};
 	
-	this.printVals.before += '('
+	this.printVals.before += '(';
+	
 	this.printVals.after = ')' + this.printVals.after;
 	
 }
-Object.extend(OperatorNode, ParenthesisNode);;
-/**
- * The constructors properities for {@link Operator}.
- * 
- * @typedef {Object} OperatorProps
- * @property {RegExp} regex   the match pattern to identify an operator in an equation
- * @property {number} tightness   how tightly bound an operator is to its value, e.g., its rank in the order of operations heirchy
- * @property {Function simplify
- * @property {Function} calculate
- * @property {string} [openSymbol]
- * @property {string} [closeSymbol]
- * @property {string} [debugSymbol]
- * @property {boolean} [rightToLeft]   if {@code true}, this operator is evaluated right-to-left rather than left-to-right, as with exponenents
- */
 
-/**
- * An Operator represents a mathmmatical function that may be performed on numbers or symbols,<br>
- * including things like multiplication, division, logarithms, and exponents.
- * 
- * @constructor
- * @extends OperatorProps
- * 
- * @param {OperatorProps} prop
- */
-function Operator(prop) {
-	'use strict';
+Object.extend(BaseNode, ParenthesisNode);;/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
+/* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */
 
-	var self = this;
-
-	// ================================================================================
-	// Read-Only Properties
-	// ================================================================================
-
-	Object.defineProperty(this, 'regex', {
-		get: function () {
-			return prop.regex;
-		}
-	});
-
-	Object.defineProperty(this, 'tightness', {
-		get: function () {
-			return prop.tightness;
-		},
-		set: function(value) {
-			prop.tightness = value;
-		}
-	});
-	Object.defineProperty(this, 'leftNodeSymbol', {
-		get: function () {
-			return prop.leftNodeSymbol || '';
-		}
-	});
-
-	Object.defineProperty(this, 'openSymbol', {
-		get: function () {
-			return prop.openSymbol || '';
-		}
-	});
-
-	Object.defineProperty(this, 'closeSymbol', {
-		get: function () {
-			return prop.closeSymbol || '';
-		}
-	});
-
-	Object.defineProperty(this, 'debugSymbol', {
-		get: function () {
-			return prop.debugSymbol || this.openSymbol + this.closeSymbol;
-		}
-	});
-
-	Object.defineProperty(this, 'rightToLeft', {
-		get: function () {
-			return !!prop.rightToLeft;
-		}
-	});
-
-	Object.defineProperty(this, 'inverse', {
-		get: function () {
-			return Operators[prop.inverse]; // jshint ignore:line
-		}
-	});
-
-	// ================================================================================
-	// Methods
-	// ================================================================================
-
-	this.isTighterThan = function (otherOperator) {
-		var effectiveTightness = self.tightness - (prop.rightToLeft ? 0.5 : 0);
-		return effectiveTightness > otherOperator.tightness;
-	};
-
-	this.simplify = function (a, b) {
-		return prop.simplify ? prop.simplify.call(self, a, b) : this.calculate(a, b);
-	};
-
-	this.calculate = function (a, b) {
-		return prop.calculate ? prop.calculate.call(self, a, b) : null;
-	};
-
-	// ================================================================================
-	// Initialization
-	// ================================================================================
-
-	Object.seal(this);
-};/**
- * A list of all basic operator types.
- */
-var Operators = {
+var NODE_REGEX = {
+	',\\\s*': ParenthesisNode,
+	'\\\(': ParenthesisNode,
+	'\\\+': AdditionNode,
+	'[-−]': SubtractionNode,
+	'\\\+[-−]': PlusOrMinusNode,
+	'±': PlusOrMinusNode,
+	'[*·∙×\u22C5]': MultiplicationNode,
+	'[\/∕÷]': DivisionNode,
 	
-	Equals: new Operator({
-		regex: /^[=]/,
-		tightness: 1,
-		openSymbol: '=',
-		calculate: function(a, b) {
-			return a === b;
-		},
-		simplify: function(a, b) {
-			return a === b;
-		}
-	}),
+	'>=': GreaterOrEqualNode,
+	'<=': LessOrEqualNode,
+	'<': LessThanNode,
+	'>': GreaterThanNode,
+	'=': EqualsNode,
 	
-	PlusMinus: new Operator({
-		regex: /^\+[-−]|^±/,
-		tightness: 2,
-		openSymbol: '±'
-	}),
+	'[0-9]+': RealNumberNode,
+	'[A-Za-z]': VariableNode
 	
-	Addition: new Operator({
-		regex: /^\+/,
-		tightness: 2,
-		inverse: 'Subtraction',
-		openSymbol: '+',
-		calculate: function (a, b) {
-			return a + b;
-		}
-	}),
-	
-	Subtraction: new Operator({
-		regex: /^[-−]/,
-		tightness: 2,
-		inverse: 'Addition',
-		openSymbol: '−',
-		calculate: function (a, b) {
-			return a - b;
-		}
-	}),
-	
-	Multiply: new Operator({
-		regex: /^[*·∙×\u22C5]/,
-		tightness: 3,
-		inverse: 'Divide',
-		openSymbol: '&sdot;',
-		calculate: function (a, b) {
-			return a * b;
-		},
-		simplify: function(a, b) {
-			
-		}
-	}),
-	Coefficient: new Operator({ 
-		tightness: 4,
-		inverse: 'Divide',
-		//openSymbol: '&sdot;',
-		debugSymbol: '&sdot;',
-		calculate: function (a, b) {
-			return a * b;
-		}
-	}),
-	
-	Divide: new Operator({
-		regex: /^[\/∕÷]/,
-		tightness: 3,
-		inverse: 'Multiply',
-		openSymbol: '∕',
-		calculate: function (a, b) {
-			return a / b;
-		}
-	}),
-	
-	Exponent: new Operator({
-		regex: /^\^/,
-		tightness: 4,
-		inverse: 'Logarithm',
-		openSymbol: '<sup>',
-		closeSymbol: '</sup>',
-		debugSymbol: '^',
-		rightToLeft: true,
-		calculate: function (a, b) {
-			return Math.pow(a, b);
-		}
-	}),
-	
-	Root: new Operator({
-		regex: null,
-		tightness: 4,
-		inverse: 'Exponent',
-		leftNodeSymbol: '<span class="n-root">',
-		openSymbol: '</span>&radic;(',
-		closeSymbol: ')',
-		debugSymbol: '&radic;',
-		calculate: function (a, b) {
-			return Math.pow(b, 1/a);
-		}
-	}),
-	
-	Logarithm: new Operator({
-		regex: null,
-		tightness: 4,
-		inverse: 'Exponent',
-		leftNodeSymbol: 'log<span class="n-log">',
-		openSymbol: '</span>',
-		closeSymbol: '',
-		debugSymbol: 'log',
-		calculate: function (a, b) {
-			return Math.log(b) / Math.log(a);
-		}
-	})
-
-
 };
 
+/** 
+ * @typedef {Object} ParseInputResult 
+ * @property {number} charCount   the number of characters 'consumed' by this regex match
+ * @property {BaseNode} node   the resultant type of node
+ */
 
-/*
- OPERATORS TO ADD:
- 
- if (match = /^pi|^π/.exec(substring)) {
- node = new Constant('pi', 'π', Math.PI);
- }
- else if (match = /^e/.exec(substring)) {
- node = new Constant('e', '<i>e</i>', Math.E);
- }
- else if (match = /^i/.exec(substring)) {
- node = new Constant('i', '<i>i</i>');
- }
- 
- else if (match = /^[A-Za-z]/.exec(substring)) {
- node = new Variable(match[0]);
- }
- 
- else if (match = /^log([^\s\(]+)(?=\()/.exec(substring)) {
- node = new Logarithm(match[1]);
- }
- else if (match = /^log\(([^\s\(]+)(?=,)/.exec(substring)) {
- node = new Logarithm(match[1]);
- }
- else if (match = /^log/.exec(substring)) {
- node = new Logarithm(10);
- }
- else if (match = /^ln/.exec(substring)) {
- node = new Logarithm('e');
- } 
- else if (match = /^lg/.exec(substring)) {
- node = new Logarithm(10);
- }
- else if (match = /^lb/.exec(substring)) {
- node = new Logarithm(2);
- }
- 
- */;/* global Operators */
-/* global LeafNode */
-
-/**
- * 
+/** 
  * @param {type} substring
  * @returns {ParseInputResult}
  */
 function parseInput(substring) {
-	/* jshint boss: false */
-	var match = null; 
-	
-	if (match = /^,\s*|^\(/.exec(substring)) { // jshint ignore:line
-		return new ParseInputResult(match, 'OPEN-PAREN', new ParenthesisNode);
-	}
-		
-	if (match = /^\)/.exec(substring)) { // jshint ignore:line
-		return new ParseInputResult(match, 'CLOSE-PAREN'); 
-	}
-	
-	for (var opKey in Operators) {
-		if (Operators.hasOwnProperty(opKey) && Operators[opKey].regex) {
-			if (match = Operators[opKey].regex.exec(substring)) {  // jshint ignore:line
-				return new ParseInputResult(match, Operators[opKey], new OperatorNode(Operators[opKey]));
+	for (var key in NODE_REGEX) {
+		if (NODE_REGEX.hasOwnProperty(key)) {
+			var regex = new RegExp('^' + key);
+			var match = regex.exec(substring);
+			if (match) {
+				return {charCount: match[0].length, node: new NODE_REGEX[key](match[0])};
 			}
-
 		}
 	}
-	
-	if (match = /^[0-9]+|^[A-Za-z]/.exec(substring)) { // jshint ignore:line
-		return new ParseInputResult(match, new LeafNode(match[0]), new LeafNode(match[0])); 
-	}
-	
-	return new ParseInputResult(['1'], 'BAD_CHAR');
-}
-
-/**
- * @constructor
- * 
- * @param {Array} match
- * @param {Operator|*} type 
- * @param {BaseNode} node 
- */
-function ParseInputResult(match, type, node) {
-	
-	/** @type {string} */
-	this.match = match[0];
-	
-	/** @type {Operator|*} */
-	this.type = type;
-	
-	/** @type {BaseNode} */
-	this.node = node;
 }

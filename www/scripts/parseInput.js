@@ -1,5 +1,5 @@
-/* global Operators */
-/* global LeafNode */
+/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
+/* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */
 
 var NODE_REGEX = {
 	',\\\s*': ParenthesisNode,
@@ -22,8 +22,13 @@ var NODE_REGEX = {
 	
 };
 
-/**
- * 
+/** 
+ * @typedef {Object} ParseInputResult 
+ * @property {number} charCount   the number of characters 'consumed' by this regex match
+ * @property {BaseNode} node   the resultant type of node
+ */
+
+/** 
  * @param {type} substring
  * @returns {ParseInputResult}
  */
@@ -33,27 +38,8 @@ function parseInput(substring) {
 			var regex = new RegExp('^' + key);
 			var match = regex.exec(substring);
 			if (match) {
-				return new ParseInputResult(match, null, NODE_REGEX[key]);
+				return {charCount: match[0].length, node: new NODE_REGEX[key](match[0])};
 			}
 		}
 	}
-}
-	
-/**
- * @constructor
- * 
- * @param {Array} match
- * @param {Operator|*} type 
- * @param {BaseNode} node 
- */
-function ParseInputResult(match, type, node) {
-	
-	/** @type {string} */
-	this.match = match[0];
-	
-	/** @type {Operator|*} */
-	this.type = type;
-	
-	/** @type {BaseNode} */
-	this.node = node;
 }

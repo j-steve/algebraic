@@ -1,39 +1,44 @@
 /* global Operators */
 /* global LeafNode */
 
+var NODE_REGEX = {
+	',\\\s*': ParenthesisNode,
+	'\\\(': ParenthesisNode,
+	'\\\+': AdditionNode,
+	'[-−]': SubtractionNode,
+	'\\\+[-−]': PlusOrMinusNode,
+	'±': PlusOrMinusNode,
+	'[*·∙×\u22C5]': MultiplicationNode,
+	'[\/∕÷]': DivisionNode,
+	
+	'>=': GreaterOrEqualNode,
+	'<=': LessOrEqualNode,
+	'<': LessThanNode,
+	'>': GreaterThanNode,
+	'=': EqualsNode,
+	
+	'[0-9]+': RealNumberNode,
+	'[A-Za-z]': VariableNode
+	
+};
+
 /**
  * 
  * @param {type} substring
  * @returns {ParseInputResult}
  */
 function parseInput(substring) {
-	/* jshint boss: false */
-	var match = null; 
-	
-	if (match = /^,\s*|^\(/.exec(substring)) { // jshint ignore:line
-		return new ParseInputResult(match, 'OPEN-PAREN', new ParenthesisNode);
-	}
-		
-	if (match = /^\)/.exec(substring)) { // jshint ignore:line
-		return new ParseInputResult(match, 'CLOSE-PAREN'); 
-	}
-	
-	for (var opKey in Operators) {
-		if (Operators.hasOwnProperty(opKey) && Operators[opKey].regex) {
-			if (match = Operators[opKey].regex.exec(substring)) {  // jshint ignore:line
-				return new ParseInputResult(match, Operators[opKey], new OperatorNode(Operators[opKey]));
+	for (var key in NODE_REGEX) {
+		if (NODE_REGEX.hasOwnProperty(key)) {
+			var regex = new RegExp('^' + key);
+			var match = regex.exec(substring);
+			if (match) {
+				return new ParseInputResult(match, null, NODE_REGEX[key]);
 			}
-
 		}
 	}
-	
-	if (match = /^[0-9]+|^[A-Za-z]/.exec(substring)) { // jshint ignore:line
-		return new ParseInputResult(match, new LeafNode(match[0]), new LeafNode(match[0])); 
-	}
-	
-	return new ParseInputResult(['1'], 'BAD_CHAR');
 }
-
+	
 /**
  * @constructor
  * 

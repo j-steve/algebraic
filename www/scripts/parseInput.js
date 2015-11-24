@@ -19,6 +19,10 @@ var NODE_REGEX = {
 	'lg': Function.bind.call(LogarithmNode, null, new RealNumberNode(2)),
 	'ln': Function.bind.call(LogarithmNode, null, new ConstantNode.E),
 	
+	'sin': SinNode,
+	'cos': CosNode,
+	'tan': TanNode,
+	
 	'e': ConstantNode.E,
 	'i': ConstantNode.I,
 	'pi': ConstantNode.PI,

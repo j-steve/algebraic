@@ -53,6 +53,6 @@ function ConstantNode(value) {
 }
 Object.extend(LeafNode, ConstantNode);
 
-ConstantNode.E = function() {return new ConstantNode('<i>e</i');};
-ConstantNode.I = function() {return new ConstantNode('<i>e</i');};
+ConstantNode.E = function() {return new ConstantNode('<i>e</i>');};
+ConstantNode.I = function() {return new ConstantNode('<i>i</i>');};
 ConstantNode.PI = function() {return new ConstantNode('&pi;');};

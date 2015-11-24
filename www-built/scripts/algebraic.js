@@ -280,8 +280,8 @@ function ConstantNode(value) {
 }
 Object.extend(LeafNode, ConstantNode);
 
-ConstantNode.E = function() {return new ConstantNode('<i>e</i');};
-ConstantNode.I = function() {return new ConstantNode('<i>e</i');};
+ConstantNode.E = function() {return new ConstantNode('<i>e</i>');};
+ConstantNode.I = function() {return new ConstantNode('<i>i</i>');};
 ConstantNode.PI = function() {return new ConstantNode('&pi;');};;/* global BaseNode */ 
 
 /**
@@ -467,7 +467,34 @@ Object.extend(OperatorNode, MultiplicationNode);
 function DivisionNode() {
 	OperatorNode.call(this, '∕', 3);
 }
-Object.extend(OperatorNode, DivisionNode);;/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
+Object.extend(OperatorNode, DivisionNode);;/* global OperatorPrefixNode */
+
+/**
+ * @constructor
+ * @extends {OperatorPrefixNode}
+ */
+function SinNode() {  
+	OperatorPrefixNode.call(this, 'sin', 3);
+}
+Object.extend(OperatorPrefixNode, SinNode);
+
+/**
+ * @constructor
+ * @extends {OperatorPrefixNode}
+ */
+function CosNode() {  
+	OperatorPrefixNode.call(this, 'cos', 3);
+}
+Object.extend(OperatorPrefixNode, CosNode);
+
+/**
+ * @constructor
+ * @extends {OperatorPrefixNode}
+ */
+function TanNode() {  
+	OperatorPrefixNode.call(this, 'tan', 3);
+}
+Object.extend(OperatorPrefixNode, TanNode);;/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
 /* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */
 /* global ExponentNode, LogarithmNode, RootNode, ConstantNode,  */
 /* global */
@@ -487,6 +514,10 @@ var NODE_REGEX = {
 	'log': LogarithmNode,
 	'lg': Function.bind.call(LogarithmNode, null, new RealNumberNode(2)),
 	'ln': Function.bind.call(LogarithmNode, null, new ConstantNode.E),
+	
+	'sin': SinNode,
+	'cos': CosNode,
+	'tan': TanNode,
 	
 	'e': ConstantNode.E,
 	'i': ConstantNode.I,

@@ -54,8 +54,8 @@ function rotateForOperator(newOperatorNode) {
 }
 
 function activeNodeSticksToOperator(newOperatorNode) {
-	if (activeNode.parent instanceof OperatorNode) {
-		if (newOperatorNode.leftToRight && activeNode.parent.leftToRight) {
+	if (activeNode.parent instanceof OperatorNode || activeNode.parent instanceof LogarithmNode) {
+		if (!newOperatorNode.rightToLeft && !activeNode.parent.rightToLeft) {
 			return newOperatorNode.stickiness <= activeNode.parent.stickiness;
 		} else {
 			return newOperatorNode.stickiness < activeNode.parent.stickiness;

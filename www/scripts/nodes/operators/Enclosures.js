@@ -22,6 +22,8 @@ Object.extend(EnclosureNode, ParenthesisNode);
 function LogarithmNode(base) {  
 	EnclosureNode.call(this, 'log');
 	
+	this.stickiness = 3; 
+	
 	if (base) {this.leftNode = base;}
 }
 Object.extend(EnclosureNode, LogarithmNode);

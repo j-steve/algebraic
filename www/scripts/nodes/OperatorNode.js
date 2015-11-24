@@ -16,7 +16,7 @@ function OperatorNode(debugSymbol, stickiness, rightToLeft) {
 	
 	this.stickiness = stickiness;
 	
-	this.leftToRight = !rightToLeft
+	this.rightToLeft = !!rightToLeft
 }
 
 Object.extend(BaseNode, OperatorNode);

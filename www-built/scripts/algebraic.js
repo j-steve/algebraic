@@ -136,8 +136,8 @@ function rotateForOperator(newOperatorNode) {
 }
 
 function activeNodeSticksToOperator(newOperatorNode) {
-	if (activeNode.parent instanceof OperatorNode) {
-		if (newOperatorNode.leftToRight && activeNode.parent.leftToRight) {
+	if (activeNode.parent instanceof OperatorNode || activeNode.parent instanceof LogarithmNode) {
+		if (!newOperatorNode.rightToLeft && !activeNode.parent.rightToLeft) {
 			return newOperatorNode.stickiness <= activeNode.parent.stickiness;
 		} else {
 			return newOperatorNode.stickiness < activeNode.parent.stickiness;
@@ -280,7 +280,7 @@ function OperatorNode(debugSymbol, stickiness, rightToLeft) {
 	
 	this.stickiness = stickiness;
 	
-	this.leftToRight = !rightToLeft
+	this.rightToLeft = !!rightToLeft
 }
 
 Object.extend(BaseNode, OperatorNode);;/* global OperatorNode */
@@ -351,6 +351,8 @@ Object.extend(EnclosureNode, ParenthesisNode);
 
 function LogarithmNode(base) {  
 	EnclosureNode.call(this, 'log');
+	
+	this.stickiness = 3; 
 	
 	if (base) {this.leftNode = base;}
 }

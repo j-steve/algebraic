@@ -41,10 +41,14 @@ function BaseNode(parentNode) {
     // Methods
     // ================================================================================
 	
-	this.addChild = function(newChild) {
+	this.addChild = function(newNode) {
 		var nextNode = self.nodes.length;
-		if (nextNode >= SIDES.length) {throw new Error('Cannot add child, already has all children.');}
-		self[SIDES[nextNode]] = newChild;
+		if (nextNode >= SIDES.length) {
+			//throw new Error('Cannot add child, already has all children.');
+			this.rotateLeft(newNode);
+		} else {
+			self[SIDES[nextNode]] = newNode;
+		}
 	};
 	
 	this.rotateLeft = function(newNode) {

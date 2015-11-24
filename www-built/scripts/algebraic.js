@@ -98,15 +98,13 @@ function makeEquationTree(inputEquation) {
 		} else if (match.node instanceof EnclosureNode) { 
 			addImplicitMultiply();
 			activeNode.addChild(match.node);
-			activeNode = match.node;
 		} else if (match.node instanceof OperatorNode) { 
 			activeNode.rotateLeft(match.node); 
-			activeNode = match.node;
 		} else if (match.node instanceof LeafNode) {
 			addImplicitMultiply();
 			activeNode.addChild(match.node);
-			activeNode = match.node;
 		}
+		if (match.node instanceof BaseNode) {activeNode = match.node;}
 		i += match.charCount;
 	}
 	 
@@ -122,13 +120,18 @@ function closeParenthesis() {
 }
 
 function addImplicitMultiply() {
-	if (activeNode.leftNode) {
+	if (activeNode instanceof LeafNode) {
+		var implicitMultiplyNode = new MultiplicationNode();
+		activeNode.rotateLeft(implicitMultiplyNode);
+		activeNode = implicitMultiplyNode;
+	}
+	/*if (activeNode.leftNode) {
 		if (activeNode.rightNode) {
 			var implicitMultiplyNode = new MultiplicationNode();
 			activeNode.rotateLeft(implicitMultiplyNode);
 			activeNode = implicitMultiplyNode;
 		}
-	}
+	}*/
 }
 
 function getRoot(node) {
@@ -180,10 +183,14 @@ function BaseNode(parentNode) {
     // Methods
     // ================================================================================
 	
-	this.addChild = function(newChild) {
+	this.addChild = function(newNode) {
 		var nextNode = self.nodes.length;
-		if (nextNode >= SIDES.length) {throw new Error('Cannot add child, already has all children.');}
-		self[SIDES[nextNode]] = newChild;
+		if (nextNode >= SIDES.length) {
+			//throw new Error('Cannot add child, already has all children.');
+			this.rotateLeft(newNode);
+		} else {
+			self[SIDES[nextNode]] = newNode;
+		}
 	};
 	
 	this.rotateLeft = function(newNode) {

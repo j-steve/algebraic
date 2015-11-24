@@ -1,4 +1,4 @@
-/* global ParenthesisNode, OperatorNode, LeafNode, parseInput */
+/* global ParenthesisNode, OperatorNode, LeafNode, parseInput, EnclosureNode */
 
 var activeNode;
 
@@ -6,14 +6,14 @@ var activeNode;
  * @param {string} inputEquation
  * @returns {OperatorNode}
  */
-function makeEquationTree(inputEquation) {
-	
-	
+function makeEquationTree(inputEquation) { 
 	activeNode = new BaseNode();
 	for (var i = 0; i < inputEquation.length;) {
 		var match = parseInput(inputEquation.substring(i));
 		if (!match) {throw new Error(String.format('Invalid character: "{0}"', inputEquation[i]));}
-		if (match.node instanceof ParenthesisNode) { 
+		if (match.node === 'CLOSE_PAREN') {
+			closeParenthesis();
+		} else if (match.node instanceof EnclosureNode) { 
 			addImplicitMultiply();
 			activeNode.addChild(match.node);
 			activeNode = match.node;
@@ -26,15 +26,25 @@ function makeEquationTree(inputEquation) {
 		}
 		i += match.charCount;
 	}
-	
+	 
 	return getRoot(activeNode);
-} 
+}
+
+function closeParenthesis() { 
+	while (!(activeNode instanceof EnclosureNode)) {
+		activeNode = activeNode.parent;
+	}
+	if (!activeNode.parent) {throw new Error('Unmatched ")" detected.');}
+	activeNode = activeNode.parent;
+}
 
 function addImplicitMultiply() {
-	if (activeNode.leftNode && (activeNode.rightNode || !(activeNode instanceof OperatorNode))) {
-		var implicitMultiplyNode = new MultiplicationNode();
-		activeNode.rotateLeft(implicitMultiplyNode);
-		activeNode = implicitMultiplyNode;
+	if (activeNode.leftNode) {
+		if (activeNode.rightNode || !(activeNode instanceof OperatorNode)) {
+			var implicitMultiplyNode = new MultiplicationNode();
+			activeNode.rotateLeft(implicitMultiplyNode);
+			activeNode = implicitMultiplyNode;
+		}
 	}
 }
 

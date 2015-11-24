@@ -17,14 +17,4 @@ function RootNode() {
 	Object.seal(this);
 	
 }
-Object.extend(OperatorNode, RootNode);
-
-
-function LogarithmNode() {
-	
-	OperatorNode.call(this, 'log');
-
-	Object.seal(this);
-	
-}
-Object.extend(OperatorNode, LogarithmNode);
+Object.extend(OperatorNode, RootNode); 

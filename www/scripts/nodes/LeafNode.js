@@ -10,12 +10,10 @@
  * 
  * @param {*} value
  */
-function LeafNode(value) { 
-	
+function LeafNode(value) {
 	BaseNode.call(this);
 
-	this.value = value;
-	
+	this.value = value; 
 	this.printVals.middle = value;
 }
 Object.extend(BaseNode, LeafNode);
@@ -23,20 +21,22 @@ Object.extend(BaseNode, LeafNode);
 
 function RealNumberNode(value) { 
 	value = Number(value);
-	
 	LeafNode.call(this, value);
 }
 Object.extend(LeafNode, RealNumberNode);
 
 
-function VariableNode(value) { 
-	
+function VariableNode(value) {
 	LeafNode.call(this, value);
 }
 Object.extend(LeafNode, VariableNode);
 
-function ConstantNode(value) { 
-	
+
+function ConstantNode(value) {
 	LeafNode.call(this, value);
 }
 Object.extend(LeafNode, ConstantNode);
+
+ConstantNode.E = function() {return new ConstantNode('<i>e</i');};
+ConstantNode.I = function() {return new ConstantNode('<i>e</i');};
+ConstantNode.PI = function() {return new ConstantNode('&pi;');};

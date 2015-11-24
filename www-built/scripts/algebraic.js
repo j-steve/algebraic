@@ -80,7 +80,7 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
 	}
 }
-;/* global ParenthesisNode, OperatorNode, LeafNode, parseInput */
+;/* global ParenthesisNode, OperatorNode, LeafNode, parseInput, EnclosureNode */
 
 var activeNode;
 
@@ -88,14 +88,14 @@ var activeNode;
  * @param {string} inputEquation
  * @returns {OperatorNode}
  */
-function makeEquationTree(inputEquation) {
-	
-	
+function makeEquationTree(inputEquation) { 
 	activeNode = new BaseNode();
 	for (var i = 0; i < inputEquation.length;) {
 		var match = parseInput(inputEquation.substring(i));
 		if (!match) {throw new Error(String.format('Invalid character: "{0}"', inputEquation[i]));}
-		if (match.node instanceof ParenthesisNode) { 
+		if (match.node === 'CLOSE_PAREN') {
+			closeParenthesis();
+		} else if (match.node instanceof EnclosureNode) { 
 			addImplicitMultiply();
 			activeNode.addChild(match.node);
 			activeNode = match.node;
@@ -108,15 +108,25 @@ function makeEquationTree(inputEquation) {
 		}
 		i += match.charCount;
 	}
-	
+	 
 	return getRoot(activeNode);
-} 
+}
+
+function closeParenthesis() { 
+	while (!(activeNode instanceof EnclosureNode)) {
+		activeNode = activeNode.parent;
+	}
+	if (!activeNode.parent) {throw new Error('Unmatched ")" detected.');}
+	activeNode = activeNode.parent;
+}
 
 function addImplicitMultiply() {
-	if (activeNode.leftNode && (activeNode.rightNode || !(activeNode instanceof OperatorNode))) {
-		var implicitMultiplyNode = new MultiplicationNode();
-		activeNode.rotateLeft(implicitMultiplyNode);
-		activeNode = implicitMultiplyNode;
+	if (activeNode.leftNode) {
+		if (activeNode.rightNode || !(activeNode instanceof OperatorNode)) {
+			var implicitMultiplyNode = new MultiplicationNode();
+			activeNode.rotateLeft(implicitMultiplyNode);
+			activeNode = implicitMultiplyNode;
+		}
 	}
 }
 
@@ -202,12 +212,10 @@ function BaseNode(parentNode) {
  * 
  * @param {*} value
  */
-function LeafNode(value) { 
-	
+function LeafNode(value) {
 	BaseNode.call(this);
 
-	this.value = value;
-	
+	this.value = value; 
 	this.printVals.middle = value;
 }
 Object.extend(BaseNode, LeafNode);
@@ -215,23 +223,25 @@ Object.extend(BaseNode, LeafNode);
 
 function RealNumberNode(value) { 
 	value = Number(value);
-	
 	LeafNode.call(this, value);
 }
 Object.extend(LeafNode, RealNumberNode);
 
 
-function VariableNode(value) { 
-	
+function VariableNode(value) {
 	LeafNode.call(this, value);
 }
 Object.extend(LeafNode, VariableNode);
 
-function ConstantNode(value) { 
-	
+
+function ConstantNode(value) {
 	LeafNode.call(this, value);
 }
-Object.extend(LeafNode, ConstantNode);;/* global BaseNode */ 
+Object.extend(LeafNode, ConstantNode);
+
+ConstantNode.E = function() {return new ConstantNode('<i>e</i');};
+ConstantNode.I = function() {return new ConstantNode('<i>e</i');};
+ConstantNode.PI = function() {return new ConstantNode('&pi;');};;/* global BaseNode */ 
 
 /**
  * @constructor
@@ -245,7 +255,7 @@ function OperatorNode(debugSymbol) {
 	
 	BaseNode.call(this);
 	
-	this.printVals.middle =  '<div class="operator">' + debugSymbol + '<div>';
+	this.printVals.middle =  '<div class="operator">' + debugSymbol + '</div>';
 }
 
 Object.extend(BaseNode, OperatorNode);;/* global OperatorNode */
@@ -337,7 +347,38 @@ function LessOrEqualNode() {
 	Object.seal(this);
 	
 }
-Object.extend(ComparisonNode, LessOrEqualNode);;/* global OperatorNode */
+Object.extend(ComparisonNode, LessOrEqualNode);;/* global BaseNode */
+
+function EnclosureNode(openSymbol, closeSymbol) {
+	var self = this;
+	
+	this.openSymbol = openSymbol || '';
+	this.closeSymbol = closeSymbol || ''; 
+	
+	BaseNode.call(this, this.openSymbol + this.closeSymbol);
+	
+	this.prettyInput = function() {
+		return this.openSymbol + self.nodes.map(function(node) {return node.prettyInput();}).join('') + this.closeSymbol;
+	};
+	
+	this.printVals.before += '(';
+	
+	this.printVals.after = ')' + this.printVals.after;
+} 
+Object.extend(BaseNode, EnclosureNode);
+
+function ParenthesisNode() { 
+	EnclosureNode.call(this, '(', ')');
+}
+Object.extend(EnclosureNode, ParenthesisNode);
+
+function LogarithmNode(base) {  
+	
+	EnclosureNode.call(this, 'log(', ')');
+	
+	if (base) {this.leftNode = base;}
+}
+Object.extend(EnclosureNode, LogarithmNode);;/* global OperatorNode */
 
 function ExponentNode() {
 	
@@ -356,17 +397,7 @@ function RootNode() {
 	Object.seal(this);
 	
 }
-Object.extend(OperatorNode, RootNode);
-
-
-function LogarithmNode() {
-	
-	OperatorNode.call(this, 'log');
-
-	Object.seal(this);
-	
-}
-Object.extend(OperatorNode, LogarithmNode);;/* global OperatorNode */
+Object.extend(OperatorNode, RootNode); ;/* global OperatorNode */
 
 function MultiplicationNode() {
 	
@@ -385,37 +416,30 @@ function DivisionNode() {
 	Object.seal(this);
 	
 }
-Object.extend(OperatorNode, DivisionNode);;/* global BaseNode */
-/* global OperatorNode */
-
-function ParenthesisNode() {
-	'use strict';
-	var self = this;
-	
-	BaseNode.call(this);
-	
-	this.prettyInput = function() {
-		return '(' + self.nodes.map(function(node) {return node.prettyInput();}).join('') + ')';
-	};
-	
-	this.printVals.before += '(';
-	
-	this.printVals.after = ')' + this.printVals.after;
-	
-}
-
-Object.extend(BaseNode, ParenthesisNode);;/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
+Object.extend(OperatorNode, DivisionNode);;/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
 /* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */
+/* global ExponentNode, LogarithmNode, RootNode, ConstantNode,  */
+/* global */
 
 var NODE_REGEX = {
-	',\\\s*': ParenthesisNode,
+	',': 'COMMA',
+	'\\\)': 'CLOSE_PAREN',
+	'\\\s': 'WHITESPACE',
 	'\\\(': ParenthesisNode,
 	'\\\+': AdditionNode,
 	'[-−]': SubtractionNode,
 	'\\\+[-−]': PlusOrMinusNode,
 	'±': PlusOrMinusNode,
 	'[*·∙×\u22C5]': MultiplicationNode,
-	'[\/∕÷]': DivisionNode,
+	'[\/∕÷]': DivisionNode, 
+	'\\\^': ExponentNode,
+	'log': LogarithmNode,
+	'lg': Function.bind.call(LogarithmNode, null, new RealNumberNode(2)),
+	'ln': Function.bind.call(LogarithmNode, null, new ConstantNode.E),
+	
+	'e': ConstantNode.E,
+	'i': ConstantNode.I,
+	'pi': ConstantNode.PI,
 	
 	'>=': GreaterOrEqualNode,
 	'<=': LessOrEqualNode,
@@ -423,8 +447,8 @@ var NODE_REGEX = {
 	'>': GreaterThanNode,
 	'=': EqualsNode,
 	
-	'[0-9]+': RealNumberNode,
-	'[A-Za-z]': VariableNode
+	'([0-9]+)': RealNumberNode,
+	'([A-Za-z])': VariableNode
 	
 };
 
@@ -444,7 +468,11 @@ function parseInput(substring) {
 			var regex = new RegExp('^' + key);
 			var match = regex.exec(substring);
 			if (match) {
-				return {charCount: match[0].length, node: new NODE_REGEX[key](match[0])};
+				var nodeType = NODE_REGEX[key];
+				if (typeof nodeType !== 'string') {
+					nodeType = new nodeType(match[1]);
+				}
+				return {charCount: match[0].length, node: nodeType};
 			}
 		}
 	}

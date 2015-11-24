@@ -1,15 +1,27 @@
 /* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
 /* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */
+/* global ExponentNode, LogarithmNode, RootNode, ConstantNode,  */
+/* global */
 
 var NODE_REGEX = {
-	',\\\s*': ParenthesisNode,
+	',': 'COMMA',
+	'\\\)': 'CLOSE_PAREN',
+	'\\\s': 'WHITESPACE',
 	'\\\(': ParenthesisNode,
 	'\\\+': AdditionNode,
 	'[-−]': SubtractionNode,
 	'\\\+[-−]': PlusOrMinusNode,
 	'±': PlusOrMinusNode,
 	'[*·∙×\u22C5]': MultiplicationNode,
-	'[\/∕÷]': DivisionNode,
+	'[\/∕÷]': DivisionNode, 
+	'\\\^': ExponentNode,
+	'log': LogarithmNode,
+	'lg': Function.bind.call(LogarithmNode, null, new RealNumberNode(2)),
+	'ln': Function.bind.call(LogarithmNode, null, new ConstantNode.E),
+	
+	'e': ConstantNode.E,
+	'i': ConstantNode.I,
+	'pi': ConstantNode.PI,
 	
 	'>=': GreaterOrEqualNode,
 	'<=': LessOrEqualNode,
@@ -17,8 +29,8 @@ var NODE_REGEX = {
 	'>': GreaterThanNode,
 	'=': EqualsNode,
 	
-	'[0-9]+': RealNumberNode,
-	'[A-Za-z]': VariableNode
+	'([0-9]+)': RealNumberNode,
+	'([A-Za-z])': VariableNode
 	
 };
 
@@ -38,7 +50,11 @@ function parseInput(substring) {
 			var regex = new RegExp('^' + key);
 			var match = regex.exec(substring);
 			if (match) {
-				return {charCount: match[0].length, node: new NODE_REGEX[key](match[0])};
+				var nodeType = NODE_REGEX[key];
+				if (typeof nodeType !== 'string') {
+					nodeType = new nodeType(match[1]);
+				}
+				return {charCount: match[0].length, node: nodeType};
 			}
 		}
 	}

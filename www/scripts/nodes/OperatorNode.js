@@ -12,7 +12,7 @@ function OperatorNode(debugSymbol) {
 	
 	BaseNode.call(this);
 	
-	this.printVals.middle =  '<div class="operator">' + debugSymbol + '<div>';
+	this.printVals.middle =  '<div class="operator">' + debugSymbol + '</div>';
 }
 
 Object.extend(BaseNode, OperatorNode);

@@ -122,6 +122,7 @@ function closeParenthesis() {
 function addImplicitMultiply() {
 	if (activeNode instanceof LeafNode) {
 		var implicitMultiplyNode = new MultiplicationNode();
+		implicitMultiplyNode.stickiness = 4;
 		rotateForOperator(implicitMultiplyNode);
 		activeNode = implicitMultiplyNode;
 	}
@@ -136,7 +137,7 @@ function rotateForOperator(newOperatorNode) {
 
 function activeNodeSticksToOperator(newOperatorNode) {
 	if (activeNode.parent instanceof OperatorNode) {
-		if (activeNode.parent.leftToRight) {
+		if (newOperatorNode.leftToRight && activeNode.parent.leftToRight) {
 			return newOperatorNode.stickiness <= activeNode.parent.stickiness;
 		} else {
 			return newOperatorNode.stickiness < activeNode.parent.stickiness;
@@ -366,11 +367,19 @@ function RootNode() {
 }
 Object.extend(OperatorNode, RootNode); ;/* global OperatorNode */
 
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ */
 function MultiplicationNode() {
 	OperatorNode.call(this, '&sdot;', 3);
 }
 Object.extend(OperatorNode, MultiplicationNode);
 
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ */
 function DivisionNode() {
 	OperatorNode.call(this, '∕', 3);
 }

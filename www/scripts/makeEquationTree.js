@@ -40,6 +40,7 @@ function closeParenthesis() {
 function addImplicitMultiply() {
 	if (activeNode instanceof LeafNode) {
 		var implicitMultiplyNode = new MultiplicationNode();
+		implicitMultiplyNode.stickiness = 4;
 		rotateForOperator(implicitMultiplyNode);
 		activeNode = implicitMultiplyNode;
 	}
@@ -54,7 +55,7 @@ function rotateForOperator(newOperatorNode) {
 
 function activeNodeSticksToOperator(newOperatorNode) {
 	if (activeNode.parent instanceof OperatorNode) {
-		if (activeNode.parent.leftToRight) {
+		if (newOperatorNode.leftToRight && activeNode.parent.leftToRight) {
 			return newOperatorNode.stickiness <= activeNode.parent.stickiness;
 		} else {
 			return newOperatorNode.stickiness < activeNode.parent.stickiness;

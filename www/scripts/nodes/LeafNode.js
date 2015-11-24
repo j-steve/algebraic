@@ -13,11 +13,15 @@
  * @param {number} displaySequence
  */
 function LeafNode(value, displaySequence) {
+	var self = this;
 	BaseNode.call(this);
 
 	this.value = value; 
 	this.displaySequence = displaySequence;
-	this.printVals.middle = value;
+	
+	this.toString = function() {
+		return self.value;
+	};
 }
 Object.extend(BaseNode, LeafNode);
 

@@ -64,6 +64,19 @@ output.formatted .ExponentNode > .rightNode {
 	font-size: 90%;
 }
 
-.n-root {
-	color:blue;
+output.formatted .LogarithmNode {
+	display:inline-flex;
+
 }
+output.formatted .LogarithmNode > .operator {
+	order: 1;
+}
+output.formatted .LogarithmNode > .leftNode {
+	order: 2; 
+	font-size: 70%;
+    padding-top: 10px;
+}
+output.formatted .LogarithmNode > .rightNode {
+	order: 3;
+}
+

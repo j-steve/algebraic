@@ -207,6 +207,14 @@ function BaseNode(parentNode) {
     // Methods
     // ================================================================================
 	
+	/*this.decendantNodes = function() {
+		var children = self.nodes.slice();
+		self.nodes.forEach(function(node) {
+			children = children.concat(node.decendantNodes());
+		});
+		return children;
+	};*/
+	
 	this.hasBothLeafs = function() {
 		return self.leftNode instanceof LeafNode && self.rightNode instanceof LeafNode;
 	};
@@ -517,6 +525,7 @@ function MultiplicationNode() {
 	 
 	var baseCleanup = this.cleanup;
 	this.cleanup = function() {
+		baseCleanup.call(self);
 		if (self.hasBothLeafs()) {
 			self.replaceWith(new CoefficientNode, true);
 		}
@@ -529,9 +538,9 @@ Object.extend(BaseMultiplicationNode, MultiplicationNode);
  * @extends {BaseMultiplicationNode}
  */
 function CoefficientNode() {
-	BaseMultiplicationNode.call(this, 'c', 4);
+	BaseMultiplicationNode.call(this, '<span style="color:gray;">&sdot;</span>', 4);
 }
-Object.extend(BaseMultiplicationNode, MultiplicationNode);
+Object.extend(BaseMultiplicationNode, CoefficientNode);
 
 /**
  * @constructor

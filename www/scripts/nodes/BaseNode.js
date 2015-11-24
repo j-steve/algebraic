@@ -43,6 +43,14 @@ function BaseNode(parentNode) {
     // Methods
     // ================================================================================
 	
+	/*this.decendantNodes = function() {
+		var children = self.nodes.slice();
+		self.nodes.forEach(function(node) {
+			children = children.concat(node.decendantNodes());
+		});
+		return children;
+	};*/
+	
 	this.hasBothLeafs = function() {
 		return self.leftNode instanceof LeafNode && self.rightNode instanceof LeafNode;
 	};

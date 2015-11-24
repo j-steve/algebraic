@@ -4,6 +4,12 @@
 	Array.prototype.peek = function() {
 		return this.length ? this[this.length - 1] : false;
 	};
+	
+	Array.prototype.sorted = function() {
+		var clone = [].slice.call(this);
+		[].sort.apply(clone, arguments);
+		return clone;
+	};
 
 	Object.extend = function(parent, child) {
 		child.prototype = Object.create(parent.prototype);
@@ -68,19 +74,16 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		treeTableElement.innerHTML = rootNode.toString();
 		
 		rootNode.cleanup();
+		prettyInputElement.className = 'formatted';
+		prettyInputElement.innerHTML = rootNode.toString(); 
+		
+		rootNode.simplify();
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();
-		return;
 		
-		//rootNode.print(treeTableElement);
-		prettyInputElement.innerHTML = '<span>' + rootNode.prettyInput() + '</span>';
-		rootNode.simplify();
+		calculateElement.className = 'formatted';
+		calculateElement.innerHTML = rootNode.toString();
 		
-		rootNode.cleanup();
-		rootNode.print(simplifyElement);
-		simplifyElement.className = 'treeTable';
-		calculateElement.innerHTML = rootNode.calculate();
-		//simplifyElement.innerHTML = rootNode.prettyInput();
 	} catch (err) {
 		console.warn([].slice(arguments).join(' '));
 		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
@@ -198,7 +201,7 @@ function BaseNode(parentNode) {
 	});
 	
 	this.printVals = {
-		before: '<div class="node operator-node">',
+		before: '<div class="node operator-node ' + this.constructor.name + '">',
 		middle: '',
 		after: '</div>'
 	};
@@ -207,12 +210,20 @@ function BaseNode(parentNode) {
     // Methods
     // ================================================================================
 	
-	/*this.decendantNodes = function() {
+	/**
+	 * @returns {Array}
+	 */
+	/*this.decendants = function() {
 		var children = self.nodes.slice();
 		self.nodes.forEach(function(node) {
 			children = children.concat(node.decendantNodes());
 		});
 		return children;
+	};
+	
+	this.getNodeOfType = function(instanceType) {
+		var isInstance = function(x) {return x instanceof instanceType;};
+		return self.sides.find(function(side) {return side.decendants().any(isInstance);});
 	};*/
 	
 	this.hasBothLeafs = function() {
@@ -235,14 +246,27 @@ function BaseNode(parentNode) {
 	};
 	
 	/**
+	 * Returns the string name of the side of the parentNode on which this node appears.
+	 * 
+	 * @returns {string}   either "leftNode" or "rightNode"
+	 */
+	this.side = function() { 
+		return SIDES[self.parent.nodes.indexOf(self)];
+	};
+	
+	/**
 	 * @param {BaseNode} replacementNode
 	 * @param {boolean} [stealNodes=false]
 	 */
 	this.replaceWith = function(replacementNode, stealNodes) {
 		if (!self.parent) {throw new Error('Cannot replace root node.');}
-		var side = SIDES[self.parent.nodes.indexOf(self)];
-		self.parent[side] = replacementNode;
-		if (stealNodes) {
+		var side = self.side();
+		var parent = self.parent;
+		if (replacementNode.parent) { 
+			replacementNode.parent[replacementNode.side()] = self;
+		}
+		parent[side] = replacementNode;
+		if (stealNodes) {  
 			replacementNode.leftNode = self.leftNode;
 			replacementNode.rightNode = self.rightNode;
 		}
@@ -250,16 +274,18 @@ function BaseNode(parentNode) {
 	
 	this.cleanup = function() {
 		self.nodes.forEach(function(node) {node.cleanup();});
-		if (self.hasBothLeafs() && self.rightNode.displaySequence < self.leftNode.displaySequence) {
-			var newRighty = self.leftNode;
-			self.leftNode = self.rightNode;
-			self.rightNode = newRighty;
-		}
+	};
+	
+	this.simplify = function() {
+		self.nodes.forEach(function(node) {node.simplify();});
 	};
 	
 	this.toString = function() {
-		var nodes = self.nodes.concat(['', '']).slice(0, 2);
-		return self.printVals.before + nodes.join(self.printVals.middle) + self.printVals.after;
+		var result = self.printVals.before; 
+		if (self.leftNode) {result += '<span class="leftNode">' + self.leftNode + '</span>';}
+		result += self.printVals.middle;
+		if (self.rightNode) {result += '<span class="rightNode">' + self.rightNode + '</span>';}
+		return result + self.printVals.after;
 	};
 	
 }
@@ -389,7 +415,19 @@ Object.extend(OperatorNode, PlusOrMinusNode);;/* global OperatorNode */
  * @extends {OperatorNode}
  */
 function ComparisonNode(debugSymbol) {
+	var self = this;
 	OperatorNode.call(this, debugSymbol, 1);
+	
+	var baseCleanup = this.cleanup;
+	this.cleanup = function() {
+		baseCleanup.call(self);
+		/*while (self.leftNode instanceof OperatorNode) {
+			var variable = lefty.leftNode.getNodeOfType(VariableNode);
+			var coefficient = self.leftNode.getNodeOfType(RealNumberNode);
+			var leftNodes = self.leftNode.decendants();
+			if (leftNodes.any(function(node) {return node instanceof VariableNode;}))
+		}*/
+	};
 }
 Object.extend(OperatorNode, ComparisonNode);
 
@@ -403,7 +441,7 @@ function EqualsNode() {
 Object.extend(ComparisonNode, EqualsNode);
 
 /**
- * @constructor
+ * @constructor 
  * @extends {ComparisonNode}
  */
 function GreaterThanNode() {
@@ -483,7 +521,7 @@ Object.extend(EnclosureNode, ParenthesisNode);
  * @constructor
  * @extends {OperatorNode}
  */
-function ExponentNode() {
+function ExponentNode(leftNode, rightNode) {
 	OperatorNode.call(this, '^', 4, true);
 }
 Object.extend(OperatorNode, ExponentNode);
@@ -507,14 +545,64 @@ function LogarithmNode(base) {
 	OperatorPrefixNode.call(this, 'log', 3);
 	this.leftNode = base || new RealNumberNode(10);
 }
-Object.extend(OperatorPrefixNode, LogarithmNode);;/* global OperatorNode */
+Object.extend(OperatorPrefixNode, LogarithmNode);;/* global OperatorNode, LeafNode, RealNumberNode */
 
 /**
  * @constructor
  * @extends {OperatorNode}
  */
 function BaseMultiplicationNode() {
+	var self = this;
+	
 	OperatorNode.apply(this, arguments);
+	
+	var baseCleanup = this.cleanup;
+	this.cleanup = function() { 
+		baseCleanup.call(self);
+		var leafsInScope = getLeafsInScope();//.filter(function(x) {return x instanceof RealNumberNode;});
+		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
+		for (var i = 0; i < sortedLeafs.length - 1; i++) {
+			var leaf = sortedLeafs[i];
+			if (leaf !== leafsInScope[i]) {
+				leaf.replaceWith(leafsInScope[i]);
+				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
+				leafsInScope[i] = leaf;
+			}
+		}
+		if (self.leftNode instanceof LeafNode && self.rightNode instanceof BaseMultiplicationNode) {
+			self.leftNode.replaceWith(self.rightNode);
+		}
+	};
+	
+	var baseSimplify = this.simplify;
+	this.simplify = function() {
+		baseSimplify.call(self);
+		if (self.leftNode instanceof RealNumberNode && self.rightNode instanceof RealNumberNode) {
+			self.replaceWith(new RealNumberNode(self.leftNode.value * self.rightNode.value));
+		
+		} else if (self.rightNode instanceof LeafNode && self.parent.rightNode instanceof LeafNode &&
+				self.rightNode.value === self.parent.rightNode.value) {
+			self.parent.replaceWith(self);
+			var exponent = new ExponentNode();
+			exponent.leftNode = self.rightNode;
+			exponent.rightNode = new RealNumberNode(2);
+			self.rightNode = exponent;
+		}
+	};
+	
+	function getLeafsInScope() {
+		var leafs = [];
+		var stack = self.nodes.slice();
+		while (stack.length) {
+			var node = stack.shift();
+			if (node instanceof LeafNode) {
+				leafs.push(node);
+			} else if (node instanceof BaseMultiplicationNode) {
+				stack = node.nodes.concat(stack);
+			}
+		}
+		return leafs;
+	}
 }
 Object.extend(OperatorNode, BaseMultiplicationNode);
 
@@ -555,9 +643,9 @@ function DivisionNode() {
 	
 	OperatorNode.call(this, '∕', 3);
 	
-	var baseCleanup = this.cleanup;
-	this.cleanup = function() {
-		baseCleanup.call(self); 
+	var baseSimplify = this.simplify;
+	this.simplify = function() {
+		baseSimplify.call(self); 
 		if (self.hasBothLeafs()) {
 			var gcd = commonDenominator(self.leftNode.value, self.rightNode.value);
 			if (gcd) {

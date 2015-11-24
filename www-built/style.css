@@ -48,6 +48,22 @@ output.treeTable div.operator.operator-unknown {
     font-weight:normal;
 }
 
+output.formatted div {
+	display:inline-block;
+}
+
+output.formatted .CoefficientNode > .operator {
+	display:none;
+}
+
+output.formatted .ExponentNode > .operator {
+	display:none;
+}
+output.formatted .ExponentNode > .rightNode {
+	vertical-align: super;
+	font-size: 90%;
+}
+
 .n-root {
 	color:blue;
 }

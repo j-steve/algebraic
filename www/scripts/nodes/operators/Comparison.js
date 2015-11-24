@@ -5,7 +5,19 @@
  * @extends {OperatorNode}
  */
 function ComparisonNode(debugSymbol) {
+	var self = this;
 	OperatorNode.call(this, debugSymbol, 1);
+	
+	var baseCleanup = this.cleanup;
+	this.cleanup = function() {
+		baseCleanup.call(self);
+		/*while (self.leftNode instanceof OperatorNode) {
+			var variable = lefty.leftNode.getNodeOfType(VariableNode);
+			var coefficient = self.leftNode.getNodeOfType(RealNumberNode);
+			var leftNodes = self.leftNode.decendants();
+			if (leftNodes.any(function(node) {return node instanceof VariableNode;}))
+		}*/
+	};
 }
 Object.extend(OperatorNode, ComparisonNode);
 
@@ -19,7 +31,7 @@ function EqualsNode() {
 Object.extend(ComparisonNode, EqualsNode);
 
 /**
- * @constructor
+ * @constructor 
  * @extends {ComparisonNode}
  */
 function GreaterThanNode() {

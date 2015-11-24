@@ -4,7 +4,7 @@
  * @constructor
  * @extends {OperatorNode}
  */
-function ExponentNode() {
+function ExponentNode(leftNode, rightNode) {
 	OperatorNode.call(this, '^', 4, true);
 }
 Object.extend(OperatorNode, ExponentNode);

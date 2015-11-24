@@ -34,7 +34,7 @@ function BaseNode(parentNode) {
 	});
 	
 	this.printVals = {
-		before: '<div class="node operator-node">',
+		before: '<div class="node operator-node ' + this.constructor.name + '">',
 		middle: '',
 		after: '</div>'
 	};
@@ -43,12 +43,20 @@ function BaseNode(parentNode) {
     // Methods
     // ================================================================================
 	
-	/*this.decendantNodes = function() {
+	/**
+	 * @returns {Array}
+	 */
+	/*this.decendants = function() {
 		var children = self.nodes.slice();
 		self.nodes.forEach(function(node) {
 			children = children.concat(node.decendantNodes());
 		});
 		return children;
+	};
+	
+	this.getNodeOfType = function(instanceType) {
+		var isInstance = function(x) {return x instanceof instanceType;};
+		return self.sides.find(function(side) {return side.decendants().any(isInstance);});
 	};*/
 	
 	this.hasBothLeafs = function() {
@@ -71,14 +79,27 @@ function BaseNode(parentNode) {
 	};
 	
 	/**
+	 * Returns the string name of the side of the parentNode on which this node appears.
+	 * 
+	 * @returns {string}   either "leftNode" or "rightNode"
+	 */
+	this.side = function() { 
+		return SIDES[self.parent.nodes.indexOf(self)];
+	};
+	
+	/**
 	 * @param {BaseNode} replacementNode
 	 * @param {boolean} [stealNodes=false]
 	 */
 	this.replaceWith = function(replacementNode, stealNodes) {
 		if (!self.parent) {throw new Error('Cannot replace root node.');}
-		var side = SIDES[self.parent.nodes.indexOf(self)];
-		self.parent[side] = replacementNode;
-		if (stealNodes) {
+		var side = self.side();
+		var parent = self.parent;
+		if (replacementNode.parent) { 
+			replacementNode.parent[replacementNode.side()] = self;
+		}
+		parent[side] = replacementNode;
+		if (stealNodes) {  
 			replacementNode.leftNode = self.leftNode;
 			replacementNode.rightNode = self.rightNode;
 		}
@@ -86,16 +107,18 @@ function BaseNode(parentNode) {
 	
 	this.cleanup = function() {
 		self.nodes.forEach(function(node) {node.cleanup();});
-		if (self.hasBothLeafs() && self.rightNode.displaySequence < self.leftNode.displaySequence) {
-			var newRighty = self.leftNode;
-			self.leftNode = self.rightNode;
-			self.rightNode = newRighty;
-		}
+	};
+	
+	this.simplify = function() {
+		self.nodes.forEach(function(node) {node.simplify();});
 	};
 	
 	this.toString = function() {
-		var nodes = self.nodes.concat(['', '']).slice(0, 2);
-		return self.printVals.before + nodes.join(self.printVals.middle) + self.printVals.after;
+		var result = self.printVals.before; 
+		if (self.leftNode) {result += '<span class="leftNode">' + self.leftNode + '</span>';}
+		result += self.printVals.middle;
+		if (self.rightNode) {result += '<span class="rightNode">' + self.rightNode + '</span>';}
+		return result + self.printVals.after;
 	};
 	
 }

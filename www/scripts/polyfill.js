@@ -4,6 +4,12 @@
 	Array.prototype.peek = function() {
 		return this.length ? this[this.length - 1] : false;
 	};
+	
+	Array.prototype.sorted = function() {
+		var clone = [].slice.call(this);
+		[].sort.apply(clone, arguments);
+		return clone;
+	};
 
 	Object.extend = function(parent, child) {
 		child.prototype = Object.create(parent.prototype);

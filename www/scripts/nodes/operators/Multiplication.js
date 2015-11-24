@@ -1,11 +1,61 @@
-/* global OperatorNode */
+/* global OperatorNode, LeafNode, RealNumberNode */
 
 /**
  * @constructor
  * @extends {OperatorNode}
  */
 function BaseMultiplicationNode() {
+	var self = this;
+	
 	OperatorNode.apply(this, arguments);
+	
+	var baseCleanup = this.cleanup;
+	this.cleanup = function() { 
+		baseCleanup.call(self);
+		var leafsInScope = getLeafsInScope();//.filter(function(x) {return x instanceof RealNumberNode;});
+		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
+		for (var i = 0; i < sortedLeafs.length - 1; i++) {
+			var leaf = sortedLeafs[i];
+			if (leaf !== leafsInScope[i]) {
+				leaf.replaceWith(leafsInScope[i]);
+				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
+				leafsInScope[i] = leaf;
+			}
+		}
+		if (self.leftNode instanceof LeafNode && self.rightNode instanceof BaseMultiplicationNode) {
+			self.leftNode.replaceWith(self.rightNode);
+		}
+	};
+	
+	var baseSimplify = this.simplify;
+	this.simplify = function() {
+		baseSimplify.call(self);
+		if (self.leftNode instanceof RealNumberNode && self.rightNode instanceof RealNumberNode) {
+			self.replaceWith(new RealNumberNode(self.leftNode.value * self.rightNode.value));
+		
+		} else if (self.rightNode instanceof LeafNode && self.parent.rightNode instanceof LeafNode &&
+				self.rightNode.value === self.parent.rightNode.value) {
+			self.parent.replaceWith(self);
+			var exponent = new ExponentNode();
+			exponent.leftNode = self.rightNode;
+			exponent.rightNode = new RealNumberNode(2);
+			self.rightNode = exponent;
+		}
+	};
+	
+	function getLeafsInScope() {
+		var leafs = [];
+		var stack = self.nodes.slice();
+		while (stack.length) {
+			var node = stack.shift();
+			if (node instanceof LeafNode) {
+				leafs.push(node);
+			} else if (node instanceof BaseMultiplicationNode) {
+				stack = node.nodes.concat(stack);
+			}
+		}
+		return leafs;
+	}
 }
 Object.extend(OperatorNode, BaseMultiplicationNode);
 
@@ -46,9 +96,9 @@ function DivisionNode() {
 	
 	OperatorNode.call(this, '∕', 3);
 	
-	var baseCleanup = this.cleanup;
-	this.cleanup = function() {
-		baseCleanup.call(self); 
+	var baseSimplify = this.simplify;
+	this.simplify = function() {
+		baseSimplify.call(self); 
 		if (self.hasBothLeafs()) {
 			var gcd = commonDenominator(self.leftNode.value, self.rightNode.value);
 			if (gcd) {

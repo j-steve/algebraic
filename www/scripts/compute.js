@@ -15,19 +15,16 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		treeTableElement.innerHTML = rootNode.toString();
 		
 		rootNode.cleanup();
+		prettyInputElement.className = 'formatted';
+		prettyInputElement.innerHTML = rootNode.toString(); 
+		
+		rootNode.simplify();
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();
-		return;
 		
-		//rootNode.print(treeTableElement);
-		prettyInputElement.innerHTML = '<span>' + rootNode.prettyInput() + '</span>';
-		rootNode.simplify();
+		calculateElement.className = 'formatted';
+		calculateElement.innerHTML = rootNode.toString();
 		
-		rootNode.cleanup();
-		rootNode.print(simplifyElement);
-		simplifyElement.className = 'treeTable';
-		calculateElement.innerHTML = rootNode.calculate();
-		//simplifyElement.innerHTML = rootNode.prettyInput();
 	} catch (err) {
 		console.warn([].slice(arguments).join(' '));
 		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';

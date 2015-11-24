@@ -2,21 +2,19 @@
 
 /**
  * @constructor
+ * @extends {BaseNode}
  * 
- * @param {string} debugSymbol
- * @returns {OperatorNode}
+ * @param {string} debugSymbol 
+ * @param {number} stickiness
+ * @param {boolean} [rightToLeft=false]
  */
-function OperatorNode(debugSymbol, stickiness, rightToLeft) {
-	'use strict';
-	var self = this;
-	
+function OperatorNode(debugSymbol, stickiness, rightToLeft) { 
 	BaseNode.call(this);
 	
 	this.printVals.middle =  '<div class="operator">' + debugSymbol + '</div>';
 	
 	this.stickiness = stickiness;
 	
-	this.rightToLeft = !!rightToLeft
+	this.rightToLeft = !!rightToLeft;
 }
-
 Object.extend(BaseNode, OperatorNode);

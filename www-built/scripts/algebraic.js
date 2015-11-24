@@ -228,6 +228,7 @@ function BaseNode(parentNode) {
  * representing a number, variable, or constant rather than a mathmematical operation.
  * 
  * @constructor
+ * @extends {BaseNode}
  * @property {number|string} value
  * @property {boolean} isNumber
  * 
@@ -241,20 +242,35 @@ function LeafNode(value) {
 }
 Object.extend(BaseNode, LeafNode);
 
-
+/**
+ * @constructor
+ * @extends {LeafNode}
+ * 
+ * @param {string|number} value   a string or string representation of a number
+ */
 function RealNumberNode(value) { 
 	value = Number(value);
 	LeafNode.call(this, value);
 }
 Object.extend(LeafNode, RealNumberNode);
 
-
+/**
+ * @constructor
+ * @extends {LeafNode}
+ * 
+ * @param {string} value   a letter representing the name of a variable
+ */
 function VariableNode(value) {
 	LeafNode.call(this, value);
 }
 Object.extend(LeafNode, VariableNode);
 
-
+/**
+ * @constructor
+ * @extends {LeafNode}
+ * 
+ * @param {string|number} value   an HTML-formatted display text for a constant
+ */
 function ConstantNode(value) {
 	LeafNode.call(this, value);
 }
@@ -266,70 +282,108 @@ ConstantNode.PI = function() {return new ConstantNode('&pi;');};;/* global BaseN
 
 /**
  * @constructor
+ * @extends {BaseNode}
  * 
- * @param {string} debugSymbol
- * @returns {OperatorNode}
+ * @param {string} debugSymbol 
+ * @param {number} stickiness
+ * @param {boolean} [rightToLeft=false]
  */
-function OperatorNode(debugSymbol, stickiness, rightToLeft) {
-	'use strict';
-	var self = this;
-	
+function OperatorNode(debugSymbol, stickiness, rightToLeft) { 
 	BaseNode.call(this);
 	
 	this.printVals.middle =  '<div class="operator">' + debugSymbol + '</div>';
 	
 	this.stickiness = stickiness;
 	
-	this.rightToLeft = !!rightToLeft
+	this.rightToLeft = !!rightToLeft;
 }
-
 Object.extend(BaseNode, OperatorNode);;/* global OperatorNode */
 
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ */
 function AdditionNode() {
 	OperatorNode.call(this, '+', 2);
 }
 Object.extend(OperatorNode, AdditionNode);
 
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ */
 function SubtractionNode() {
 	OperatorNode.call(this, '&minus;', 2);
 }
 Object.extend(OperatorNode, SubtractionNode);
 
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ */
 function PlusOrMinusNode() {
 	OperatorNode.call(this, '&plusmn;', 2);
 }
 Object.extend(OperatorNode, PlusOrMinusNode);;/* global OperatorNode */
 
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ */
 function ComparisonNode(debugSymbol) {
 	OperatorNode.call(this, debugSymbol, 1);
 }
 Object.extend(OperatorNode, ComparisonNode);
 
+/**
+ * @constructor
+ * @extends {ComparisonNode}
+ */
 function EqualsNode() {
 	ComparisonNode.call(this, '=');
 }
 Object.extend(ComparisonNode, EqualsNode);
 
+/**
+ * @constructor
+ * @extends {ComparisonNode}
+ */
 function GreaterThanNode() {
 	ComparisonNode.call(this, '&gt;');
 }
 Object.extend(ComparisonNode, GreaterThanNode);
 
+/**
+ * @constructor
+ * @extends {ComparisonNode}
+ */
 function LessThanNode() {
 	ComparisonNode.call(this, '&lt;');
 }
 Object.extend(ComparisonNode, LessThanNode);
 
+/**
+ * @constructor
+ * @extends {ComparisonNode}
+ */
 function GreaterOrEqualNode() {
 	ComparisonNode.call(this, '&ge;');
 }
 Object.extend(ComparisonNode, GreaterOrEqualNode);
 
+/**
+ * @constructor
+ * @extends {ComparisonNode}
+ */
 function LessOrEqualNode() {
 	ComparisonNode.call(this, '&le;');
 }
 Object.extend(ComparisonNode, LessOrEqualNode);;/* global BaseNode */
 
+/**
+ * @constructor
+ * @extends {BaseNode}
+ */
 function EnclosureNode(openSymbol, closeSymbol) {
 	var self = this;
 	
@@ -344,11 +398,21 @@ function EnclosureNode(openSymbol, closeSymbol) {
 } 
 Object.extend(BaseNode, EnclosureNode);
 
+/**
+ * @constructor
+ * @extends {EnclosureNode}
+ */
 function ParenthesisNode() { 
 	EnclosureNode.call(this, '(', ')');
 }
 Object.extend(EnclosureNode, ParenthesisNode);
 
+/**
+ * @constructor
+ * @extends {EnclosureNode}
+ * 
+ * @param {BaseNode} [base]   the log base, reprsented by the right node
+ */
 function LogarithmNode(base) {  
 	EnclosureNode.call(this, 'log');
 	
@@ -358,14 +422,21 @@ function LogarithmNode(base) {
 }
 Object.extend(EnclosureNode, LogarithmNode);;/* global OperatorNode */
 
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ */
 function ExponentNode() {
 	OperatorNode.call(this, '^', 4, true);
 }
 Object.extend(OperatorNode, ExponentNode);
 
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ */
 function RootNode() {
 	OperatorNode.call(this, '&radic;');
-	Object.seal(this);
 }
 Object.extend(OperatorNode, RootNode); ;/* global OperatorNode */
 

@@ -3,18 +3,14 @@
 function EnclosureNode(openSymbol, closeSymbol) {
 	var self = this;
 	
-	this.openSymbol = openSymbol || '';
-	this.closeSymbol = closeSymbol || ''; 
+	self.openSymbol = openSymbol || '';
+	self.closeSymbol = closeSymbol || ''; 
 	
-	BaseNode.call(this, this.openSymbol + this.closeSymbol);
+	BaseNode.call(self, self.openSymbol + self.closeSymbol);
 	
-	this.prettyInput = function() {
-		return this.openSymbol + self.nodes.map(function(node) {return node.prettyInput();}).join('') + this.closeSymbol;
-	};
+	self.printVals.before += self.openSymbol;
 	
-	this.printVals.before += '(';
-	
-	this.printVals.after = ')' + this.printVals.after;
+	self.printVals.after = self.closeSymbol + self.printVals.after;
 } 
 Object.extend(BaseNode, EnclosureNode);
 
@@ -24,7 +20,6 @@ function ParenthesisNode() {
 Object.extend(EnclosureNode, ParenthesisNode);
 
 function LogarithmNode(base) {  
-	
 	EnclosureNode.call(this, 'log(', ')');
 	
 	if (base) {this.leftNode = base;}

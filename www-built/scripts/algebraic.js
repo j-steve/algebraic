@@ -105,6 +105,7 @@ function makeEquationTree(inputEquation) {
 		} else if (match.node instanceof LeafNode) {
 			addImplicitMultiply();
 			activeNode.addChild(match.node);
+			activeNode = match.node;
 		}
 		i += match.charCount;
 	}
@@ -122,7 +123,7 @@ function closeParenthesis() {
 
 function addImplicitMultiply() {
 	if (activeNode.leftNode) {
-		if (activeNode.rightNode || !(activeNode instanceof OperatorNode)) {
+		if (activeNode.rightNode) {
 			var implicitMultiplyNode = new MultiplicationNode();
 			activeNode.rotateLeft(implicitMultiplyNode);
 			activeNode = implicitMultiplyNode;
@@ -261,109 +262,61 @@ function OperatorNode(debugSymbol) {
 Object.extend(BaseNode, OperatorNode);;/* global OperatorNode */
 
 function AdditionNode() {
-	
 	OperatorNode.call(this, '+');
-	
-	this.printVals.before += '(';
-	
-	this.printVals.after = ')' + this.printVals.after;
-
-	Object.seal(this);
-	
 }
 Object.extend(OperatorNode, AdditionNode);
 
-
 function SubtractionNode() {
-	
 	OperatorNode.call(this, '&minus;');
-
-	Object.seal(this);
-	
 }
 Object.extend(OperatorNode, SubtractionNode);
 
-
 function PlusOrMinusNode() {
-	
 	OperatorNode.call(this, '&plusmn;');
-
-	Object.seal(this);
-	
 }
 Object.extend(OperatorNode, PlusOrMinusNode);;/* global OperatorNode */
 
 function ComparisonNode(debugSymbol) {
 	OperatorNode.call(this, debugSymbol);
-
-	Object.seal(this);
 }
 Object.extend(OperatorNode, ComparisonNode);
 
 function EqualsNode() {
-	
 	ComparisonNode.call(this, '=');
-
-	Object.seal(this);
-	
 }
 Object.extend(ComparisonNode, EqualsNode);
 
-
 function GreaterThanNode() {
-	 
 	ComparisonNode.call(this, '&gt;');
-
-	Object.seal(this);
-	
 }
 Object.extend(ComparisonNode, GreaterThanNode);
 
-
 function LessThanNode() {
-	
 	ComparisonNode.call(this, '&lt;');
-
-	Object.seal(this);
-	
 }
 Object.extend(ComparisonNode, LessThanNode);
 
-
 function GreaterOrEqualNode() {
-	
 	ComparisonNode.call(this, '&ge;');
-
-	Object.seal(this);
-	
 }
 Object.extend(ComparisonNode, GreaterOrEqualNode);
 
-
 function LessOrEqualNode() {
-	
 	ComparisonNode.call(this, '&le;');
-
-	Object.seal(this);
-	
 }
 Object.extend(ComparisonNode, LessOrEqualNode);;/* global BaseNode */
 
 function EnclosureNode(openSymbol, closeSymbol) {
 	var self = this;
 	
-	this.openSymbol = openSymbol || '';
-	this.closeSymbol = closeSymbol || ''; 
+	self.openSymbol = openSymbol || '';
+	self.closeSymbol = closeSymbol || ''; 
 	
-	BaseNode.call(this, this.openSymbol + this.closeSymbol);
+	BaseNode.call(self, self.openSymbol + self.closeSymbol);
 	
-	this.prettyInput = function() {
-		return this.openSymbol + self.nodes.map(function(node) {return node.prettyInput();}).join('') + this.closeSymbol;
-	};
+	self.printVals.before += self.openSymbol;
 	
-	this.printVals.before += '(';
-	
-	this.printVals.after = ')' + this.printVals.after;
+	self.printVals.after = self.closeSymbol + self.printVals.after;
 } 
 Object.extend(BaseNode, EnclosureNode);
 
@@ -373,7 +326,6 @@ function ParenthesisNode() {
 Object.extend(EnclosureNode, ParenthesisNode);
 
 function LogarithmNode(base) {  
-	
 	EnclosureNode.call(this, 'log(', ')');
 	
 	if (base) {this.leftNode = base;}
@@ -381,40 +333,23 @@ function LogarithmNode(base) {
 Object.extend(EnclosureNode, LogarithmNode);;/* global OperatorNode */
 
 function ExponentNode() {
-	
 	OperatorNode.call(this, '^');
-
-	Object.seal(this);
-	
 }
 Object.extend(OperatorNode, ExponentNode);
 
-
 function RootNode() {
-	
 	OperatorNode.call(this, '&radic;');
-
 	Object.seal(this);
-	
 }
 Object.extend(OperatorNode, RootNode); ;/* global OperatorNode */
 
 function MultiplicationNode() {
-	
 	OperatorNode.call(this, '&sdot;');
-
-	Object.seal(this);
-	
 }
 Object.extend(OperatorNode, MultiplicationNode);
 
-
 function DivisionNode() {
-	
 	OperatorNode.call(this, '∕');
-
-	Object.seal(this);
-	
 }
 Object.extend(OperatorNode, DivisionNode);;/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
 /* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */

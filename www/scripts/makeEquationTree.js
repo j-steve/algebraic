@@ -23,6 +23,7 @@ function makeEquationTree(inputEquation) {
 		} else if (match.node instanceof LeafNode) {
 			addImplicitMultiply();
 			activeNode.addChild(match.node);
+			activeNode = match.node;
 		}
 		i += match.charCount;
 	}
@@ -40,7 +41,7 @@ function closeParenthesis() {
 
 function addImplicitMultiply() {
 	if (activeNode.leftNode) {
-		if (activeNode.rightNode || !(activeNode instanceof OperatorNode)) {
+		if (activeNode.rightNode) {
 			var implicitMultiplyNode = new MultiplicationNode();
 			activeNode.rotateLeft(implicitMultiplyNode);
 			activeNode = implicitMultiplyNode;

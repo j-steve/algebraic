@@ -1,4 +1,4 @@
-/* global BaseNode */
+/* global BaseNode, OperatorNode */
 
 /**
  * @constructor
@@ -26,18 +26,3 @@ function ParenthesisNode() {
 	EnclosureNode.call(this, '(', ')');
 }
 Object.extend(EnclosureNode, ParenthesisNode);
-
-/**
- * @constructor
- * @extends {EnclosureNode}
- * 
- * @param {BaseNode} [base]   the log base, reprsented by the right node
- */
-function LogarithmNode(base) {  
-	EnclosureNode.call(this, 'log');
-	
-	this.stickiness = 3; 
-	
-	if (base) {this.leftNode = base;}
-}
-Object.extend(EnclosureNode, LogarithmNode);

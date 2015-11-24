@@ -18,3 +18,12 @@ function OperatorNode(debugSymbol, stickiness, rightToLeft) {
 	this.rightToLeft = !!rightToLeft;
 }
 Object.extend(BaseNode, OperatorNode);
+
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ */
+function OperatorPrefixNode() { 
+	OperatorNode.apply(this, arguments);
+}
+Object.extend(OperatorNode, OperatorPrefixNode);

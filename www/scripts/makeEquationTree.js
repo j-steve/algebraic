@@ -1,4 +1,4 @@
-/* global ParenthesisNode, OperatorNode, LeafNode, parseInput, EnclosureNode */
+/* global ParenthesisNode, OperatorNode, LeafNode, parseInput, EnclosureNode, OperatorPrefixNode */
 
 var activeNode;
 
@@ -12,8 +12,14 @@ function makeEquationTree(inputEquation) {
 		var match = parseInput(inputEquation.substring(i));
 		if (!match) {throw new Error(String.format('Invalid character: "{0}"', inputEquation[i]));}
 		if (match.node === 'CLOSE_PAREN') {
-			closeParenthesis();
-		} else if (match.node instanceof EnclosureNode) { 
+			closeTilType(EnclosureNode);
+			if (!activeNode) {throw new Error('Unmatched ")" detected.');}
+			activeNode = activeNode.parent;
+		} else if (match.node === 'COMMA') {
+			closeTilType(OperatorPrefixNode);
+			activeNode.nodes.shift(); // chop off the Base: THAT was the base, next is operand
+			activeNode = activeNode.rightNode = new ParenthesisNode();
+		} else if (match.node instanceof EnclosureNode || match.node instanceof OperatorPrefixNode) { 
 			addImplicitMultiply();
 			activeNode.addChild(match.node);
 		} else if (match.node instanceof OperatorNode) {
@@ -29,12 +35,10 @@ function makeEquationTree(inputEquation) {
 	return getRoot(activeNode);
 }
 
-function closeParenthesis() { 
-	while (!(activeNode instanceof ParenthesisNode)) {
+function closeTilType(nodeType) { 
+	while (activeNode && !(activeNode instanceof nodeType)) {
 		activeNode = activeNode.parent;
-		if (!activeNode.parent) {throw new Error('Unmatched ")" detected.');}
 	}
-	activeNode = activeNode.parent;
 }
 
 function addImplicitMultiply() {
@@ -54,7 +58,7 @@ function rotateForOperator(newOperatorNode) {
 }
 
 function activeNodeSticksToOperator(newOperatorNode) {
-	if (activeNode.parent instanceof OperatorNode || activeNode.parent instanceof LogarithmNode) {
+	if (activeNode.parent instanceof OperatorNode) {
 		if (!newOperatorNode.rightToLeft && !activeNode.parent.rightToLeft) {
 			return newOperatorNode.stickiness <= activeNode.parent.stickiness;
 		} else {

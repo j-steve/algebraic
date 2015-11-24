@@ -66,7 +66,12 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 
 		// Output results
 		treeTableElement.innerHTML = rootNode.toString();
+		
+		rootNode.cleanup();
+		simplifyElement.className = 'treeTable';
+		simplifyElement.innerHTML = rootNode.toString();
 		return;
+		
 		//rootNode.print(treeTableElement);
 		prettyInputElement.innerHTML = '<span>' + rootNode.prettyInput() + '</span>';
 		rootNode.simplify();
@@ -77,6 +82,7 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		calculateElement.innerHTML = rootNode.calculate();
 		//simplifyElement.innerHTML = rootNode.prettyInput();
 	} catch (err) {
+		console.warn([].slice(arguments).join(' '));
 		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
 	}
 }
@@ -125,8 +131,7 @@ function closeTilType(nodeType) {
 
 function addImplicitMultiply() {
 	if (activeNode instanceof LeafNode) {
-		var implicitMultiplyNode = new MultiplicationNode();
-		implicitMultiplyNode.stickiness = 4;
+		var implicitMultiplyNode = new CoefficientNode(); 
 		rotateForOperator(implicitMultiplyNode);
 		activeNode = implicitMultiplyNode;
 	}
@@ -157,7 +162,9 @@ function getRoot(node) {
 	}
 
 	return node;
-};var SIDES = ['leftNode', 'rightNode'];
+};/* global LeafNode */
+
+var SIDES = ['leftNode', 'rightNode'];
 
 /**
  * @constructor
@@ -184,7 +191,7 @@ function BaseNode(parentNode) {
 		Object.defineProperty(self, side, {
 			get: function() {return self.nodes[index];},
 			set: function(value) {
-				value.parent = self;
+				if (value) {value.parent = self;}
 				self.nodes[index] = value;
 			}
 		});
@@ -200,6 +207,10 @@ function BaseNode(parentNode) {
     // Methods
     // ================================================================================
 	
+	this.hasBothLeafs = function() {
+		return self.leftNode instanceof LeafNode && self.rightNode instanceof LeafNode;
+	};
+	
 	this.addChild = function(newNode) {
 		var nextNode = self.nodes.length;
 		if (nextNode >= SIDES.length) {
@@ -211,11 +222,31 @@ function BaseNode(parentNode) {
 	};
 	
 	this.rotateLeft = function(newNode) {
-		if (self.parent) {
-			var side = SIDES[self.parent.nodes.indexOf(self)];
-			self.parent[side] = newNode;
-		}
+		if (self.parent) {self.replaceWith(newNode);}
 		newNode.leftNode = self;
+	};
+	
+	/**
+	 * @param {BaseNode} replacementNode
+	 * @param {boolean} [stealNodes=false]
+	 */
+	this.replaceWith = function(replacementNode, stealNodes) {
+		if (!self.parent) {throw new Error('Cannot replace root node.');}
+		var side = SIDES[self.parent.nodes.indexOf(self)];
+		self.parent[side] = replacementNode;
+		if (stealNodes) {
+			replacementNode.leftNode = self.leftNode;
+			replacementNode.rightNode = self.rightNode;
+		}
+	};
+	
+	this.cleanup = function() {
+		self.nodes.forEach(function(node) {node.cleanup();});
+		if (self.hasBothLeafs() && self.rightNode.displaySequence < self.leftNode.displaySequence) {
+			var newRighty = self.leftNode;
+			self.leftNode = self.rightNode;
+			self.rightNode = newRighty;
+		}
 	};
 	
 	this.toString = function() {
@@ -234,14 +265,16 @@ function BaseNode(parentNode) {
  * @constructor
  * @extends {BaseNode}
  * @property {number|string} value
- * @property {boolean} isNumber
+ * @property {number} displaySequence
  * 
- * @param {*} value
+ * @param {number|string} value
+ * @param {number} displaySequence
  */
-function LeafNode(value) {
+function LeafNode(value, displaySequence) {
 	BaseNode.call(this);
 
 	this.value = value; 
+	this.displaySequence = displaySequence;
 	this.printVals.middle = value;
 }
 Object.extend(BaseNode, LeafNode);
@@ -254,7 +287,7 @@ Object.extend(BaseNode, LeafNode);
  */
 function RealNumberNode(value) { 
 	value = Number(value);
-	LeafNode.call(this, value);
+	LeafNode.call(this, value, 1);
 }
 Object.extend(LeafNode, RealNumberNode);
 
@@ -265,7 +298,7 @@ Object.extend(LeafNode, RealNumberNode);
  * @param {string} value   a letter representing the name of a variable
  */
 function VariableNode(value) {
-	LeafNode.call(this, value);
+	LeafNode.call(this, value, 3);
 }
 Object.extend(LeafNode, VariableNode);
 
@@ -276,7 +309,7 @@ Object.extend(LeafNode, VariableNode);
  * @param {string|number} value   an HTML-formatted display text for a constant
  */
 function ConstantNode(value) {
-	LeafNode.call(this, value);
+	LeafNode.call(this, value, 2);
 }
 Object.extend(LeafNode, ConstantNode);
 
@@ -391,11 +424,14 @@ Object.extend(ComparisonNode, GreaterOrEqualNode);
 function LessOrEqualNode() {
 	ComparisonNode.call(this, '&le;');
 }
-Object.extend(ComparisonNode, LessOrEqualNode);;/* global BaseNode, OperatorNode */
+Object.extend(ComparisonNode, LessOrEqualNode);;/* global BaseNode, OperatorNode, LeafNode */
 
 /**
  * @constructor
  * @extends {BaseNode}
+ * 
+ * @param {string} openSymbol
+ * @param {string} closeSymbol
  */
 function EnclosureNode(openSymbol, closeSymbol) {
 	var self = this;
@@ -416,7 +452,17 @@ Object.extend(BaseNode, EnclosureNode);
  * @extends {EnclosureNode}
  */
 function ParenthesisNode() { 
-	EnclosureNode.call(this, '(', ')');
+	var self = this;
+	
+	EnclosureNode.call(self, '(', ')');
+	
+	var baseCleanup = this.cleanup;
+	this.cleanup = function() {
+		baseCleanup.call(self);
+		if (self.leftNode instanceof LeafNode) {
+			self.replaceWith(self.leftNode);
+		}
+	};
 }
 Object.extend(EnclosureNode, ParenthesisNode);
 ;/* global OperatorNode, OperatorPrefixNode */
@@ -455,10 +501,37 @@ Object.extend(OperatorPrefixNode, LogarithmNode);;/* global OperatorNode */
  * @constructor
  * @extends {OperatorNode}
  */
-function MultiplicationNode() {
-	OperatorNode.call(this, '&sdot;', 3);
+function BaseMultiplicationNode() {
+	OperatorNode.apply(this, arguments);
 }
-Object.extend(OperatorNode, MultiplicationNode);
+Object.extend(OperatorNode, BaseMultiplicationNode);
+
+/**
+ * @constructor
+ * @extends {BaseMultiplicationNode}
+ */
+function MultiplicationNode() {
+	var self = this;
+	
+	BaseMultiplicationNode.call(this, '&sdot;', 3);
+	 
+	var baseCleanup = this.cleanup;
+	this.cleanup = function() {
+		if (self.hasBothLeafs()) {
+			self.replaceWith(new CoefficientNode, true);
+		}
+	};
+}
+Object.extend(BaseMultiplicationNode, MultiplicationNode);
+
+/**
+ * @constructor
+ * @extends {BaseMultiplicationNode}
+ */
+function CoefficientNode() {
+	BaseMultiplicationNode.call(this, 'c', 4);
+}
+Object.extend(BaseMultiplicationNode, MultiplicationNode);
 
 /**
  * @constructor

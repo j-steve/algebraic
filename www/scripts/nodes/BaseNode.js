@@ -1,3 +1,5 @@
+/* global LeafNode */
+
 var SIDES = ['leftNode', 'rightNode'];
 
 /**
@@ -25,7 +27,7 @@ function BaseNode(parentNode) {
 		Object.defineProperty(self, side, {
 			get: function() {return self.nodes[index];},
 			set: function(value) {
-				value.parent = self;
+				if (value) {value.parent = self;}
 				self.nodes[index] = value;
 			}
 		});
@@ -41,6 +43,10 @@ function BaseNode(parentNode) {
     // Methods
     // ================================================================================
 	
+	this.hasBothLeafs = function() {
+		return self.leftNode instanceof LeafNode && self.rightNode instanceof LeafNode;
+	};
+	
 	this.addChild = function(newNode) {
 		var nextNode = self.nodes.length;
 		if (nextNode >= SIDES.length) {
@@ -52,11 +58,31 @@ function BaseNode(parentNode) {
 	};
 	
 	this.rotateLeft = function(newNode) {
-		if (self.parent) {
-			var side = SIDES[self.parent.nodes.indexOf(self)];
-			self.parent[side] = newNode;
-		}
+		if (self.parent) {self.replaceWith(newNode);}
 		newNode.leftNode = self;
+	};
+	
+	/**
+	 * @param {BaseNode} replacementNode
+	 * @param {boolean} [stealNodes=false]
+	 */
+	this.replaceWith = function(replacementNode, stealNodes) {
+		if (!self.parent) {throw new Error('Cannot replace root node.');}
+		var side = SIDES[self.parent.nodes.indexOf(self)];
+		self.parent[side] = replacementNode;
+		if (stealNodes) {
+			replacementNode.leftNode = self.leftNode;
+			replacementNode.rightNode = self.rightNode;
+		}
+	};
+	
+	this.cleanup = function() {
+		self.nodes.forEach(function(node) {node.cleanup();});
+		if (self.hasBothLeafs() && self.rightNode.displaySequence < self.leftNode.displaySequence) {
+			var newRighty = self.leftNode;
+			self.leftNode = self.rightNode;
+			self.rightNode = newRighty;
+		}
 	};
 	
 	this.toString = function() {

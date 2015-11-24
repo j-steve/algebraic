@@ -1,8 +1,11 @@
-/* global BaseNode, OperatorNode */
+/* global BaseNode, OperatorNode, LeafNode */
 
 /**
  * @constructor
  * @extends {BaseNode}
+ * 
+ * @param {string} openSymbol
+ * @param {string} closeSymbol
  */
 function EnclosureNode(openSymbol, closeSymbol) {
 	var self = this;
@@ -23,6 +26,16 @@ Object.extend(BaseNode, EnclosureNode);
  * @extends {EnclosureNode}
  */
 function ParenthesisNode() { 
-	EnclosureNode.call(this, '(', ')');
+	var self = this;
+	
+	EnclosureNode.call(self, '(', ')');
+	
+	var baseCleanup = this.cleanup;
+	this.cleanup = function() {
+		baseCleanup.call(self);
+		if (self.leftNode instanceof LeafNode) {
+			self.replaceWith(self.leftNode);
+		}
+	};
 }
 Object.extend(EnclosureNode, ParenthesisNode);

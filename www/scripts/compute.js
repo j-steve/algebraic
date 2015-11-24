@@ -13,7 +13,12 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 
 		// Output results
 		treeTableElement.innerHTML = rootNode.toString();
+		
+		rootNode.cleanup();
+		simplifyElement.className = 'treeTable';
+		simplifyElement.innerHTML = rootNode.toString();
 		return;
+		
 		//rootNode.print(treeTableElement);
 		prettyInputElement.innerHTML = '<span>' + rootNode.prettyInput() + '</span>';
 		rootNode.simplify();
@@ -24,6 +29,7 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		calculateElement.innerHTML = rootNode.calculate();
 		//simplifyElement.innerHTML = rootNode.prettyInput();
 	} catch (err) {
+		console.warn([].slice(arguments).join(' '));
 		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
 	}
 }

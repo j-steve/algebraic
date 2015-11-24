@@ -43,8 +43,7 @@ function closeTilType(nodeType) {
 
 function addImplicitMultiply() {
 	if (activeNode instanceof LeafNode) {
-		var implicitMultiplyNode = new MultiplicationNode();
-		implicitMultiplyNode.stickiness = 4;
+		var implicitMultiplyNode = new CoefficientNode(); 
 		rotateForOperator(implicitMultiplyNode);
 		activeNode = implicitMultiplyNode;
 	}

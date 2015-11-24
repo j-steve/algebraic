@@ -7,14 +7,16 @@
  * @constructor
  * @extends {BaseNode}
  * @property {number|string} value
- * @property {boolean} isNumber
+ * @property {number} displaySequence
  * 
- * @param {*} value
+ * @param {number|string} value
+ * @param {number} displaySequence
  */
-function LeafNode(value) {
+function LeafNode(value, displaySequence) {
 	BaseNode.call(this);
 
 	this.value = value; 
+	this.displaySequence = displaySequence;
 	this.printVals.middle = value;
 }
 Object.extend(BaseNode, LeafNode);
@@ -27,7 +29,7 @@ Object.extend(BaseNode, LeafNode);
  */
 function RealNumberNode(value) { 
 	value = Number(value);
-	LeafNode.call(this, value);
+	LeafNode.call(this, value, 1);
 }
 Object.extend(LeafNode, RealNumberNode);
 
@@ -38,7 +40,7 @@ Object.extend(LeafNode, RealNumberNode);
  * @param {string} value   a letter representing the name of a variable
  */
 function VariableNode(value) {
-	LeafNode.call(this, value);
+	LeafNode.call(this, value, 3);
 }
 Object.extend(LeafNode, VariableNode);
 
@@ -49,7 +51,7 @@ Object.extend(LeafNode, VariableNode);
  * @param {string|number} value   an HTML-formatted display text for a constant
  */
 function ConstantNode(value) {
-	LeafNode.call(this, value);
+	LeafNode.call(this, value, 2);
 }
 Object.extend(LeafNode, ConstantNode);
 

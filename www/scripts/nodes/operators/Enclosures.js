@@ -20,7 +20,7 @@ function ParenthesisNode() {
 Object.extend(EnclosureNode, ParenthesisNode);
 
 function LogarithmNode(base) {  
-	EnclosureNode.call(this, 'log(', ')');
+	EnclosureNode.call(this, 'log');
 	
 	if (base) {this.leftNode = base;}
 }

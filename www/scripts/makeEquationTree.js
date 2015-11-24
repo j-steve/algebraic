@@ -30,10 +30,10 @@ function makeEquationTree(inputEquation) {
 }
 
 function closeParenthesis() { 
-	while (!(activeNode instanceof EnclosureNode)) {
+	while (!(activeNode instanceof ParenthesisNode)) {
 		activeNode = activeNode.parent;
+		if (!activeNode.parent) {throw new Error('Unmatched ")" detected.');}
 	}
-	if (!activeNode.parent) {throw new Error('Unmatched ")" detected.');}
 	activeNode = activeNode.parent;
 }
 

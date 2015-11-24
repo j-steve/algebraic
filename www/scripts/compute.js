@@ -14,10 +14,10 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		// Output results
 		treeTableElement.innerHTML = rootNode.toString();
 		
-		rootNode.cleanup();
 		prettyInputElement.className = 'formatted';
 		prettyInputElement.innerHTML = rootNode.toString(); 
 		
+		rootNode.cleanup();
 		rootNode.simplify();
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();

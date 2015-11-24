@@ -1,7 +1,7 @@
 /* global OperatorNode */
 
 function ComparisonNode(debugSymbol) {
-	OperatorNode.call(this, debugSymbol);
+	OperatorNode.call(this, debugSymbol, 1);
 }
 Object.extend(OperatorNode, ComparisonNode);
 

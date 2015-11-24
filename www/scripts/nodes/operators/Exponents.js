@@ -1,7 +1,7 @@
 /* global OperatorNode */
 
 function ExponentNode() {
-	OperatorNode.call(this, '^');
+	OperatorNode.call(this, '^', 4, true);
 }
 Object.extend(OperatorNode, ExponentNode);
 

@@ -98,13 +98,13 @@ function makeEquationTree(inputEquation) {
 		} else if (match.node instanceof EnclosureNode) { 
 			addImplicitMultiply();
 			activeNode.addChild(match.node);
-		} else if (match.node instanceof OperatorNode) { 
-			activeNode.rotateLeft(match.node); 
+		} else if (match.node instanceof OperatorNode) {
+			rotateForOperator(match.node); 
 		} else if (match.node instanceof LeafNode) {
 			addImplicitMultiply();
-			activeNode.addChild(match.node);
+			{activeNode.addChild(match.node);}
 		}
-		if (match.node instanceof BaseNode) {activeNode = match.node;}
+		if (typeof match.node !== 'string') {activeNode = match.node;}
 		i += match.charCount;
 	}
 	 
@@ -122,16 +122,28 @@ function closeParenthesis() {
 function addImplicitMultiply() {
 	if (activeNode instanceof LeafNode) {
 		var implicitMultiplyNode = new MultiplicationNode();
-		activeNode.rotateLeft(implicitMultiplyNode);
+		rotateForOperator(implicitMultiplyNode);
 		activeNode = implicitMultiplyNode;
 	}
-	/*if (activeNode.leftNode) {
-		if (activeNode.rightNode) {
-			var implicitMultiplyNode = new MultiplicationNode();
-			activeNode.rotateLeft(implicitMultiplyNode);
-			activeNode = implicitMultiplyNode;
+}
+
+function rotateForOperator(newOperatorNode) {
+	while (activeNodeSticksToOperator(newOperatorNode) && activeNode.parent) {
+		activeNode = activeNode.parent;
+	}
+	activeNode.rotateLeft(newOperatorNode);
+}
+
+function activeNodeSticksToOperator(newOperatorNode) {
+	if (activeNode.parent instanceof OperatorNode) {
+		if (activeNode.parent.leftToRight) {
+			return newOperatorNode.stickiness <= activeNode.parent.stickiness;
+		} else {
+			return newOperatorNode.stickiness < activeNode.parent.stickiness;
 		}
-	}*/
+	} else {
+		return false;
+	}
 }
 
 function getRoot(node) {
@@ -257,34 +269,38 @@ ConstantNode.PI = function() {return new ConstantNode('&pi;');};;/* global BaseN
  * @param {string} debugSymbol
  * @returns {OperatorNode}
  */
-function OperatorNode(debugSymbol) {
+function OperatorNode(debugSymbol, stickiness, rightToLeft) {
 	'use strict';
 	var self = this;
 	
 	BaseNode.call(this);
 	
 	this.printVals.middle =  '<div class="operator">' + debugSymbol + '</div>';
+	
+	this.stickiness = stickiness;
+	
+	this.leftToRight = !rightToLeft
 }
 
 Object.extend(BaseNode, OperatorNode);;/* global OperatorNode */
 
 function AdditionNode() {
-	OperatorNode.call(this, '+');
+	OperatorNode.call(this, '+', 2);
 }
 Object.extend(OperatorNode, AdditionNode);
 
 function SubtractionNode() {
-	OperatorNode.call(this, '&minus;');
+	OperatorNode.call(this, '&minus;', 2);
 }
 Object.extend(OperatorNode, SubtractionNode);
 
 function PlusOrMinusNode() {
-	OperatorNode.call(this, '&plusmn;');
+	OperatorNode.call(this, '&plusmn;', 2);
 }
 Object.extend(OperatorNode, PlusOrMinusNode);;/* global OperatorNode */
 
 function ComparisonNode(debugSymbol) {
-	OperatorNode.call(this, debugSymbol);
+	OperatorNode.call(this, debugSymbol, 1);
 }
 Object.extend(OperatorNode, ComparisonNode);
 
@@ -340,7 +356,7 @@ function LogarithmNode(base) {
 Object.extend(EnclosureNode, LogarithmNode);;/* global OperatorNode */
 
 function ExponentNode() {
-	OperatorNode.call(this, '^');
+	OperatorNode.call(this, '^', 4, true);
 }
 Object.extend(OperatorNode, ExponentNode);
 
@@ -351,12 +367,12 @@ function RootNode() {
 Object.extend(OperatorNode, RootNode); ;/* global OperatorNode */
 
 function MultiplicationNode() {
-	OperatorNode.call(this, '&sdot;');
+	OperatorNode.call(this, '&sdot;', 3);
 }
 Object.extend(OperatorNode, MultiplicationNode);
 
 function DivisionNode() {
-	OperatorNode.call(this, '∕');
+	OperatorNode.call(this, '∕', 3);
 }
 Object.extend(OperatorNode, DivisionNode);;/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
 /* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */

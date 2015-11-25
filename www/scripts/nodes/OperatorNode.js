@@ -9,7 +9,7 @@
  * @param {boolean} [rightToLeft=false]
  */
 function OperatorNode(debugSymbol, stickiness, rightToLeft) { 
-	BaseNode.call(this);
+	OperatorNode.$super(this);
 	
 	this.printVals.middle =  '<div class="operator">' + debugSymbol + '</div>';
 	
@@ -22,8 +22,12 @@ Object.extend(BaseNode, OperatorNode);
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {string} debugSymbol 
+ * @param {number} stickiness
+ * @param {boolean} [rightToLeft=false]
  */
-function OperatorPrefixNode() { 
-	OperatorNode.apply(this, arguments);
+function OperatorPrefixNode(debugSymbol, stickiness, rightToLeft) { 
+	OperatorPrefixNode.$super(this, debugSymbol, stickiness, rightToLeft);
 }
 Object.extend(OperatorNode, OperatorPrefixNode);

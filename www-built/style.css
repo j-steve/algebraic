@@ -64,6 +64,40 @@ output.formatted .ExponentNode > .rightNode {
 	font-size: 90%;
 }
 
-.n-root {
-	color:blue;
+output.formatted .LogarithmNode {
+	display:inline-flex;
+
 }
+output.formatted .LogarithmNode > .operator {
+	order: 1;
+}
+output.formatted .LogarithmNode > .leftNode {
+	order: 2; 
+	font-size: 70%;
+    padding-top: 10px;
+}
+output.formatted .LogarithmNode > .rightNode {
+	order: 3;
+}
+
+output.formatted .DivisionNode {
+	display: inline-table;
+}
+output.formatted .DivisionNode > .leftNode {
+	display:table-row;
+	border-bottom: 1px solid green;
+}
+output.formatted .DivisionNode > .rightNode {
+	display:table-row;
+}
+output.formatted .DivisionNode > .operator {
+	display:none;
+}
+output.formatted .DivisionNode > .leftNode::after {
+    content: ' ';
+    display: table;
+    width: 100%;
+    height: 1px;
+    border-bottom: 1px solid black;
+}
+

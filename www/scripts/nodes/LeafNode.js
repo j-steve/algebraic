@@ -14,7 +14,7 @@
  */
 function LeafNode(value, displaySequence) {
 	var self = this;
-	BaseNode.call(this);
+	var $super = LeafNode.$super(this);
 
 	this.value = value; 
 	this.displaySequence = displaySequence;
@@ -33,7 +33,7 @@ Object.extend(BaseNode, LeafNode);
  */
 function RealNumberNode(value) { 
 	value = Number(value);
-	LeafNode.call(this, value, 1);
+	RealNumberNode.$super(this, value, 1);
 }
 Object.extend(LeafNode, RealNumberNode);
 
@@ -44,7 +44,7 @@ Object.extend(LeafNode, RealNumberNode);
  * @param {string} value   a letter representing the name of a variable
  */
 function VariableNode(value) {
-	LeafNode.call(this, value, 3);
+	VariableNode.$super(this, value, 3);
 }
 Object.extend(LeafNode, VariableNode);
 
@@ -55,7 +55,7 @@ Object.extend(LeafNode, VariableNode);
  * @param {string|number} value   an HTML-formatted display text for a constant
  */
 function ConstantNode(value) {
-	LeafNode.call(this, value, 2);
+	ConstantNode.$super(this, value, 2);
 }
 Object.extend(LeafNode, ConstantNode);
 

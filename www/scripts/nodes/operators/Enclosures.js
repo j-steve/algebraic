@@ -13,7 +13,7 @@ function EnclosureNode(openSymbol, closeSymbol) {
 	self.openSymbol = openSymbol || '';
 	self.closeSymbol = closeSymbol || ''; 
 	
-	BaseNode.call(self, self.openSymbol + self.closeSymbol);
+	EnclosureNode.$super(self, self.openSymbol + self.closeSymbol);
 	
 	self.printVals.before += self.openSymbol;
 	
@@ -27,12 +27,10 @@ Object.extend(BaseNode, EnclosureNode);
  */
 function ParenthesisNode() { 
 	var self = this;
+	var $super = ParenthesisNode.$super(self, '(', ')');
 	
-	EnclosureNode.call(self, '(', ')');
-	
-	var baseCleanup = this.cleanup;
 	this.cleanup = function() {
-		baseCleanup.call(self);
+		$super.cleanup();
 		if (self.leftNode instanceof LeafNode) {
 			self.replaceWith(self.leftNode);
 		}

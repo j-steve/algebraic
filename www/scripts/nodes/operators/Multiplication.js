@@ -3,15 +3,16 @@
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {string} debugSymbol 
+ * @param {number} stickiness
  */
-function BaseMultiplicationNode() {
+function BaseMultiplicationNode(debugSymbol, stickiness) {
 	var self = this;
+	var $super = BaseMultiplicationNode.$super(this, debugSymbol, stickiness);
 	
-	OperatorNode.apply(this, arguments);
-	
-	var baseCleanup = this.cleanup;
 	this.cleanup = function() { 
-		baseCleanup.call(self);
+		$super.cleanup();
 		var leafsInScope = getLeafsInScope();//.filter(function(x) {return x instanceof RealNumberNode;});
 		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
 		for (var i = 0; i < sortedLeafs.length - 1; i++) {
@@ -27,9 +28,8 @@ function BaseMultiplicationNode() {
 		}
 	};
 	
-	var baseSimplify = this.simplify;
 	this.simplify = function() {
-		baseSimplify.call(self);
+		$super.simplify();
 		if (self.leftNode instanceof RealNumberNode && self.rightNode instanceof RealNumberNode) {
 			self.replaceWith(new RealNumberNode(self.leftNode.value * self.rightNode.value));
 		
@@ -64,13 +64,11 @@ Object.extend(OperatorNode, BaseMultiplicationNode);
  * @extends {BaseMultiplicationNode}
  */
 function MultiplicationNode() {
-	var self = this;
-	
-	BaseMultiplicationNode.call(this, '&sdot;', 3);
+	var self = this; 
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3);
 	 
-	var baseCleanup = this.cleanup;
 	this.cleanup = function() {
-		baseCleanup.call(self);
+		$super.cleanup();
 		if (self.hasBothLeafs()) {
 			self.replaceWith(new CoefficientNode, true);
 		}
@@ -83,7 +81,7 @@ Object.extend(BaseMultiplicationNode, MultiplicationNode);
  * @extends {BaseMultiplicationNode}
  */
 function CoefficientNode() {
-	BaseMultiplicationNode.call(this, '<span style="color:gray;">&sdot;</span>', 4);
+	var $super = CoefficientNode.$super(this, '<span style="color:gray;">&sdot;</span>', 4);
 }
 Object.extend(BaseMultiplicationNode, CoefficientNode);
 
@@ -92,13 +90,11 @@ Object.extend(BaseMultiplicationNode, CoefficientNode);
  * @extends {OperatorNode}
  */
 function DivisionNode() {
-	var self = this;
+	var self = this; 
+	var $super = DivisionNode.$super(this, '∕', 3);
 	
-	OperatorNode.call(this, '∕', 3);
-	
-	var baseSimplify = this.simplify;
 	this.simplify = function() {
-		baseSimplify.call(self); 
+		$super.simplify(); 
 		if (self.hasBothLeafs()) {
 			var gcd = commonDenominator(self.leftNode.value, self.rightNode.value);
 			if (gcd) {

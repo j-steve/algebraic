@@ -5,7 +5,7 @@
  * @extends {OperatorPrefixNode}
  */
 function SinNode() {  
-	OperatorPrefixNode.call(this, 'sin', 3);
+	SinNode.$super(this, 'sin', 3);
 }
 Object.extend(OperatorPrefixNode, SinNode);
 
@@ -14,7 +14,7 @@ Object.extend(OperatorPrefixNode, SinNode);
  * @extends {OperatorPrefixNode}
  */
 function CosNode() {  
-	OperatorPrefixNode.call(this, 'cos', 3);
+	CosNode.$super(this, 'cos', 3);
 }
 Object.extend(OperatorPrefixNode, CosNode);
 
@@ -23,6 +23,6 @@ Object.extend(OperatorPrefixNode, CosNode);
  * @extends {OperatorPrefixNode}
  */
 function TanNode() {  
-	OperatorPrefixNode.call(this, 'tan', 3);
+	TanNode.$super(this, 'tan', 3);
 }
 Object.extend(OperatorPrefixNode, TanNode);

@@ -5,7 +5,7 @@
  * @extends {OperatorNode}
  */
 function ExponentNode(leftNode, rightNode) {
-	OperatorNode.call(this, '^', 4, true);
+	ExponentNode.$super(this, '^', 4, true);
 }
 Object.extend(OperatorNode, ExponentNode);
 
@@ -14,7 +14,7 @@ Object.extend(OperatorNode, ExponentNode);
  * @extends {OperatorNode}
  */
 function RootNode() {
-	OperatorNode.call(this, '&radic;');
+	RootNode.$super(this, '&radic;');
 }
 Object.extend(OperatorNode, RootNode); 
 
@@ -25,7 +25,7 @@ Object.extend(OperatorNode, RootNode);
  * @param {BaseNode} [base]   the log base, reprsented by the right node
  */
 function LogarithmNode(base) {  
-	OperatorPrefixNode.call(this, 'log', 3);
+	LogarithmNode.$super(this, 'log', 3);
 	this.leftNode = base || new RealNumberNode(10);
 }
 Object.extend(OperatorPrefixNode, LogarithmNode);

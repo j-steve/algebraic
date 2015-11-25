@@ -13,7 +13,17 @@
 
 	Object.extend = function(parent, child) {
 		child.prototype = Object.create(parent.prototype);
-		child.prototype.constructor = child; 
+		child.prototype.constructor = child;
+		child.$super = function(self) {	
+			parent.apply(self, [].slice.call(arguments, 1));
+			var $super = {};
+			for (var key in self) {
+				if (self.hasOwnProperty(key)) {
+					$super[key] = self[key];
+				}
+			}
+			return $super;
+		};
 	};
 	
 	/*Object.iterate = function(target, callback, thisContext) {
@@ -73,10 +83,10 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		// Output results
 		treeTableElement.innerHTML = rootNode.toString();
 		
-		rootNode.cleanup();
 		prettyInputElement.className = 'formatted';
 		prettyInputElement.innerHTML = rootNode.toString(); 
 		
+		rootNode.cleanup();
 		rootNode.simplify();
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();
@@ -306,7 +316,7 @@ function BaseNode(parentNode) {
  */
 function LeafNode(value, displaySequence) {
 	var self = this;
-	BaseNode.call(this);
+	var $super = LeafNode.$super(this);
 
 	this.value = value; 
 	this.displaySequence = displaySequence;
@@ -325,7 +335,7 @@ Object.extend(BaseNode, LeafNode);
  */
 function RealNumberNode(value) { 
 	value = Number(value);
-	LeafNode.call(this, value, 1);
+	RealNumberNode.$super(this, value, 1);
 }
 Object.extend(LeafNode, RealNumberNode);
 
@@ -336,7 +346,7 @@ Object.extend(LeafNode, RealNumberNode);
  * @param {string} value   a letter representing the name of a variable
  */
 function VariableNode(value) {
-	LeafNode.call(this, value, 3);
+	VariableNode.$super(this, value, 3);
 }
 Object.extend(LeafNode, VariableNode);
 
@@ -347,7 +357,7 @@ Object.extend(LeafNode, VariableNode);
  * @param {string|number} value   an HTML-formatted display text for a constant
  */
 function ConstantNode(value) {
-	LeafNode.call(this, value, 2);
+	ConstantNode.$super(this, value, 2);
 }
 Object.extend(LeafNode, ConstantNode);
 
@@ -364,7 +374,7 @@ ConstantNode.PI = function() {return new ConstantNode('&pi;');};;/* global BaseN
  * @param {boolean} [rightToLeft=false]
  */
 function OperatorNode(debugSymbol, stickiness, rightToLeft) { 
-	BaseNode.call(this);
+	OperatorNode.$super(this);
 	
 	this.printVals.middle =  '<div class="operator">' + debugSymbol + '</div>';
 	
@@ -377,9 +387,13 @@ Object.extend(BaseNode, OperatorNode);
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {string} debugSymbol 
+ * @param {number} stickiness
+ * @param {boolean} [rightToLeft=false]
  */
-function OperatorPrefixNode() { 
-	OperatorNode.apply(this, arguments);
+function OperatorPrefixNode(debugSymbol, stickiness, rightToLeft) { 
+	OperatorPrefixNode.$super(this, debugSymbol, stickiness, rightToLeft);
 }
 Object.extend(OperatorNode, OperatorPrefixNode);;/* global OperatorNode */
 
@@ -388,7 +402,7 @@ Object.extend(OperatorNode, OperatorPrefixNode);;/* global OperatorNode */
  * @extends {OperatorNode}
  */
 function AdditionNode() {
-	OperatorNode.call(this, '+', 2);
+	AdditionNode.$super(this, '+', 2);
 }
 Object.extend(OperatorNode, AdditionNode);
 
@@ -397,7 +411,7 @@ Object.extend(OperatorNode, AdditionNode);
  * @extends {OperatorNode}
  */
 function SubtractionNode() {
-	OperatorNode.call(this, '&minus;', 2);
+	SubtractionNode.$super(this, '&minus;', 2);
 }
 Object.extend(OperatorNode, SubtractionNode);
 
@@ -406,7 +420,7 @@ Object.extend(OperatorNode, SubtractionNode);
  * @extends {OperatorNode}
  */
 function PlusOrMinusNode() {
-	OperatorNode.call(this, '&plusmn;', 2);
+	PlusOrMinusNode.$super(this, '&plusmn;', 2);
 }
 Object.extend(OperatorNode, PlusOrMinusNode);;/* global OperatorNode */
 
@@ -416,11 +430,10 @@ Object.extend(OperatorNode, PlusOrMinusNode);;/* global OperatorNode */
  */
 function ComparisonNode(debugSymbol) {
 	var self = this;
-	OperatorNode.call(this, debugSymbol, 1);
+	var $super = ComparisonNode.$super(this, debugSymbol, 1);
 	
-	var baseCleanup = this.cleanup;
 	this.cleanup = function() {
-		baseCleanup.call(self);
+		$super.cleanup();
 		/*while (self.leftNode instanceof OperatorNode) {
 			var variable = lefty.leftNode.getNodeOfType(VariableNode);
 			var coefficient = self.leftNode.getNodeOfType(RealNumberNode);
@@ -436,7 +449,7 @@ Object.extend(OperatorNode, ComparisonNode);
  * @extends {ComparisonNode}
  */
 function EqualsNode() {
-	ComparisonNode.call(this, '=');
+	EqualsNode.$super(this, '=');
 }
 Object.extend(ComparisonNode, EqualsNode);
 
@@ -445,7 +458,7 @@ Object.extend(ComparisonNode, EqualsNode);
  * @extends {ComparisonNode}
  */
 function GreaterThanNode() {
-	ComparisonNode.call(this, '&gt;');
+	GreaterThanNode.$super(this, '&gt;');
 }
 Object.extend(ComparisonNode, GreaterThanNode);
 
@@ -454,7 +467,7 @@ Object.extend(ComparisonNode, GreaterThanNode);
  * @extends {ComparisonNode}
  */
 function LessThanNode() {
-	ComparisonNode.call(this, '&lt;');
+	LessThanNode.$super(this, '&lt;');
 }
 Object.extend(ComparisonNode, LessThanNode);
 
@@ -463,7 +476,7 @@ Object.extend(ComparisonNode, LessThanNode);
  * @extends {ComparisonNode}
  */
 function GreaterOrEqualNode() {
-	ComparisonNode.call(this, '&ge;');
+	GreaterOrEqualNode.$super(this, '&ge;');
 }
 Object.extend(ComparisonNode, GreaterOrEqualNode);
 
@@ -472,7 +485,7 @@ Object.extend(ComparisonNode, GreaterOrEqualNode);
  * @extends {ComparisonNode}
  */
 function LessOrEqualNode() {
-	ComparisonNode.call(this, '&le;');
+	LessOrEqualNode.$super(this, '&le;');
 }
 Object.extend(ComparisonNode, LessOrEqualNode);;/* global BaseNode, OperatorNode, LeafNode */
 
@@ -489,7 +502,7 @@ function EnclosureNode(openSymbol, closeSymbol) {
 	self.openSymbol = openSymbol || '';
 	self.closeSymbol = closeSymbol || ''; 
 	
-	BaseNode.call(self, self.openSymbol + self.closeSymbol);
+	EnclosureNode.$super(self, self.openSymbol + self.closeSymbol);
 	
 	self.printVals.before += self.openSymbol;
 	
@@ -503,12 +516,10 @@ Object.extend(BaseNode, EnclosureNode);
  */
 function ParenthesisNode() { 
 	var self = this;
+	var $super = ParenthesisNode.$super(self, '(', ')');
 	
-	EnclosureNode.call(self, '(', ')');
-	
-	var baseCleanup = this.cleanup;
 	this.cleanup = function() {
-		baseCleanup.call(self);
+		$super.cleanup();
 		if (self.leftNode instanceof LeafNode) {
 			self.replaceWith(self.leftNode);
 		}
@@ -522,7 +533,7 @@ Object.extend(EnclosureNode, ParenthesisNode);
  * @extends {OperatorNode}
  */
 function ExponentNode(leftNode, rightNode) {
-	OperatorNode.call(this, '^', 4, true);
+	ExponentNode.$super(this, '^', 4, true);
 }
 Object.extend(OperatorNode, ExponentNode);
 
@@ -531,7 +542,7 @@ Object.extend(OperatorNode, ExponentNode);
  * @extends {OperatorNode}
  */
 function RootNode() {
-	OperatorNode.call(this, '&radic;');
+	RootNode.$super(this, '&radic;');
 }
 Object.extend(OperatorNode, RootNode); 
 
@@ -542,7 +553,7 @@ Object.extend(OperatorNode, RootNode);
  * @param {BaseNode} [base]   the log base, reprsented by the right node
  */
 function LogarithmNode(base) {  
-	OperatorPrefixNode.call(this, 'log', 3);
+	LogarithmNode.$super(this, 'log', 3);
 	this.leftNode = base || new RealNumberNode(10);
 }
 Object.extend(OperatorPrefixNode, LogarithmNode);;/* global OperatorNode, LeafNode, RealNumberNode */
@@ -550,15 +561,16 @@ Object.extend(OperatorPrefixNode, LogarithmNode);;/* global OperatorNode, LeafNo
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {string} debugSymbol 
+ * @param {number} stickiness
  */
-function BaseMultiplicationNode() {
+function BaseMultiplicationNode(debugSymbol, stickiness) {
 	var self = this;
+	var $super = BaseMultiplicationNode.$super(this, debugSymbol, stickiness);
 	
-	OperatorNode.apply(this, arguments);
-	
-	var baseCleanup = this.cleanup;
 	this.cleanup = function() { 
-		baseCleanup.call(self);
+		$super.cleanup();
 		var leafsInScope = getLeafsInScope();//.filter(function(x) {return x instanceof RealNumberNode;});
 		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
 		for (var i = 0; i < sortedLeafs.length - 1; i++) {
@@ -574,9 +586,8 @@ function BaseMultiplicationNode() {
 		}
 	};
 	
-	var baseSimplify = this.simplify;
 	this.simplify = function() {
-		baseSimplify.call(self);
+		$super.simplify();
 		if (self.leftNode instanceof RealNumberNode && self.rightNode instanceof RealNumberNode) {
 			self.replaceWith(new RealNumberNode(self.leftNode.value * self.rightNode.value));
 		
@@ -611,13 +622,11 @@ Object.extend(OperatorNode, BaseMultiplicationNode);
  * @extends {BaseMultiplicationNode}
  */
 function MultiplicationNode() {
-	var self = this;
-	
-	BaseMultiplicationNode.call(this, '&sdot;', 3);
+	var self = this; 
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3);
 	 
-	var baseCleanup = this.cleanup;
 	this.cleanup = function() {
-		baseCleanup.call(self);
+		$super.cleanup();
 		if (self.hasBothLeafs()) {
 			self.replaceWith(new CoefficientNode, true);
 		}
@@ -630,7 +639,7 @@ Object.extend(BaseMultiplicationNode, MultiplicationNode);
  * @extends {BaseMultiplicationNode}
  */
 function CoefficientNode() {
-	BaseMultiplicationNode.call(this, '<span style="color:gray;">&sdot;</span>', 4);
+	var $super = CoefficientNode.$super(this, '<span style="color:gray;">&sdot;</span>', 4);
 }
 Object.extend(BaseMultiplicationNode, CoefficientNode);
 
@@ -639,13 +648,11 @@ Object.extend(BaseMultiplicationNode, CoefficientNode);
  * @extends {OperatorNode}
  */
 function DivisionNode() {
-	var self = this;
+	var self = this; 
+	var $super = DivisionNode.$super(this, '∕', 3);
 	
-	OperatorNode.call(this, '∕', 3);
-	
-	var baseSimplify = this.simplify;
 	this.simplify = function() {
-		baseSimplify.call(self); 
+		$super.simplify(); 
 		if (self.hasBothLeafs()) {
 			var gcd = commonDenominator(self.leftNode.value, self.rightNode.value);
 			if (gcd) {
@@ -679,7 +686,7 @@ function commonDenominator(a, b) {
  * @extends {OperatorPrefixNode}
  */
 function SinNode() {  
-	OperatorPrefixNode.call(this, 'sin', 3);
+	SinNode.$super(this, 'sin', 3);
 }
 Object.extend(OperatorPrefixNode, SinNode);
 
@@ -688,7 +695,7 @@ Object.extend(OperatorPrefixNode, SinNode);
  * @extends {OperatorPrefixNode}
  */
 function CosNode() {  
-	OperatorPrefixNode.call(this, 'cos', 3);
+	CosNode.$super(this, 'cos', 3);
 }
 Object.extend(OperatorPrefixNode, CosNode);
 
@@ -697,7 +704,7 @@ Object.extend(OperatorPrefixNode, CosNode);
  * @extends {OperatorPrefixNode}
  */
 function TanNode() {  
-	OperatorPrefixNode.call(this, 'tan', 3);
+	TanNode.$super(this, 'tan', 3);
 }
 Object.extend(OperatorPrefixNode, TanNode);;/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
 /* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */

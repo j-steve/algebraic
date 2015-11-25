@@ -13,7 +13,17 @@
 
 	Object.extend = function(parent, child) {
 		child.prototype = Object.create(parent.prototype);
-		child.prototype.constructor = child; 
+		child.prototype.constructor = child;
+		child.$super = function(self) {	
+			parent.apply(self, [].slice.call(arguments, 1));
+			var $super = {};
+			for (var key in self) {
+				if (self.hasOwnProperty(key)) {
+					$super[key] = self[key];
+				}
+			}
+			return $super;
+		};
 	};
 	
 	/*Object.iterate = function(target, callback, thisContext) {

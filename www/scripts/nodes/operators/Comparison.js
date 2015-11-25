@@ -6,11 +6,10 @@
  */
 function ComparisonNode(debugSymbol) {
 	var self = this;
-	OperatorNode.call(this, debugSymbol, 1);
+	var $super = ComparisonNode.$super(this, debugSymbol, 1);
 	
-	var baseCleanup = this.cleanup;
 	this.cleanup = function() {
-		baseCleanup.call(self);
+		$super.cleanup();
 		/*while (self.leftNode instanceof OperatorNode) {
 			var variable = lefty.leftNode.getNodeOfType(VariableNode);
 			var coefficient = self.leftNode.getNodeOfType(RealNumberNode);
@@ -26,7 +25,7 @@ Object.extend(OperatorNode, ComparisonNode);
  * @extends {ComparisonNode}
  */
 function EqualsNode() {
-	ComparisonNode.call(this, '=');
+	EqualsNode.$super(this, '=');
 }
 Object.extend(ComparisonNode, EqualsNode);
 
@@ -35,7 +34,7 @@ Object.extend(ComparisonNode, EqualsNode);
  * @extends {ComparisonNode}
  */
 function GreaterThanNode() {
-	ComparisonNode.call(this, '&gt;');
+	GreaterThanNode.$super(this, '&gt;');
 }
 Object.extend(ComparisonNode, GreaterThanNode);
 
@@ -44,7 +43,7 @@ Object.extend(ComparisonNode, GreaterThanNode);
  * @extends {ComparisonNode}
  */
 function LessThanNode() {
-	ComparisonNode.call(this, '&lt;');
+	LessThanNode.$super(this, '&lt;');
 }
 Object.extend(ComparisonNode, LessThanNode);
 
@@ -53,7 +52,7 @@ Object.extend(ComparisonNode, LessThanNode);
  * @extends {ComparisonNode}
  */
 function GreaterOrEqualNode() {
-	ComparisonNode.call(this, '&ge;');
+	GreaterOrEqualNode.$super(this, '&ge;');
 }
 Object.extend(ComparisonNode, GreaterOrEqualNode);
 
@@ -62,6 +61,6 @@ Object.extend(ComparisonNode, GreaterOrEqualNode);
  * @extends {ComparisonNode}
  */
 function LessOrEqualNode() {
-	ComparisonNode.call(this, '&le;');
+	LessOrEqualNode.$super(this, '&le;');
 }
 Object.extend(ComparisonNode, LessOrEqualNode);

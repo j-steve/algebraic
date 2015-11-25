@@ -82,6 +82,12 @@ output.formatted .LogarithmNode > .leftNode {
 output.formatted .LogarithmNode > .rightNode {
 	order: 3;
 }
+output.formatted .LogarithmNode > .rightNode > .operator-node::before {
+	content: '(';
+}
+output.formatted .LogarithmNode > .rightNode > .operator-node::after {
+	content: ')';
+}
 
 output.formatted .DivisionNode {
 	display: inline-table;

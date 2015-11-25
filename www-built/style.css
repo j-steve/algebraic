@@ -51,11 +51,8 @@ output.treeTable div.operator.operator-unknown {
 output.formatted div {
 	display:inline-block;
 }
-
-output.formatted .CoefficientNode > .operator {
-	display:none;
-}
-output.formatted.result .MultiplicationNode > .operator {
+ 
+output.formatted.result .MultiplicationNode.coefficient > .operator {
 	display:none;
 }
 

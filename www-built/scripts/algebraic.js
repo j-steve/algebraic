@@ -1,6 +1,12 @@
+function instanceOf(target) {
+	for (var i = 1; i < arguments.length; i++) {
+		if (target instanceof arguments[i]) {return true;}
+	}
+	return false;
+}
+
 (function() {
 	'use strict';
-	
 	
 	Array.prototype.remove = function() {
 		var removedCount = 0;
@@ -169,7 +175,8 @@ function closeTilType(nodeType) {
 
 function addImplicitMultiply() {
 	if (activeNode instanceof LeafNode) {
-		var implicitMultiplyNode = new CoefficientNode(); 
+		var implicitMultiplyNode = new MultiplicationNode(); 
+		implicitMultiplyNode.tightness += 1;
 		rotateForOperator(implicitMultiplyNode);
 		activeNode = implicitMultiplyNode;
 	}
@@ -442,7 +449,7 @@ Object.extend(BaseNode, OperatorNode);
 function OperatorPrefixNode(debugSymbol, stickiness, rightToLeft) { 
 	OperatorPrefixNode.$super(this, debugSymbol, stickiness, rightToLeft);
 }
-Object.extend(OperatorNode, OperatorPrefixNode);;/* global OperatorNode, RealNumberNode, LeafNode, SIDES, BaseMultiplicationNode */
+Object.extend(OperatorNode, OperatorPrefixNode);;/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode */
 
 /**
  * @constructor
@@ -471,7 +478,7 @@ function AdditionNode(leftNode, rightNode) {
 				leafsInScope[i] = leaf;
 			}
 		}
-		/*if (self.leftNode instanceof LeafNode && self.rightNode instanceof BaseMultiplicationNode) {
+		/*if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
 			self.leftNode.replaceWith(self.rightNode);
 		}*/
 	};
@@ -530,19 +537,19 @@ function AdditionNode(leftNode, rightNode) {
 		} else if (a instanceof LeafNode && a.equals(b)) {
 			return new ExponentNode(a, 2); 
 			
-		} else if (a instanceof LeafNode && b instanceof BaseMultiplicationNode && b.leftNode.equals(a)) {
+		} else if (a instanceof LeafNode && b instanceof MultiplicationNode && b.leftNode.equals(a)) {
 			var newAdd = new AdditionNode(b.rightNode, a);
 			return new MultiplicationNode(b.leftNode, newAdd);
-		} else if (a instanceof LeafNode && b instanceof BaseMultiplicationNode && b.rightNode.equals(a)) {
+		} else if (a instanceof LeafNode && b instanceof MultiplicationNode && b.rightNode.equals(a)) {
 			var newAdd = new AdditionNode(b.leftNode, a);
 			return new MultiplicationNode(newAdd, b.rightNode);
 		}
 		
-		 else if (a instanceof BaseMultiplicationNode && b instanceof BaseMultiplicationNode && a.leftNode.equals(b.leftNode)) {
+		 else if (a instanceof MultiplicationNode && b instanceof MultiplicationNode && a.leftNode.equals(b.leftNode)) {
 			var newAdd = new AdditionNode(a.rightNode, b.rightNode);
 			return new MultiplicationNode(a.leftNode, newAdd);
 		}
-		 else if (a instanceof BaseMultiplicationNode && b instanceof BaseMultiplicationNode && a.rightNode.equals(b.rightNode)) {
+		 else if (a instanceof MultiplicationNode && b instanceof MultiplicationNode && a.rightNode.equals(b.rightNode)) {
 			var newAdd = new AdditionNode(a.leftNode, b.leftNode);
 			return new MultiplicationNode(newAdd, a.rightNode);
 		}
@@ -705,18 +712,23 @@ function LogarithmNode(base) {
 	LogarithmNode.$super(this, 'log', 3);
 	this.leftNode = base || new RealNumberNode(10);
 }
-Object.extend(OperatorPrefixNode, LogarithmNode);;/* global OperatorNode, LeafNode, RealNumberNode, ExponentNode, SIDES */
+Object.extend(OperatorPrefixNode, LogarithmNode);;/* global OperatorNode, LeafNode, RealNumberNode, ExponentNode, LogarithmNode, SIDES */
 
+Object.extend(OperatorNode, MultiplicationNode);
 /**
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {string} debugSymbol 
- * @param {number} stickiness
+ * @param {BaseNode} leftNode
+ * @param {BaseNode} rightNode
  */
-function BaseMultiplicationNode(debugSymbol, stickiness) {
+function MultiplicationNode(leftNode, rightNode) {
 	var self = this;
-	var $super = BaseMultiplicationNode.$super(this, debugSymbol, stickiness);
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3);
+	
+	if (leftNode) {this.leftNode = leftNode;}
+	if (rightNode) {this.rightNode = rightNode;}
+	delete leftNode, rightNode;
 	
 	this.cleanup = function() { 
 		if ($super.cleanup() === false) {return;}
@@ -731,7 +743,7 @@ function BaseMultiplicationNode(debugSymbol, stickiness) {
 				leafsInScope[i] = leaf;
 			}
 		}
-		/*if (self.leftNode instanceof LeafNode && self.rightNode instanceof BaseMultiplicationNode) {
+		/*if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
 			self.leftNode.replaceWith(self.rightNode);
 		}*/
 	};
@@ -775,7 +787,7 @@ function BaseMultiplicationNode(debugSymbol, stickiness) {
 			var node = stack.shift();
 			if (node instanceof LeafNode) {
 				leafs.push(node);
-			} else if (node instanceof BaseMultiplicationNode) {
+			} else if (node instanceof MultiplicationNode) {
 				stack = node.nodes.concat(stack);
 			} else {
 				leafs.push(node);
@@ -784,7 +796,7 @@ function BaseMultiplicationNode(debugSymbol, stickiness) {
 		return leafs;
 	}
 	
-	function multiply(a, b) {
+	function multiply(a, b) { 
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
 			return new RealNumberNode(a.value * b.value);
 			
@@ -804,40 +816,28 @@ function BaseMultiplicationNode(debugSymbol, stickiness) {
 			return new ExponentNode(a.leftNode, rightNode);
 		}
 	}
-}
-Object.extend(OperatorNode, BaseMultiplicationNode);
-
-/**
- * @constructor
- * @extends {BaseMultiplicationNode}
- * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
- */
-function MultiplicationNode(leftNode, rightNode) {
-	var self = this; 
-	var $super = MultiplicationNode.$super(this, '&sdot;', 3);
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	 
-	this.cleanup = function() {
-		$super.cleanup();
-		if (self.hasBothLeafs()) {
-			self.replaceWith(new CoefficientNode, true);
+	
+	this.isCoefficient = function() {
+		for (var i = 0; i < SIDES.length; i++) { 
+			var node = self[SIDES[i]];
+			if (!(node instanceof LeafNode || node instanceof ExponentNode && node.leftNode instanceof LeafNode ||
+					node instanceof MultiplicationNode && node.isCoefficient())) {
+				return false;
+			}
 		}
+		return true;
 	};
+	
+	this.toString = function() {
+		if (self.isCoefficient()) {
+			self.printVals.before = self.printVals.before.replace('node', 'node coefficient');
+		} 
+		return $super.toString();
+	}; 
 }
-Object.extend(BaseMultiplicationNode, MultiplicationNode);
 
-/**
- * @constructor
- * @extends {BaseMultiplicationNode}
- */
-function CoefficientNode() {
-	var $super = CoefficientNode.$super(this, '<span style="color:gray;">&sdot;</span>', 4);
-}
-Object.extend(BaseMultiplicationNode, CoefficientNode);
 
+Object.extend(OperatorNode, DivisionNode);
 /**
  * @constructor
  * @extends {OperatorNode}
@@ -867,7 +867,6 @@ function DivisionNode() {
 		}*/
 	};
 }
-Object.extend(OperatorNode, DivisionNode);
 
 function commonDenominator(a, b) {
 	var vals = [a, b].map(Math.abs);

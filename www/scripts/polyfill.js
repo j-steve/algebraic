@@ -1,6 +1,12 @@
+function instanceOf(target) {
+	for (var i = 1; i < arguments.length; i++) {
+		if (target instanceof arguments[i]) {return true;}
+	}
+	return false;
+}
+
 (function() {
 	'use strict';
-	
 	
 	Array.prototype.remove = function() {
 		var removedCount = 0;

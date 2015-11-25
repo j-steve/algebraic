@@ -1,4 +1,4 @@
-/* global OperatorNode, RealNumberNode, LeafNode, SIDES, BaseMultiplicationNode */
+/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode */
 
 /**
  * @constructor
@@ -27,7 +27,7 @@ function AdditionNode(leftNode, rightNode) {
 				leafsInScope[i] = leaf;
 			}
 		}
-		/*if (self.leftNode instanceof LeafNode && self.rightNode instanceof BaseMultiplicationNode) {
+		/*if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
 			self.leftNode.replaceWith(self.rightNode);
 		}*/
 	};
@@ -86,19 +86,19 @@ function AdditionNode(leftNode, rightNode) {
 		} else if (a instanceof LeafNode && a.equals(b)) {
 			return new ExponentNode(a, 2); 
 			
-		} else if (a instanceof LeafNode && b instanceof BaseMultiplicationNode && b.leftNode.equals(a)) {
+		} else if (a instanceof LeafNode && b instanceof MultiplicationNode && b.leftNode.equals(a)) {
 			var newAdd = new AdditionNode(b.rightNode, a);
 			return new MultiplicationNode(b.leftNode, newAdd);
-		} else if (a instanceof LeafNode && b instanceof BaseMultiplicationNode && b.rightNode.equals(a)) {
+		} else if (a instanceof LeafNode && b instanceof MultiplicationNode && b.rightNode.equals(a)) {
 			var newAdd = new AdditionNode(b.leftNode, a);
 			return new MultiplicationNode(newAdd, b.rightNode);
 		}
 		
-		 else if (a instanceof BaseMultiplicationNode && b instanceof BaseMultiplicationNode && a.leftNode.equals(b.leftNode)) {
+		 else if (a instanceof MultiplicationNode && b instanceof MultiplicationNode && a.leftNode.equals(b.leftNode)) {
 			var newAdd = new AdditionNode(a.rightNode, b.rightNode);
 			return new MultiplicationNode(a.leftNode, newAdd);
 		}
-		 else if (a instanceof BaseMultiplicationNode && b instanceof BaseMultiplicationNode && a.rightNode.equals(b.rightNode)) {
+		 else if (a instanceof MultiplicationNode && b instanceof MultiplicationNode && a.rightNode.equals(b.rightNode)) {
 			var newAdd = new AdditionNode(a.leftNode, b.leftNode);
 			return new MultiplicationNode(newAdd, a.rightNode);
 		}

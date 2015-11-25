@@ -3,9 +3,14 @@
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {BaseNode} leftNode
+ * @param {BaseNode} rightNode
  */
 function ExponentNode(leftNode, rightNode) {
 	ExponentNode.$super(this, '^', 4, true);
+	if (leftNode) {this.leftNode = leftNode;}
+	if (rightNode) {this.rightNode = rightNode;}
 }
 Object.extend(OperatorNode, ExponentNode);
 

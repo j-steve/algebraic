@@ -1,5 +1,19 @@
 (function() {
 	'use strict';
+	
+	
+	Array.prototype.remove = function() {
+		var removedCount = 0;
+		for (var i = 0; i < arguments.length; i++) {
+			var index = this.indexOf(arguments[i]);
+			while (index !== -1) {
+				this.splice(index, 1);
+				removedCount++;
+				index = this.indexOf(arguments[i]);
+			}
+		}
+		return removedCount;
+	};
 
 	Array.prototype.peek = function() {
 		return this.length ? this[this.length - 1] : false;
@@ -9,6 +23,17 @@
 		var clone = [].slice.call(this);
 		[].sort.apply(clone, arguments);
 		return clone;
+	};
+	
+	Array.combos = function(array) {
+		var combos = [];
+		for (var i = 0; i < array.length; i++) {
+			for (var j = 0; j < array.length; j++) {
+				if (i !== j) {
+					combos.push([array[i], array[j]]);
+				}
+			}
+		}
 	};
 
 	Object.extend = function(parent, child) {

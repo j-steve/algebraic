@@ -1,4 +1,4 @@
-/* global LeafNode */
+/* global LeafNode, RealNumberNode */
 
 var SIDES = ['leftNode', 'rightNode'];
 
@@ -27,7 +27,12 @@ function BaseNode(parentNode) {
 		Object.defineProperty(self, side, {
 			get: function() {return self.nodes[index];},
 			set: function(value) {
-				if (value) {value.parent = self;}
+				if (typeof value === 'number') {
+					value = new RealNumberNode(value);
+				}
+				if (value) {
+					value.parent = self;
+				}
 				self.nodes[index] = value;
 			}
 		});
@@ -104,13 +109,25 @@ function BaseNode(parentNode) {
 			replacementNode.rightNode = self.rightNode;
 		}
 	};
-	
+	 
 	this.cleanup = function() {
-		self.nodes.forEach(function(node) {node.cleanup();});
+		if (self.parent && self.leftNode && !self.rightNode) {
+			self.replaceWith(self.leftNode);
+		} else {
+			self.nodes.forEach(function(node) {node.cleanup();});
+		}
 	};
 	
 	this.simplify = function() {
 		self.nodes.forEach(function(node) {node.simplify();});
+	};
+	
+	this.equals = function(other) {
+		if (!other || self.constructor !== other.constructor) {return false;}
+		for (var i = 0; i < self.nodes.length; i++) {
+			if (!self.nodes[i].equals(other.nodes[i])) {return false;}
+		}
+		return true;
 	};
 	
 	this.toString = function() {

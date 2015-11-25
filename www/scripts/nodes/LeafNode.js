@@ -22,6 +22,10 @@ function LeafNode(value, displaySequence) {
 	this.toString = function() {
 		return self.value;
 	};
+	
+	this.equals = function(other) {
+		return $super.equals(other) && self.value === other.value;
+	};
 }
 Object.extend(BaseNode, LeafNode);
 

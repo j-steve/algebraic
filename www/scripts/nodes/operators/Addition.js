@@ -1,11 +1,26 @@
-/* global OperatorNode */
+/* global OperatorNode, RealNumberNode */
 
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {BaseNode} leftNode
+ * @param {BaseNode} rightNode
  */
-function AdditionNode() {
-	AdditionNode.$super(this, '+', 2);
+function AdditionNode(leftNode, rightNode) {
+	var self = this;
+	var $super = AdditionNode.$super(this, '+', 2);
+	if (leftNode) {this.leftNode = leftNode;}
+	if (rightNode) {this.rightNode = rightNode;}
+	
+	
+	this.simplify = function() {
+		$super.simplify();
+		
+		if (self.leftNode instanceof RealNumberNode && self.rightNode instanceof RealNumberNode) {
+			self.replaceWith(new RealNumberNode(self.leftNode.value + self.rightNode.value));
+		}
+	};
 }
 Object.extend(OperatorNode, AdditionNode);
 

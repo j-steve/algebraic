@@ -86,9 +86,11 @@ output.formatted .DivisionNode {
 output.formatted .DivisionNode > .leftNode {
 	display:table-row;
 	border-bottom: 1px solid green;
+	text-align: center;
 }
 output.formatted .DivisionNode > .rightNode {
 	display:table-row;
+	text-align: center;
 }
 output.formatted .DivisionNode > .operator {
 	display:none;

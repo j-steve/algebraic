@@ -314,7 +314,7 @@ function BaseNode(parentNode) {
 		if (!self.parent) {throw new Error('Cannot replace root node.');}
 		var side = self.side();
 		var parent = self.parent;
-		if (replacementNode.parent) { 
+		if (replacementNode && replacementNode.parent) { 
 			replacementNode.parent[replacementNode.side()] = self;
 		}
 		parent[side] = replacementNode;
@@ -324,13 +324,13 @@ function BaseNode(parentNode) {
 		}
 	};
 	 
-	this.cleanup = function() {
-		if (self.parent && self.leftNode && !self.rightNode) {
-			self.replaceWith(self.leftNode);
-			return false;
-		} else {
-			self.nodes.forEach(function(node) {node.cleanup();});
-		}
+	this.cleanup = function() { 
+		self.nodes.forEach(function(node) {
+			node.cleanup();
+			if (node.leftNode && !node.rightNode) {
+				node.replaceWith(node.leftNode); 
+			}
+		}); 
 	};
 	
 	this.simplify = function() {
@@ -471,7 +471,7 @@ function AdditionNode(leftNode, rightNode) {
 	
 	
 	this.cleanup = function() { 
-		if ($super.cleanup() === false) {return;}
+		$super.cleanup();
 		
 		var leafsInScope = getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
 		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
@@ -729,6 +729,11 @@ function LogarithmNode(base) {
 	var $super = LogarithmNode.$super(this, 'log', 3);
 	this.leftNode = base || new RealNumberNode(10);
 	
+	this.cleanup = function() {
+		$super.cleanup();
+		if (!self.rightNode) {self.replaceWith(null);}
+	};
+	
 	this.simplify = function() {
 		$super.simplify();
 		/*if (instanceOf(self.nodes, RealNumberNode)) {
@@ -756,7 +761,7 @@ function MultiplicationNode(leftNode, rightNode) {
 	delete leftNode, rightNode;
 	
 	this.cleanup = function() { 
-		if ($super.cleanup() === false) {return;}
+		$super.cleanup();
 		
 		var leafsInScope = self.getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
 		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});

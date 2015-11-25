@@ -15,7 +15,7 @@ function AdditionNode(leftNode, rightNode) {
 	
 	
 	this.cleanup = function() { 
-		if ($super.cleanup() === false) {return;}
+		$super.cleanup();
 		
 		var leafsInScope = getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
 		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});

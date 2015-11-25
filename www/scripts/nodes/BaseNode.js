@@ -100,7 +100,7 @@ function BaseNode(parentNode) {
 		if (!self.parent) {throw new Error('Cannot replace root node.');}
 		var side = self.side();
 		var parent = self.parent;
-		if (replacementNode.parent) { 
+		if (replacementNode && replacementNode.parent) { 
 			replacementNode.parent[replacementNode.side()] = self;
 		}
 		parent[side] = replacementNode;
@@ -110,13 +110,13 @@ function BaseNode(parentNode) {
 		}
 	};
 	 
-	this.cleanup = function() {
-		if (self.parent && self.leftNode && !self.rightNode) {
-			self.replaceWith(self.leftNode);
-			return false;
-		} else {
-			self.nodes.forEach(function(node) {node.cleanup();});
-		}
+	this.cleanup = function() { 
+		self.nodes.forEach(function(node) {
+			node.cleanup();
+			if (node.leftNode && !node.rightNode) {
+				node.replaceWith(node.leftNode); 
+			}
+		}); 
 	};
 	
 	this.simplify = function() {

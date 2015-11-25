@@ -45,6 +45,11 @@ function LogarithmNode(base) {
 	var $super = LogarithmNode.$super(this, 'log', 3);
 	this.leftNode = base || new RealNumberNode(10);
 	
+	this.cleanup = function() {
+		$super.cleanup();
+		if (!self.rightNode) {self.replaceWith(null);}
+	};
+	
 	this.simplify = function() {
 		$super.simplify();
 		/*if (instanceOf(self.nodes, RealNumberNode)) {

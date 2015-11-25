@@ -8,9 +8,20 @@
  * @param {BaseNode} rightNode
  */
 function ExponentNode(leftNode, rightNode) {
-	ExponentNode.$super(this, '^', 4, true);
+	var self = this;
+	var $super = ExponentNode.$super(this, '^', 4, true);
+	
 	if (leftNode) {this.leftNode = leftNode;}
 	if (rightNode) {this.rightNode = rightNode;}
+	delete leftNode, rightNode;
+	
+	this.simplify = function() {
+		$super.simplify();
+		if (instanceOf(self.nodes, RealNumberNode)) {
+			var result = Math.pow(self.leftNode.value, self.rightNode.value);
+			self.replaceWith(new RealNumberNode(result));
+		}
+	};
 }
 Object.extend(OperatorNode, ExponentNode);
 

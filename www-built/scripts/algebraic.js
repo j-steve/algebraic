@@ -1,8 +1,13 @@
-function instanceOf(target) {
-	for (var i = 1; i < arguments.length; i++) {
-		if (target instanceof arguments[i]) {return true;}
+function instanceOf(target, instanceTypes) {
+	if (Array.isArray(target)) {
+		return target.every(function(x) {return instanceOf(x, instanceTypes);});
+	} else { 
+		instanceTypes = [].concat(instanceTypes || []);
+		for (var i = 0; i < instanceTypes.length; i++) {
+			if (target instanceof instanceTypes[i]) {return true;}
+		}
+		return false;
 	}
-	return false;
 }
 
 (function() {
@@ -687,9 +692,20 @@ Object.extend(EnclosureNode, ParenthesisNode);
  * @param {BaseNode} rightNode
  */
 function ExponentNode(leftNode, rightNode) {
-	ExponentNode.$super(this, '^', 4, true);
+	var self = this;
+	var $super = ExponentNode.$super(this, '^', 4, true);
+	
 	if (leftNode) {this.leftNode = leftNode;}
 	if (rightNode) {this.rightNode = rightNode;}
+	delete leftNode, rightNode;
+	
+	this.simplify = function() {
+		$super.simplify();
+		if (instanceOf(self.nodes, RealNumberNode)) {
+			var result = Math.pow(self.leftNode.value, self.rightNode.value);
+			self.replaceWith(new RealNumberNode(result));
+		}
+	};
 }
 Object.extend(OperatorNode, ExponentNode);
 
@@ -733,7 +749,7 @@ function MultiplicationNode(leftNode, rightNode) {
 	this.cleanup = function() { 
 		if ($super.cleanup() === false) {return;}
 		
-		var leafsInScope = getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
+		var leafsInScope = self.getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
 		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
 		for (var i = 0; i < sortedLeafs.length - 1; i++) {
 			var leaf = sortedLeafs[i];
@@ -751,7 +767,7 @@ function MultiplicationNode(leftNode, rightNode) {
 	this.simplify = function() {
 		$super.simplify();
 		
-		var leafsInScope = getLeafsInScope();
+		var leafsInScope = self.getLeafsInScope();
 		//var checkNodes = self.nodes.slice(); 
 		 
 		nodes: for (var i = 0; i < SIDES.length; i++) { 
@@ -780,7 +796,7 @@ function MultiplicationNode(leftNode, rightNode) {
 		}
 	};
 	
-	function getLeafsInScope() {
+	this.getLeafsInScope = function() {
 		var leafs = [];
 		var stack = self.nodes.slice();
 		while (stack.length) {
@@ -794,7 +810,7 @@ function MultiplicationNode(leftNode, rightNode) {
 			}
 		}
 		return leafs;
-	}
+	};
 	
 	function multiply(a, b) { 
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {

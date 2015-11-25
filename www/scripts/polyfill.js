@@ -1,8 +1,13 @@
-function instanceOf(target) {
-	for (var i = 1; i < arguments.length; i++) {
-		if (target instanceof arguments[i]) {return true;}
+function instanceOf(target, instanceTypes) {
+	if (Array.isArray(target)) {
+		return target.every(function(x) {return instanceOf(x, instanceTypes);});
+	} else { 
+		instanceTypes = [].concat(instanceTypes || []);
+		for (var i = 0; i < instanceTypes.length; i++) {
+			if (target instanceof instanceTypes[i]) {return true;}
+		}
+		return false;
 	}
-	return false;
 }
 
 (function() {

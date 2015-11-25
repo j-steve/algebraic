@@ -1,4 +1,4 @@
-/* global OperatorNode, OperatorPrefixNode */
+/* global OperatorNode, OperatorPrefixNode, RealNumberNode */
 
 /**
  * @constructor
@@ -41,7 +41,16 @@ Object.extend(OperatorNode, RootNode);
  * @param {BaseNode} [base]   the log base, reprsented by the right node
  */
 function LogarithmNode(base) {  
-	LogarithmNode.$super(this, 'log', 3);
+	var self = this;
+	var $super = LogarithmNode.$super(this, 'log', 3);
 	this.leftNode = base || new RealNumberNode(10);
+	
+	this.simplify = function() {
+		$super.simplify();
+		/*if (instanceOf(self.nodes, RealNumberNode)) {
+			var result = Math.log(self.rightNode.value) / Math.log(self.leftNode.value);
+			self.replaceWith(new RealNumberNode(result));
+		}*/
+	};
 }
 Object.extend(OperatorPrefixNode, LogarithmNode);

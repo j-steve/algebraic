@@ -540,14 +540,11 @@ function AdditionNode(leftNode, rightNode) {
 			return new RealNumberNode(a.value + b.value);
 			
 		} else if (a instanceof LeafNode && a.equals(b)) {
-			//return new MultiplicationNode(2, a);  TODO
+			return new MultiplicationNode(2, a);
 			
-		} else if (a instanceof LeafNode && b instanceof MultiplicationNode && b.leftNode.equals(a)) {
-			var newAdd = new AdditionNode(b.rightNode, a);
-			return new MultiplicationNode(b.leftNode, newAdd);
-		} else if (a instanceof LeafNode && b instanceof MultiplicationNode && b.rightNode.equals(a)) {
-			var newAdd = new AdditionNode(b.leftNode, a);
-			return new MultiplicationNode(newAdd, b.rightNode);
+		} else if (a instanceof MultiplicationNode && a.rightNode instanceof VariableNode && a.rightNode.equals(b)) {
+			var newAdd = new AdditionNode(a.leftNode, 1);
+			return new MultiplicationNode(newAdd, a.rightNode); 
 		}
 		
 		 else if (a instanceof MultiplicationNode && b instanceof MultiplicationNode && a.leftNode.equals(b.leftNode)) {

@@ -116,7 +116,7 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();
 		
-		calculateElement.className = 'formatted';
+		calculateElement.className = 'formatted result';
 		calculateElement.innerHTML = rootNode.toString();
 		
 	} catch (err) {

@@ -55,6 +55,9 @@ output.formatted div {
 output.formatted .CoefficientNode > .operator {
 	display:none;
 }
+output.formatted.result .MultiplicationNode > .operator {
+	display:none;
+}
 
 output.formatted .ExponentNode > .operator {
 	display:none;

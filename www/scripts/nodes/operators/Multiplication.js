@@ -12,7 +12,7 @@ function BaseMultiplicationNode(debugSymbol, stickiness) {
 	var $super = BaseMultiplicationNode.$super(this, debugSymbol, stickiness);
 	
 	this.cleanup = function() { 
-		$super.cleanup();
+		if ($super.cleanup() === false) {return;}
 		
 		var leafsInScope = getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
 		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
@@ -59,31 +59,6 @@ function BaseMultiplicationNode(debugSymbol, stickiness) {
 				}
 			}
 		}
-		
-		/*
-		for (var i = 0; i < leafsInScope.length - 1; i++) {
-			var leaf1 = leafsInScope[i];
-			for (var j = i + 1; i < leafsInScope.length; i++) {
-				var leaf2 = leafsInScope[j];
-				var multiplyResult = multiply(leaf1, leaf2);
-				if (multiplyResult) {
-					
-				}
-			}
-		}
-		var scopeCombos = Array.combos(getLeafsInScope());
-		if (self.leftNode instanceof RealNumberNode && self.rightNode instanceof RealNumberNode) {
-			self.replaceWith(new RealNumberNode(self.leftNode.value * self.rightNode.value));
-		
-		} else if (self.rightNode instanceof LeafNode && self.parent.rightNode instanceof LeafNode &&
-				self.rightNode.value === self.parent.rightNode.value) {
-			self.parent.replaceWith(self);
-			var exponent = new ExponentNode();
-			exponent.leftNode = self.rightNode;
-			exponent.rightNode = new RealNumberNode(2);
-			self.rightNode = exponent;
-		}
-		*/
 	};
 	
 	function getLeafsInScope() {
@@ -128,10 +103,15 @@ Object.extend(OperatorNode, BaseMultiplicationNode);
 /**
  * @constructor
  * @extends {BaseMultiplicationNode}
+ * 
+ * @param {BaseNode} leftNode
+ * @param {BaseNode} rightNode
  */
-function MultiplicationNode() {
+function MultiplicationNode(leftNode, rightNode) {
 	var self = this; 
 	var $super = MultiplicationNode.$super(this, '&sdot;', 3);
+	if (leftNode) {this.leftNode = leftNode;}
+	if (rightNode) {this.rightNode = rightNode;}
 	 
 	this.cleanup = function() {
 		$super.cleanup();

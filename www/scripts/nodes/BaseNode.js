@@ -113,6 +113,7 @@ function BaseNode(parentNode) {
 	this.cleanup = function() {
 		if (self.parent && self.leftNode && !self.rightNode) {
 			self.replaceWith(self.leftNode);
+			return false;
 		} else {
 			self.nodes.forEach(function(node) {node.cleanup();});
 		}

@@ -84,7 +84,7 @@ function AdditionNode(leftNode, rightNode) {
 			return new RealNumberNode(a.value + b.value);
 			
 		} else if (a instanceof LeafNode && a.equals(b)) {
-			return new ExponentNode(a, 2); 
+			//return new MultiplicationNode(2, a);  TODO
 			
 		} else if (a instanceof LeafNode && b instanceof MultiplicationNode && b.leftNode.equals(a)) {
 			var newAdd = new AdditionNode(b.rightNode, a);

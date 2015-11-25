@@ -86,18 +86,14 @@ function AdditionNode(leftNode, rightNode) {
 		} else if (a instanceof LeafNode && a.equals(b)) {
 			return new MultiplicationNode(2, a);
 			
-		} else if (a instanceof MultiplicationNode && a.rightNode instanceof VariableNode && a.rightNode.equals(b)) {
-			var newAdd = new AdditionNode(a.leftNode, 1);
-			return new MultiplicationNode(newAdd, a.rightNode); 
-		}
-		
-		 else if (a instanceof MultiplicationNode && b instanceof MultiplicationNode && a.leftNode.equals(b.leftNode)) {
-			var newAdd = new AdditionNode(a.rightNode, b.rightNode);
-			return new MultiplicationNode(a.leftNode, newAdd);
-		}
-		 else if (a instanceof MultiplicationNode && b instanceof MultiplicationNode && a.rightNode.equals(b.rightNode)) {
-			var newAdd = new AdditionNode(a.leftNode, b.leftNode);
-			return new MultiplicationNode(newAdd, a.rightNode);
+		} else if (a instanceof MultiplicationNode && a.rightNode instanceof VariableNode) {
+			if (a.rightNode.equals(b)) {
+				var newAdd = new AdditionNode(a.leftNode, 1);
+				return new MultiplicationNode(newAdd, a.rightNode); 
+			} else if (a.rightNode.equals(b.rightNode)) { 
+				var newAdd = new AdditionNode(a.leftNode, b.leftNode);
+				return new MultiplicationNode(newAdd, a.rightNode);
+			}
 		}
 	}
 }

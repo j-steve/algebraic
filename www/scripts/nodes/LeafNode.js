@@ -24,7 +24,7 @@ function LeafNode(value, displaySequence) {
 	};
 	
 	this.equals = function(other) {
-		return $super.equals(other) && self.value === other.value;
+		return self.value === other || $super.equals(other) && self.value === other.value;
 	};
 }
 Object.extend(BaseNode, LeafNode);
@@ -35,9 +35,10 @@ Object.extend(BaseNode, LeafNode);
  * 
  * @param {string|number} value   a string or string representation of a number
  */
-function RealNumberNode(value) { 
-	value = Number(value);
-	RealNumberNode.$super(this, value, 1);
+function RealNumberNode(value) {  
+	var self = this;
+	var $super = RealNumberNode.$super(this, Number(value), 1);
+	delete value; 
 }
 Object.extend(LeafNode, RealNumberNode);
 

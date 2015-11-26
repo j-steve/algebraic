@@ -17,7 +17,11 @@ function ExponentNode(leftNode, rightNode) {
 	
 	this.simplify = function() {
 		$super.simplify();
-		if (instanceOf(self.nodes, RealNumberNode)) {
+		if (self.rightNode.equals(1)) {
+			self.replaceWith(self.leftNode);
+		} else if (self.rightNode.equals(0)) {
+			self.replaceWith(new RealNumberNode(1));
+		} else if (instanceOf(self.nodes, RealNumberNode)) {
 			var result = Math.pow(self.leftNode.value, self.rightNode.value);
 			self.replaceWith(new RealNumberNode(result));
 		}

@@ -36,16 +36,24 @@ function instanceOf(target, instanceTypes) {
 		return clone;
 	};
 	
-	Array.combos = function(array) {
+	Array.combos = function(a, b) {
 		var combos = [];
-		for (var i = 0; i < array.length; i++) {
-			for (var j = 0; j < array.length; j++) {
-				if (i !== j) {
-					combos.push([array[i], array[j]]);
-				}
+		for (var i = 0; i < a.length; i++) {
+			for (var j = 0; j < b.length; j++) { 
+				combos.push([a[i], b[j]]); 
 			}
 		}
+		return combos;
 	};
+	/*Array.combos = function(array) {
+		var combos = [];
+		for (var i = 0; i < array.length - 1; i++) {
+			for (var j = i + 1; j < array.length; j++) { 
+				combos.push([array[i], array[j]]); 
+			}
+		}
+		return combos;
+	};*/
 
 	Object.extend = function(parent, child) {
 		child.prototype = Object.create(parent.prototype);
@@ -395,7 +403,7 @@ function LeafNode(value, displaySequence) {
 	};
 	
 	this.equals = function(other) {
-		return $super.equals(other) && self.value === other.value;
+		return self.value === other || $super.equals(other) && self.value === other.value;
 	};
 }
 Object.extend(BaseNode, LeafNode);
@@ -406,9 +414,10 @@ Object.extend(BaseNode, LeafNode);
  * 
  * @param {string|number} value   a string or string representation of a number
  */
-function RealNumberNode(value) { 
-	value = Number(value);
-	RealNumberNode.$super(this, value, 1);
+function RealNumberNode(value) {  
+	var self = this;
+	var $super = RealNumberNode.$super(this, Number(value), 1);
+	delete value; 
 }
 Object.extend(LeafNode, RealNumberNode);
 
@@ -520,7 +529,7 @@ function closeTilType(nodeType) {
 function addImplicitMultiply() {
 	if (activeNode instanceof LeafNode) {
 		var implicitMultiplyNode = new MultiplicationNode(); 
-		implicitMultiplyNode.tightness += 1;
+		implicitMultiplyNode.stickiness += 1
 		rotateForOperator(implicitMultiplyNode);
 		activeNode = implicitMultiplyNode;
 	}
@@ -554,7 +563,7 @@ function getRoot(node) {
 }
 
 /*------------------------------------------------*/
-/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode, CommutativeOpNode */
+/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode, CommutativeOpNode, DivisionNode */
 
 /**
  * @constructor
@@ -592,6 +601,9 @@ function AdditionNode(leftNode, rightNode) {
 				var newAdd = new AdditionNode(a.leftNode, b.leftNode);
 				return new MultiplicationNode(newAdd, a.rightNode);
 			}
+		} else if (b instanceof DivisionNode) {
+			var newAdd = new AdditionNode(b.leftNode, a);
+			return new DivisionNode(newAdd, b.rightNode);
 		}
 	}
 }
@@ -747,7 +759,11 @@ function ExponentNode(leftNode, rightNode) {
 	
 	this.simplify = function() {
 		$super.simplify();
-		if (instanceOf(self.nodes, RealNumberNode)) {
+		if (self.rightNode.equals(1)) {
+			self.replaceWith(self.leftNode);
+		} else if (self.rightNode.equals(0)) {
+			self.replaceWith(new RealNumberNode(1));
+		} else if (instanceOf(self.nodes, RealNumberNode)) {
 			var result = Math.pow(self.leftNode.value, self.rightNode.value);
 			self.replaceWith(new RealNumberNode(result));
 		}
@@ -809,6 +825,13 @@ function MultiplicationNode(leftNode, rightNode) {
 	if (rightNode) {this.rightNode = rightNode;}
 	delete leftNode, rightNode;
 	
+	this.simplify = function() {
+		$super.simplify();
+		if (self.leftNode instanceof RealNumberNode && self.leftNode.value === 1) {
+			self.replaceWith(self.rightNode);
+		}
+	}
+	
 	function multiply(a, b) { 
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
 			return new RealNumberNode(a.value * b.value);
@@ -854,23 +877,52 @@ Object.extend(OperatorNode, DivisionNode);
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {BaseNode} leftNode
+ * @param {BaseNode} rightNode
  */
-function DivisionNode() {
+function DivisionNode(leftNode, rightNode) {
 	var self = this; 
 	var $super = DivisionNode.$super(this, '∕', 3);
 	
+	if (leftNode) {this.leftNode = leftNode;}
+	if (rightNode) {this.rightNode = rightNode;}
+	delete leftNode, rightNode;
+	
 	this.simplify = function() {
 		$super.simplify(); 
-		if (self.hasBothLeafs()) {
-			var gcd = commonDenominator(self.leftNode.value, self.rightNode.value);
+		
+		var numerator = getScopedNodes(self.leftNode);
+		var denominator = getScopedNodes(self.rightNode);
+		if (instanceOf([self.leftNode, self.rightNode], [LeafNode, MultiplicationNode])) {
+			Array.combos(numerator, denominator).forEach(function(combo) {
+				if (instanceOf(combo, RealNumberNode)) {
+					var gcd = commonDenominator(combo[0].value, combo[1].value);
+					if (gcd) {
+						combo[0].value /= gcd;
+						combo[1].value /= gcd;
+					}
+				} else if (combo[0].equals(combo[1])) {
+					combo[0].replaceWith(new RealNumberNode(1));
+					combo[1].replaceWith(new RealNumberNode(1));
+				} else if (instanceOf(combo, [ExponentNode, LeafNode])) {
+					
+				}
+			});
+		}
+		
+		
+		$super.simplify();
+		
+			/*var gcd = commonDenominator(self.leftNode.value, self.rightNode.value);
 			if (gcd) {
 				self.leftNode.value = self.leftNode.value / gcd;
 				self.rightNode.value = self.rightNode.value / gcd;
-			}
-			if (self.rightNode.value === 1) {
-				self.replaceWith(self.leftNode);
-			}
-		}
+			}*/
+		if (self.rightNode instanceof RealNumberNode && self.rightNode.value === 1) {
+			self.replaceWith(self.leftNode);
+		} 
+		
 		/*if (self.rightNode instanceof RealNumberNode && self.leftNode.value !== 1) {
 			var oneOver = new DivisionNode;
 			oneOver.leftNode = new RealNumberNode(1);
@@ -879,6 +931,15 @@ function DivisionNode() {
 			self.replaceWith(new MultiplicationNode, true);
 		}*/
 	};
+	
+	function getScopedNodes(node) {
+		return node instanceof CommutativeOpNode ? node.getLeafsInScope() : [node];
+		
+		/*if (node instanceof CommutativeOpNode) {
+			node.getLeafsInScope()
+		}*/
+		
+	}
 }
 
 function commonDenominator(a, b) {
@@ -887,6 +948,8 @@ function commonDenominator(a, b) {
 		if (vals[0] % i === 0 && vals[1] % i === 0) {return i;}
 	}
 }
+
+
 
 /*------------------------------------------------*/
 /* global OperatorPrefixNode */

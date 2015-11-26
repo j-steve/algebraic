@@ -1,4 +1,4 @@
-/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode, CommutativeOpNode */
+/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode, CommutativeOpNode, DivisionNode */
 
 /**
  * @constructor
@@ -36,6 +36,9 @@ function AdditionNode(leftNode, rightNode) {
 				var newAdd = new AdditionNode(a.leftNode, b.leftNode);
 				return new MultiplicationNode(newAdd, a.rightNode);
 			}
+		} else if (b instanceof DivisionNode) {
+			var newAdd = new AdditionNode(b.leftNode, a);
+			return new DivisionNode(newAdd, b.rightNode);
 		}
 	}
 }

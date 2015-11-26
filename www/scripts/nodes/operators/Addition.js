@@ -10,8 +10,10 @@
 function AdditionNode(leftNode, rightNode) {
 	var self = this;
 	var $super = AdditionNode.$super(this, '+', 2, AdditionNode, add);
+	
 	if (leftNode) {this.leftNode = leftNode;}
 	if (rightNode) {this.rightNode = rightNode;}
+	delete leftNode, rightNode;
 	
 	this.cleanup = function() { 
 		$super.cleanup();
@@ -49,9 +51,26 @@ Object.extend(OperatorNode, SubtractionNode);
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {BaseNode} leftNode
+ * @param {BaseNode} rightNode
  */
-function SubtractionNode() {
-	SubtractionNode.$super(this, '&minus;', 2);
+function SubtractionNode(leftNode, rightNode) {
+	var self = this;
+	var $super = SubtractionNode.$super(this, '&minus;', 2);
+	
+	if (leftNode) {this.leftNode = leftNode;}
+	if (rightNode) {this.rightNode = rightNode;}
+	delete leftNode, rightNode;
+	
+	this.cleanup = function() { 
+		$super.simplify();
+		
+		if (self.rightNode instanceof RealNumberNode) {
+			self.rightNode.value *= -1;
+			self.replaceWith(new AdditionNode(), true);
+		}
+	};
 }
 
 

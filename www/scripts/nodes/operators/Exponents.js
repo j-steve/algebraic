@@ -32,9 +32,26 @@ Object.extend(OperatorNode, ExponentNode);
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {BaseNode} leftNode
+ * @param {BaseNode} rightNode
  */
-function RootNode() {
-	RootNode.$super(this, '&radic;');
+function RootNode(leftNode, rightNode) {
+	var self = this;
+	$super = RootNode.$super(this, '&radic;');
+	
+	if (leftNode) {this.leftNode = leftNode;}
+	if (rightNode) {this.rightNode = rightNode;}
+	delete leftNode, rightNode; 
+	
+	this.simplify = function() {
+		$super.simplify();
+		 /*if (!instanceOf(self.leftNode, RealNumberNode)) {
+			var exp = new ExponentNode(self.rightNode, new DivisionNode(1, self.leftNode));
+			self.replaceWith(exp);
+		}*/
+	};
+	
 }
 Object.extend(OperatorNode, RootNode); 
 
@@ -43,11 +60,15 @@ Object.extend(OperatorNode, RootNode);
  * @extends {OperatorPrefixNode}
  * 
  * @param {BaseNode} [base]   the log base, reprsented by the right node
+ * @param {BaseNode} rightNode
  */
-function LogarithmNode(base) {  
+function LogarithmNode(base, rightNode) {  
 	var self = this;
 	var $super = LogarithmNode.$super(this, 'log', 3);
+	
 	this.leftNode = base || new RealNumberNode(10);
+	if (rightNode) {this.rightNode = rightNode;}
+	delete base, rightNode; 
 	
 	this.cleanup = function() {
 		$super.cleanup();

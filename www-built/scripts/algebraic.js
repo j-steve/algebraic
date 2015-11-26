@@ -167,18 +167,14 @@ function BaseNode(parentNode) {
 	/**
 	 * @returns {Array}
 	 */
-	/*this.decendants = function() {
+	this.decendants = function() {
 		var children = self.nodes.slice();
 		self.nodes.forEach(function(node) {
-			children = children.concat(node.decendantNodes());
+			children = children.concat(node.decendants());
 		});
 		return children;
 	};
 	
-	this.getNodeOfType = function(instanceType) {
-		var isInstance = function(x) {return x instanceof instanceType;};
-		return self.sides.find(function(side) {return side.decendants().any(isInstance);});
-	};*/
 	
 	this.hasBothLeafs = function() {
 		return self.leftNode instanceof LeafNode && self.rightNode instanceof LeafNode;
@@ -197,6 +193,13 @@ function BaseNode(parentNode) {
 	this.rotateLeft = function(newNode) {
 		if (self.parent) {self.replaceWith(newNode);}
 		newNode.leftNode = self;
+		return newNode;
+	};
+	
+	this.rotateRight = function(newNode) {
+		if (self.parent) {self.replaceWith(newNode);}
+		newNode.rightNode = self;
+		return newNode;
 	};
 	
 	/**
@@ -213,7 +216,7 @@ function BaseNode(parentNode) {
 	 * @param {boolean} [stealNodes=false]
 	 */
 	this.replaceWith = function(replacementNode, stealNodes) {
-		if (!self.parent) {throw new Error('Cannot replace root node.');}
+		if (!self.parent) {self.parent = new BaseNode();}
 		var side = self.side();
 		var parent = self.parent;
 		if (replacementNode && replacementNode.parent) { 
@@ -499,7 +502,7 @@ function makeEquationTree(inputEquation) {
 		if (match.node === 'CLOSE_PAREN') {
 			closeTilType(EnclosureNode);
 			if (!activeNode) {throw new Error('Unmatched ")" detected.');}
-			activeNode = activeNode.parent;
+			activeNode = activeNode.parent; 
 		} else if (match.node === 'COMMA') {
 			closeTilType(OperatorPrefixNode);
 			activeNode.nodes.shift(); // chop off the Base: THAT was the base, next is operand
@@ -575,8 +578,10 @@ function getRoot(node) {
 function AdditionNode(leftNode, rightNode) {
 	var self = this;
 	var $super = AdditionNode.$super(this, '+', 2, AdditionNode, add);
+	
 	if (leftNode) {this.leftNode = leftNode;}
 	if (rightNode) {this.rightNode = rightNode;}
+	delete leftNode, rightNode;
 	
 	this.cleanup = function() { 
 		$super.cleanup();
@@ -614,9 +619,26 @@ Object.extend(OperatorNode, SubtractionNode);
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {BaseNode} leftNode
+ * @param {BaseNode} rightNode
  */
-function SubtractionNode() {
-	SubtractionNode.$super(this, '&minus;', 2);
+function SubtractionNode(leftNode, rightNode) {
+	var self = this;
+	var $super = SubtractionNode.$super(this, '&minus;', 2);
+	
+	if (leftNode) {this.leftNode = leftNode;}
+	if (rightNode) {this.rightNode = rightNode;}
+	delete leftNode, rightNode;
+	
+	this.cleanup = function() { 
+		$super.simplify();
+		
+		if (self.rightNode instanceof RealNumberNode) {
+			self.rightNode.value *= -1;
+			self.replaceWith(new AdditionNode(), true);
+		}
+	};
 }
 
 
@@ -630,7 +652,7 @@ function PlusOrMinusNode() {
 }
 
 /*------------------------------------------------*/
-/* global OperatorNode */
+/* global OperatorNode, SIDES, VariableNode, AdditionNode, SubtractionNode, MultiplicationNode, DivisionNode, ExponentNode */
 
 /**
  * @constructor
@@ -640,8 +662,63 @@ function ComparisonNode(debugSymbol) {
 	var self = this;
 	var $super = ComparisonNode.$super(this, debugSymbol, 1);
 	
-	this.cleanup = function() {
-		$super.cleanup();
+	this.simplify = function() {
+		$super.simplify();
+		
+		var varSide = getSideWithVar(self);
+		var noVarSide = getSideWithoutVar(self);
+		while (noVarSide && varSide instanceof OperatorNode) { 
+			var partToSwap = getSideWithoutVar(varSide);
+			var partToKeep = getSideWithVar(varSide);
+			
+			if (varSide instanceof AdditionNode) {
+				noVarSide.rotateLeft(new SubtractionNode(null, partToSwap));
+				
+			} else if (varSide instanceof SubtractionNode) {
+				if (partToSwap === varSide.rightNode) { 
+					noVarSide.rotateLeft(new AdditionNode(null, partToSwap));
+				} else {  
+					var subtractor = noVarSide.rotateLeft(new SubtractionNode(null, partToSwap));  
+					var neg1Multiplier = subtractor.rotateLeft(new MultiplicationNode(null, -1)); 
+					neg1Multiplier.cleanup(); 
+				}
+				
+			} else if (varSide instanceof MultiplicationNode) {
+				noVarSide.rotateLeft(new DivisionNode(null, partToSwap));
+				
+			} else if (varSide instanceof DivisionNode) {
+				if (partToSwap === varSide.rightNode) { 
+					noVarSide.rotateLeft(new MultiplicationNode(null, partToSwap));
+				} else { // x is the denominator, e.g. "2/x", so multiply other side by x to solve.
+					noVarSide.rotateLeft(new MultiplicationNode(null, partToKeep));
+					partToKeep = partToSwap;
+				} 
+				
+			} else if (varSide instanceof ExponentNode) {
+				if (partToSwap === varSide.rightNode) { 
+					noVarSide.rotateRight(new RootNode(partToSwap, null));
+				} else { // x is the exponent, e.g., 2^x
+					noVarSide.rotateRight(new LogarithmNode(partToSwap, null)); 
+				}
+				
+			} else {
+				alert('breakin up is hard');
+				break;
+			}
+			varSide.replaceWith(partToKeep);
+			
+			var varSide = getSideWithVar(self);
+			var noVarSide = getSideWithoutVar(self);
+		}
+		
+		if (noVarSide) {
+			noVarSide.cleanup();
+			noVarSide.simplify(); 
+			if (varSide === self.rightNode) {
+				self.leftNode.replaceWith(self.rightNode);
+			}
+		}
+		
 		/*while (self.leftNode instanceof OperatorNode) {
 			var variable = lefty.leftNode.getNodeOfType(VariableNode);
 			var coefficient = self.leftNode.getNodeOfType(RealNumberNode);
@@ -649,6 +726,22 @@ function ComparisonNode(debugSymbol) {
 			if (leftNodes.any(function(node) {return node instanceof VariableNode;}))
 		}*/
 	};
+	
+	
+	var hasVariable = function(x) {return x instanceof VariableNode;};
+	
+	function getSideWithVar(node) { 
+		return node.nodes.find(function(node) {
+			return hasVariable(node) || node.decendants().some(hasVariable);
+		});
+	};
+	
+	function getSideWithoutVar(node) {
+		return node.nodes.find(function(node) {
+			return !hasVariable(node) && !node.decendants().some(hasVariable);
+		});
+	};
+	
 }
 Object.extend(OperatorNode, ComparisonNode);
 
@@ -774,9 +867,26 @@ Object.extend(OperatorNode, ExponentNode);
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {BaseNode} leftNode
+ * @param {BaseNode} rightNode
  */
-function RootNode() {
-	RootNode.$super(this, '&radic;');
+function RootNode(leftNode, rightNode) {
+	var self = this;
+	$super = RootNode.$super(this, '&radic;');
+	
+	if (leftNode) {this.leftNode = leftNode;}
+	if (rightNode) {this.rightNode = rightNode;}
+	delete leftNode, rightNode; 
+	
+	this.simplify = function() {
+		$super.simplify();
+		 /*if (!instanceOf(self.leftNode, RealNumberNode)) {
+			var exp = new ExponentNode(self.rightNode, new DivisionNode(1, self.leftNode));
+			self.replaceWith(exp);
+		}*/
+	};
+	
 }
 Object.extend(OperatorNode, RootNode); 
 
@@ -785,11 +895,15 @@ Object.extend(OperatorNode, RootNode);
  * @extends {OperatorPrefixNode}
  * 
  * @param {BaseNode} [base]   the log base, reprsented by the right node
+ * @param {BaseNode} rightNode
  */
-function LogarithmNode(base) {  
+function LogarithmNode(base, rightNode) {  
 	var self = this;
 	var $super = LogarithmNode.$super(this, 'log', 3);
+	
 	this.leftNode = base || new RealNumberNode(10);
+	if (rightNode) {this.rightNode = rightNode;}
+	delete base, rightNode; 
 	
 	this.cleanup = function() {
 		$super.cleanup();

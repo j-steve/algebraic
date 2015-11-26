@@ -51,18 +51,14 @@ function BaseNode(parentNode) {
 	/**
 	 * @returns {Array}
 	 */
-	/*this.decendants = function() {
+	this.decendants = function() {
 		var children = self.nodes.slice();
 		self.nodes.forEach(function(node) {
-			children = children.concat(node.decendantNodes());
+			children = children.concat(node.decendants());
 		});
 		return children;
 	};
 	
-	this.getNodeOfType = function(instanceType) {
-		var isInstance = function(x) {return x instanceof instanceType;};
-		return self.sides.find(function(side) {return side.decendants().any(isInstance);});
-	};*/
 	
 	this.hasBothLeafs = function() {
 		return self.leftNode instanceof LeafNode && self.rightNode instanceof LeafNode;
@@ -81,6 +77,13 @@ function BaseNode(parentNode) {
 	this.rotateLeft = function(newNode) {
 		if (self.parent) {self.replaceWith(newNode);}
 		newNode.leftNode = self;
+		return newNode;
+	};
+	
+	this.rotateRight = function(newNode) {
+		if (self.parent) {self.replaceWith(newNode);}
+		newNode.rightNode = self;
+		return newNode;
 	};
 	
 	/**
@@ -97,7 +100,7 @@ function BaseNode(parentNode) {
 	 * @param {boolean} [stealNodes=false]
 	 */
 	this.replaceWith = function(replacementNode, stealNodes) {
-		if (!self.parent) {throw new Error('Cannot replace root node.');}
+		if (!self.parent) {self.parent = new BaseNode();}
 		var side = self.side();
 		var parent = self.parent;
 		if (replacementNode && replacementNode.parent) { 

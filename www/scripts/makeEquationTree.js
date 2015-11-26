@@ -14,7 +14,7 @@ function makeEquationTree(inputEquation) {
 		if (match.node === 'CLOSE_PAREN') {
 			closeTilType(EnclosureNode);
 			if (!activeNode) {throw new Error('Unmatched ")" detected.');}
-			activeNode = activeNode.parent;
+			activeNode = activeNode.parent; 
 		} else if (match.node === 'COMMA') {
 			closeTilType(OperatorPrefixNode);
 			activeNode.nodes.shift(); // chop off the Base: THAT was the base, next is operand

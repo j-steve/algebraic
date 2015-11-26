@@ -64,28 +64,6 @@ output.formatted .ExponentNode > .rightNode {
 	font-size: 90%;
 }
 
-output.formatted .LogarithmNode {
-	display:inline-flex;
-
-}
-output.formatted .LogarithmNode > .operator {
-	order: 1;
-}
-output.formatted .LogarithmNode > .leftNode {
-	order: 2; 
-	font-size: 70%;
-    padding-top: 10px;
-}
-output.formatted .LogarithmNode > .rightNode {
-	order: 3;
-}
-output.formatted .LogarithmNode > .rightNode > .operator-node::before {
-	content: '(';
-}
-output.formatted .LogarithmNode > .rightNode > .operator-node::after {
-	content: ')';
-}
-
 output.formatted .DivisionNode {
 	display: inline-table;
 }
@@ -109,3 +87,34 @@ output.formatted .DivisionNode > .leftNode::after {
     border-bottom: 1px solid black;
 }
 
+
+output.formatted .LogarithmNode {
+	display:inline-flex;
+
+}
+output.formatted .LogarithmNode > .operator {
+	order: 1;
+}
+output.formatted .LogarithmNode > .leftNode {
+	order: 2; 
+	font-size: 70%;
+    padding-top: 10px;
+}
+output.formatted .LogarithmNode > .rightNode {
+	order: 3;
+}
+output.formatted .LogarithmNode > .rightNode > .operator-node::before {
+	content: '(';
+}
+output.formatted .LogarithmNode > .rightNode > .operator-node::after {
+	content: ')';
+}
+
+output.formatted .RootNode > .leftNode { 
+	vertical-align: super;
+	font-size: 70%;
+    margin-right: -5px;
+}
+output.formatted .RootNode > .operator { 
+	font-size: 70%;
+}

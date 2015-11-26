@@ -921,7 +921,11 @@ function DivisionNode(leftNode, rightNode) {
 			}*/
 		if (self.rightNode instanceof RealNumberNode && self.rightNode.value === 1) {
 			self.replaceWith(self.leftNode);
-		} 
+		} else if (self.leftNode instanceof DivisionNode) { 
+			self.leftNode.rightNode.rotateLeft(new MultiplicationNode(null, self.rightNode));
+			self.leftNode.simplify();
+			self.replaceWith(self.leftNode);
+		}
 		
 		/*if (self.rightNode instanceof RealNumberNode && self.leftNode.value !== 1) {
 			var oneOver = new DivisionNode;

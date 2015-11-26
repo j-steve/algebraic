@@ -1,3 +1,9 @@
+
+
+// ====================================================================================================
+//      ../polyfill.js
+// ====================================================================================================
+
 function instanceOf(target, instanceTypes) {
 	if (Array.isArray(target)) {
 		return target.every(function(x) {return instanceOf(x, instanceTypes);});
@@ -113,8 +119,10 @@ function instanceOf(target, instanceTypes) {
 
 })();
 
-/*------------------------------------------------*/
-/* global LeafNode, RealNumberNode */
+
+// ====================================================================================================
+//      ../nodes/BaseNode.js
+// ====================================================================================================
 
 var SIDES = ['leftNode', 'rightNode'];
 
@@ -261,9 +269,9 @@ function BaseNode(parentNode) {
 }
 
 
-
-/*------------------------------------------------*/
-/* global BaseNode */ 
+// ====================================================================================================
+//      ../nodes/OperatorNode.js
+// ====================================================================================================
 
 /**
  * @constructor
@@ -297,9 +305,10 @@ function OperatorPrefixNode(debugSymbol, stickiness, rightToLeft) {
 }
 Object.extend(OperatorNode, OperatorPrefixNode);
 
-/*------------------------------------------------*/
-/* global OperatorNode, LeafNode, SIDES */
 
+// ====================================================================================================
+//      ../nodes/operators/CommutativeOpNode.js
+// ====================================================================================================
 
 Object.extend(OperatorNode, CommutativeOpNode);
 /**
@@ -379,8 +388,10 @@ function CommutativeOpNode(debugSymbol, stickinesss, opInstanceType, operatorFun
 	};
 }
 
-/*------------------------------------------------*/
-/* global BaseNode */
+
+// ====================================================================================================
+//      ../nodes/LeafNode.js
+// ====================================================================================================
 
 /**
  * The node representation of an operand, i.e., a terminus ("leaf") node 
@@ -450,8 +461,10 @@ ConstantNode.E = function() {return new ConstantNode('<i>e</i>');};
 ConstantNode.I = function() {return new ConstantNode('<i>i</i>');};
 ConstantNode.PI = function() {return new ConstantNode('&pi;');};
 
-/*------------------------------------------------*/
-/* global makeEquationTree */
+
+// ====================================================================================================
+//      ../compute.js
+// ====================================================================================================
 
 function compute(equation, treeTableElement, prettyInputElement, simplifyElement, calculateElement) {
 	'use strict';
@@ -485,8 +498,9 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 }
 
 
-/*------------------------------------------------*/
-/* global ParenthesisNode, OperatorNode, LeafNode, parseInput, EnclosureNode, OperatorPrefixNode */
+// ====================================================================================================
+//      ../makeEquationTree.js
+// ====================================================================================================
 
 var activeNode;
 
@@ -565,8 +579,10 @@ function getRoot(node) {
 	return node;
 }
 
-/*------------------------------------------------*/
-/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode, CommutativeOpNode, DivisionNode */
+
+// ====================================================================================================
+//      ../nodes/operators/Addition.js
+// ====================================================================================================
 
 /**
  * @constructor
@@ -651,8 +667,10 @@ function PlusOrMinusNode() {
 	PlusOrMinusNode.$super(this, '&plusmn;', 2);
 }
 
-/*------------------------------------------------*/
-/* global OperatorNode, SIDES, VariableNode, AdditionNode, SubtractionNode, MultiplicationNode, DivisionNode, ExponentNode */
+
+// ====================================================================================================
+//      ../nodes/operators/Comparison.js
+// ====================================================================================================
 
 /**
  * @constructor
@@ -790,8 +808,10 @@ function LessOrEqualNode() {
 }
 Object.extend(ComparisonNode, LessOrEqualNode);
 
-/*------------------------------------------------*/
-/* global BaseNode, OperatorNode, LeafNode */
+
+// ====================================================================================================
+//      ../nodes/operators/Enclosures.js
+// ====================================================================================================
 
 /**
  * @constructor
@@ -832,8 +852,9 @@ function ParenthesisNode() {
 Object.extend(EnclosureNode, ParenthesisNode);
 
 
-/*------------------------------------------------*/
-/* global OperatorNode, OperatorPrefixNode, RealNumberNode */
+// ====================================================================================================
+//      ../nodes/operators/Exponents.js
+// ====================================================================================================
 
 /**
  * @constructor
@@ -920,8 +941,10 @@ function LogarithmNode(base, rightNode) {
 }
 Object.extend(OperatorPrefixNode, LogarithmNode);
 
-/*------------------------------------------------*/
-/* global CommutativeOpNode, OperatorNode, LeafNode, RealNumberNode, ExponentNode, LogarithmNode, SIDES */
+
+// ====================================================================================================
+//      ../nodes/operators/Multiplication.js
+// ====================================================================================================
 
 Object.extend(CommutativeOpNode, MultiplicationNode);
 /**
@@ -1053,9 +1076,9 @@ function commonDenominator(a, b) {
 }
 
 
-
-/*------------------------------------------------*/
-/* global OperatorPrefixNode */
+// ====================================================================================================
+//      ../nodes/operators/Trigonometry.js
+// ====================================================================================================
 
 /**
  * @constructor
@@ -1084,11 +1107,10 @@ function TanNode() {
 }
 Object.extend(OperatorPrefixNode, TanNode);
 
-/*------------------------------------------------*/
-/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
-/* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */
-/* global ExponentNode, LogarithmNode, RootNode, ConstantNode,  */
-/* global */
+
+// ====================================================================================================
+//      ../parseInput.js
+// ====================================================================================================
 
 var NODE_REGEX = {
 	',': 'COMMA',

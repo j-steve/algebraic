@@ -26,7 +26,13 @@ module.exports = function (grunt) {
 		},
 		concat: {
 			options: {
-				separator: '\n\n/*------------------------------------------------*/\n'
+				//separator: '\n\n//------------------------------------------------\*/\n\n',
+				process: function(src, filepath) {
+					var line = '// ====================================================================================================\n'; 
+					var header = '//      ..' + filepath.replace('www/scripts', '') + '\n'; 
+					var globalDec = /\s*\/\* global[^*]+\*\/\s*/g;
+					return '\n\n' + line + header + line + '\n' + src.replace(globalDec, '').trim();
+				}
 			},
 			dist: {
 				src: [

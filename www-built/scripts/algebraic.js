@@ -622,9 +622,11 @@ function AdditionNode(leftNode, rightNode) {
 				var newAdd = new AdditionNode(a.leftNode, b.leftNode);
 				return new MultiplicationNode(newAdd, a.rightNode);
 			}
-		} else if (b instanceof DivisionNode) {
-			var newAdd = new AdditionNode(b.leftNode, a);
-			return new DivisionNode(newAdd, b.rightNode);
+		} else if (b instanceof DivisionNode && b.rightNode instanceof LeafNode) {
+			// TODO- this will work even if b.rightNode isn't a leaf node,
+			// but need to create a copy of rightnode rather than use its value because it's inserted in 2 places.
+			var newAdd = new AdditionNode(b.leftNode, new MultiplicationNode(a, b.rightNode.value));
+			return new DivisionNode(newAdd, b.rightNode.value);
 		}
 	}
 }

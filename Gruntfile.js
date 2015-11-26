@@ -26,11 +26,15 @@ module.exports = function (grunt) {
 		},
 		concat: {
 			options: {
-				separator: ';'
+				separator: '\n\n/*------------------------------------------------*/\n'
 			},
 			dist: {
 				src: [
 					'www/scripts/polyfill.js',
+					'www/scripts/**/BaseNode.js',
+					'www/scripts/**/OperatorNode.js',
+					'www/scripts/**/CommutativeOpNode.js', 
+					'www/scripts/**/LeafNode.js',
 					'www/scripts/**/*.js'
 				],
 				dest: 'www-built/scripts/algebraic.js'

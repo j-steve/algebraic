@@ -1,6 +1,6 @@
-/* global OperatorNode, LeafNode, RealNumberNode, ExponentNode, LogarithmNode, SIDES */
+/* global CommutativeOpNode, OperatorNode, LeafNode, RealNumberNode, ExponentNode, LogarithmNode, SIDES */
 
-Object.extend(OperatorNode, MultiplicationNode);
+Object.extend(CommutativeOpNode, MultiplicationNode);
 /**
  * @constructor
  * @extends {OperatorNode}
@@ -10,77 +10,11 @@ Object.extend(OperatorNode, MultiplicationNode);
  */
 function MultiplicationNode(leftNode, rightNode) {
 	var self = this;
-	var $super = MultiplicationNode.$super(this, '&sdot;', 3);
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3, MultiplicationNode, multiply);
 	
 	if (leftNode) {this.leftNode = leftNode;}
 	if (rightNode) {this.rightNode = rightNode;}
 	delete leftNode, rightNode;
-	
-	this.cleanup = function() { 
-		$super.cleanup();
-		
-		var leafsInScope = self.getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
-		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
-		for (var i = 0; i < sortedLeafs.length - 1; i++) {
-			var leaf = sortedLeafs[i];
-			if (leaf !== leafsInScope[i]) { 
-				leaf.replaceWith(leafsInScope[i]);
-				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
-				leafsInScope[i] = leaf;
-			}
-		}
-		/*if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
-			self.leftNode.replaceWith(self.rightNode);
-		}*/
-	};
-	
-	this.simplify = function() {
-		$super.simplify();
-		
-		var leafsInScope = self.getLeafsInScope();
-		//var checkNodes = self.nodes.slice(); 
-		 
-		nodes: for (var i = 0; i < SIDES.length; i++) { 
-			var side = SIDES[i];
-			var node = self[side];
-			for (var j = 0; j < leafsInScope.length; j++) {
-				var otherNode = leafsInScope[j];
-				if (otherNode !== node) { 
-					var multiplyResult = multiply(node, otherNode);
-					if (multiplyResult) {
-						multiplyResult.simplify();
-						if (otherNode.parent === self) {
-							self.replaceWith(multiplyResult);
-							return;
-						}
-						self[side] = multiplyResult;
-						var otherNodeSister = otherNode.parent.nodes.find(function(x) {return x !== otherNode;});
-						otherNode.parent.replaceWith(otherNodeSister);
-						leafsInScope.remove(node, otherNode);
-						leafsInScope.push(multiplyResult);
-						i--;
-						continue nodes;
-					}
-				}
-			}
-		}
-	};
-	
-	this.getLeafsInScope = function() {
-		var leafs = [];
-		var stack = self.nodes.slice();
-		while (stack.length) {
-			var node = stack.shift();
-			if (node instanceof LeafNode) {
-				leafs.push(node);
-			} else if (node instanceof MultiplicationNode) {
-				stack = node.nodes.concat(stack);
-			} else {
-				leafs.push(node);
-			}
-		}
-		return leafs;
-	};
 	
 	function multiply(a, b) { 
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {

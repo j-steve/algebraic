@@ -103,116 +103,10 @@ function instanceOf(target, instanceTypes) {
         return message;
     };
 
-})();;/* global makeEquationTree */
+})();
 
-function compute(equation, treeTableElement, prettyInputElement, simplifyElement, calculateElement) {
-	'use strict';
-
-	treeTableElement.innerHTML = '';
-	prettyInputElement.innerHTML = '';
-	simplifyElement.innerHTML = '';
-	calculateElement.innerHTML = '';
-
-	try {
-		var rootNode = makeEquationTree(equation.value);
-
-		// Output results
-		treeTableElement.innerHTML = rootNode.toString();
-		
-		prettyInputElement.className = 'formatted';
-		prettyInputElement.innerHTML = rootNode.toString(); 
-		
-		rootNode.cleanup();
-		rootNode.simplify();
-		simplifyElement.className = 'treeTable';
-		simplifyElement.innerHTML = rootNode.toString();
-		
-		calculateElement.className = 'formatted result';
-		calculateElement.innerHTML = rootNode.toString();
-		
-	} catch (err) {
-		console.warn([].slice(arguments).join(' '));
-		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
-	}
-}
-;/* global ParenthesisNode, OperatorNode, LeafNode, parseInput, EnclosureNode, OperatorPrefixNode */
-
-var activeNode;
-
-/**
- * @param {string} inputEquation
- * @returns {OperatorNode}
- */
-function makeEquationTree(inputEquation) { 
-	activeNode = new BaseNode();
-	for (var i = 0; i < inputEquation.length;) {
-		var match = parseInput(inputEquation.substring(i));
-		if (!match) {throw new Error(String.format('Invalid character: "{0}"', inputEquation[i]));}
-		if (match.node === 'CLOSE_PAREN') {
-			closeTilType(EnclosureNode);
-			if (!activeNode) {throw new Error('Unmatched ")" detected.');}
-			activeNode = activeNode.parent;
-		} else if (match.node === 'COMMA') {
-			closeTilType(OperatorPrefixNode);
-			activeNode.nodes.shift(); // chop off the Base: THAT was the base, next is operand
-			activeNode = activeNode.rightNode = new ParenthesisNode();
-		} else if (match.node instanceof EnclosureNode || match.node instanceof OperatorPrefixNode) { 
-			addImplicitMultiply();
-			activeNode.addChild(match.node);
-		} else if (match.node instanceof OperatorNode) {
-			rotateForOperator(match.node); 
-		} else if (match.node instanceof LeafNode) {
-			addImplicitMultiply();
-			{activeNode.addChild(match.node);}
-		}
-		if (typeof match.node !== 'string') {activeNode = match.node;}
-		i += match.charCount;
-	}
-	 
-	return getRoot(activeNode);
-}
-
-function closeTilType(nodeType) { 
-	while (activeNode && !(activeNode instanceof nodeType)) {
-		activeNode = activeNode.parent;
-	}
-}
-
-function addImplicitMultiply() {
-	if (activeNode instanceof LeafNode) {
-		var implicitMultiplyNode = new MultiplicationNode(); 
-		implicitMultiplyNode.tightness += 1;
-		rotateForOperator(implicitMultiplyNode);
-		activeNode = implicitMultiplyNode;
-	}
-}
-
-function rotateForOperator(newOperatorNode) {
-	while (activeNodeSticksToOperator(newOperatorNode) && activeNode.parent) {
-		activeNode = activeNode.parent;
-	}
-	activeNode.rotateLeft(newOperatorNode);
-}
-
-function activeNodeSticksToOperator(newOperatorNode) {
-	if (activeNode.parent instanceof OperatorNode) {
-		if (!newOperatorNode.rightToLeft && !activeNode.parent.rightToLeft) {
-			return newOperatorNode.stickiness <= activeNode.parent.stickiness;
-		} else {
-			return newOperatorNode.stickiness < activeNode.parent.stickiness;
-		}
-	} else {
-		return false;
-	}
-}
-
-function getRoot(node) {
-	while (node.parent) {
-		node = node.parent;
-	}
-
-	return node;
-};/* global LeafNode, RealNumberNode */
+/*------------------------------------------------*/
+/* global LeafNode, RealNumberNode */
 
 var SIDES = ['leftNode', 'rightNode'];
 
@@ -355,7 +249,127 @@ function BaseNode(parentNode) {
 	
 }
 
-;/* global BaseNode */
+
+
+/*------------------------------------------------*/
+/* global BaseNode */ 
+
+/**
+ * @constructor
+ * @extends {BaseNode}
+ * 
+ * @param {string} debugSymbol 
+ * @param {number} stickiness
+ * @param {boolean} [rightToLeft=false]
+ */
+function OperatorNode(debugSymbol, stickiness, rightToLeft) { 
+	OperatorNode.$super(this);
+	
+	this.printVals.middle =  '<div class="operator">' + debugSymbol + '</div>';
+	
+	this.stickiness = stickiness;
+	
+	this.rightToLeft = !!rightToLeft;
+}
+Object.extend(BaseNode, OperatorNode);
+
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ * 
+ * @param {string} debugSymbol 
+ * @param {number} stickiness
+ * @param {boolean} [rightToLeft=false]
+ */
+function OperatorPrefixNode(debugSymbol, stickiness, rightToLeft) { 
+	OperatorPrefixNode.$super(this, debugSymbol, stickiness, rightToLeft);
+}
+Object.extend(OperatorNode, OperatorPrefixNode);
+
+/*------------------------------------------------*/
+/* global OperatorNode, LeafNode, SIDES */
+
+
+Object.extend(OperatorNode, CommutativeOpNode);
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ * 
+ * @param {string} debugSymbol
+ * @param {number} stickinesss
+ * @param {Function} opInstanceType
+ * @param {Function} operatorFunction
+ */
+function CommutativeOpNode(debugSymbol, stickinesss, opInstanceType, operatorFunction) {
+	var self = this;
+	var $super = CommutativeOpNode.$super(this, debugSymbol, stickinesss);
+	
+	this.cleanup = function() { 
+		$super.cleanup();
+		
+		var leafsInScope = self.getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
+		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
+		for (var i = 0; i < sortedLeafs.length - 1; i++) {
+			var leaf = sortedLeafs[i];
+			if (leaf !== leafsInScope[i]) { 
+				leaf.replaceWith(leafsInScope[i]);
+				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
+				leafsInScope[i] = leaf;
+			}
+		}
+	};
+	
+	this.simplify = function() {
+		$super.simplify();
+		
+		var leafsInScope = self.getLeafsInScope();
+		//var checkNodes = self.nodes.slice(); 
+		 
+		nodes: for (var i = 0; i < SIDES.length; i++) { 
+			var side = SIDES[i];
+			var node = self[side];
+			for (var j = 0; j < leafsInScope.length; j++) {
+				var otherNode = leafsInScope[j];
+				if (otherNode !== node) { 
+					var opResult = operatorFunction.call(null, node, otherNode);
+					if (opResult) {
+						opResult.simplify();
+						if (otherNode.parent === self) {
+							self.replaceWith(opResult);
+							return;
+						}
+						self[side] = opResult;
+						var otherNodeSister = otherNode.parent.nodes.find(function(x) {return x !== otherNode;});
+						otherNode.parent.replaceWith(otherNodeSister);
+						leafsInScope.remove(node, otherNode);
+						leafsInScope.push(opResult);
+						i--;
+						continue nodes;
+					}
+				}
+			}
+		}
+	};
+	
+	this.getLeafsInScope = function() {
+		var leafs = [];
+		var stack = self.nodes.slice();
+		while (stack.length) {
+			var node = stack.shift();
+			if (node instanceof LeafNode) {
+				leafs.push(node);
+			} else if (node instanceof opInstanceType) {
+				stack = node.nodes.concat(stack);
+			} else {
+				leafs.push(node);
+			}
+		}
+		return leafs;
+	};
+}
+
+/*------------------------------------------------*/
+/* global BaseNode */
 
 /**
  * The node representation of an operand, i.e., a terminus ("leaf") node 
@@ -422,118 +436,146 @@ Object.extend(LeafNode, ConstantNode);
 
 ConstantNode.E = function() {return new ConstantNode('<i>e</i>');};
 ConstantNode.I = function() {return new ConstantNode('<i>i</i>');};
-ConstantNode.PI = function() {return new ConstantNode('&pi;');};;/* global BaseNode */ 
+ConstantNode.PI = function() {return new ConstantNode('&pi;');};
 
-/**
- * @constructor
- * @extends {BaseNode}
- * 
- * @param {string} debugSymbol 
- * @param {number} stickiness
- * @param {boolean} [rightToLeft=false]
- */
-function OperatorNode(debugSymbol, stickiness, rightToLeft) { 
-	OperatorNode.$super(this);
-	
-	this.printVals.middle =  '<div class="operator">' + debugSymbol + '</div>';
-	
-	this.stickiness = stickiness;
-	
-	this.rightToLeft = !!rightToLeft;
+/*------------------------------------------------*/
+/* global makeEquationTree */
+
+function compute(equation, treeTableElement, prettyInputElement, simplifyElement, calculateElement) {
+	'use strict';
+
+	treeTableElement.innerHTML = '';
+	prettyInputElement.innerHTML = '';
+	simplifyElement.innerHTML = '';
+	calculateElement.innerHTML = '';
+
+	try {
+		var rootNode = makeEquationTree(equation.value);
+
+		// Output results
+		treeTableElement.innerHTML = rootNode.toString();
+		
+		prettyInputElement.className = 'formatted';
+		prettyInputElement.innerHTML = rootNode.toString(); 
+		
+		rootNode.cleanup();
+		rootNode.simplify();
+		simplifyElement.className = 'treeTable';
+		simplifyElement.innerHTML = rootNode.toString();
+		
+		calculateElement.className = 'formatted result';
+		calculateElement.innerHTML = rootNode.toString();
+		
+	} catch (err) {
+		console.warn([].slice(arguments).join(' '));
+		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
+	}
 }
-Object.extend(BaseNode, OperatorNode);
+
+
+/*------------------------------------------------*/
+/* global ParenthesisNode, OperatorNode, LeafNode, parseInput, EnclosureNode, OperatorPrefixNode */
+
+var activeNode;
 
 /**
- * @constructor
- * @extends {OperatorNode}
- * 
- * @param {string} debugSymbol 
- * @param {number} stickiness
- * @param {boolean} [rightToLeft=false]
+ * @param {string} inputEquation
+ * @returns {OperatorNode}
  */
-function OperatorPrefixNode(debugSymbol, stickiness, rightToLeft) { 
-	OperatorPrefixNode.$super(this, debugSymbol, stickiness, rightToLeft);
+function makeEquationTree(inputEquation) { 
+	activeNode = new BaseNode();
+	for (var i = 0; i < inputEquation.length;) {
+		var match = parseInput(inputEquation.substring(i));
+		if (!match) {throw new Error(String.format('Invalid character: "{0}"', inputEquation[i]));}
+		if (match.node === 'CLOSE_PAREN') {
+			closeTilType(EnclosureNode);
+			if (!activeNode) {throw new Error('Unmatched ")" detected.');}
+			activeNode = activeNode.parent;
+		} else if (match.node === 'COMMA') {
+			closeTilType(OperatorPrefixNode);
+			activeNode.nodes.shift(); // chop off the Base: THAT was the base, next is operand
+			activeNode = activeNode.rightNode = new ParenthesisNode();
+		} else if (match.node instanceof EnclosureNode || match.node instanceof OperatorPrefixNode) { 
+			addImplicitMultiply();
+			activeNode.addChild(match.node);
+		} else if (match.node instanceof OperatorNode) {
+			rotateForOperator(match.node); 
+		} else if (match.node instanceof LeafNode) {
+			addImplicitMultiply();
+			{activeNode.addChild(match.node);}
+		}
+		if (typeof match.node !== 'string') {activeNode = match.node;}
+		i += match.charCount;
+	}
+	 
+	return getRoot(activeNode);
 }
-Object.extend(OperatorNode, OperatorPrefixNode);;/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode */
+
+function closeTilType(nodeType) { 
+	while (activeNode && !(activeNode instanceof nodeType)) {
+		activeNode = activeNode.parent;
+	}
+}
+
+function addImplicitMultiply() {
+	if (activeNode instanceof LeafNode) {
+		var implicitMultiplyNode = new MultiplicationNode(); 
+		implicitMultiplyNode.tightness += 1;
+		rotateForOperator(implicitMultiplyNode);
+		activeNode = implicitMultiplyNode;
+	}
+}
+
+function rotateForOperator(newOperatorNode) {
+	while (activeNodeSticksToOperator(newOperatorNode) && activeNode.parent) {
+		activeNode = activeNode.parent;
+	}
+	activeNode.rotateLeft(newOperatorNode);
+}
+
+function activeNodeSticksToOperator(newOperatorNode) {
+	if (activeNode.parent instanceof OperatorNode) {
+		if (!newOperatorNode.rightToLeft && !activeNode.parent.rightToLeft) {
+			return newOperatorNode.stickiness <= activeNode.parent.stickiness;
+		} else {
+			return newOperatorNode.stickiness < activeNode.parent.stickiness;
+		}
+	} else {
+		return false;
+	}
+}
+
+function getRoot(node) {
+	while (node.parent) {
+		node = node.parent;
+	}
+
+	return node;
+}
+
+/*------------------------------------------------*/
+/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode, CommutativeOpNode */
 
 /**
  * @constructor
- * @extends {OperatorNode}
+ * @extends {CommutativeOpNode}
  * 
  * @param {BaseNode} leftNode
  * @param {BaseNode} rightNode
  */
 function AdditionNode(leftNode, rightNode) {
 	var self = this;
-	var $super = AdditionNode.$super(this, '+', 2);
+	var $super = AdditionNode.$super(this, '+', 2, AdditionNode, add);
 	if (leftNode) {this.leftNode = leftNode;}
 	if (rightNode) {this.rightNode = rightNode;}
-	
 	
 	this.cleanup = function() { 
 		$super.cleanup();
 		
-		var leafsInScope = getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
-		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
-		for (var i = 0; i < sortedLeafs.length - 1; i++) {
-			var leaf = sortedLeafs[i];
-			if (leaf !== leafsInScope[i]) { 
-				leaf.replaceWith(leafsInScope[i]);
-				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
-				leafsInScope[i] = leaf;
-			}
-		}
-		/*if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
+		if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
 			self.leftNode.replaceWith(self.rightNode);
-		}*/
-	};
-	
-	this.simplify = function() {
-		$super.simplify();
-		
-		var leafsInScope = getLeafsInScope();
-		 
-		nodes: for (var i = 0; i < SIDES.length; i++) { 
-			var side = SIDES[i];
-			var node = self[side];
-			for (var j = 0; j < leafsInScope.length; j++) { 
-				var otherNode = leafsInScope[j];
-				if (otherNode !== node) { 
-					var multiplyResult = add(node, otherNode);
-					if (multiplyResult) {
-						multiplyResult.simplify();
-						if (otherNode.parent === self) {
-							self.replaceWith(multiplyResult);
-							return;
-						}
-						self[side] = multiplyResult;
-						var otherNodeSister = otherNode.parent.nodes.find(function(x) {return x !== otherNode;});
-						otherNode.parent.replaceWith(otherNodeSister);
-						leafsInScope.remove(node, otherNode);
-						leafsInScope.push(multiplyResult);
-						i--;
-						continue nodes;
-					}
-				}
-			}
 		}
 	};
-	
-	function getLeafsInScope() {
-		var leafs = [];
-		var stack = self.nodes.slice();
-		while (stack.length) {
-			var node = stack.shift();
-			if (node instanceof LeafNode) {
-				leafs.push(node);
-			} else if (node instanceof AdditionNode) {
-				stack = node.nodes.concat(stack);
-			} else {
-				leafs.push(node);
-			}
-		}
-		return leafs;
-	}
 	
 	function add(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
@@ -553,8 +595,10 @@ function AdditionNode(leftNode, rightNode) {
 		}
 	}
 }
-Object.extend(OperatorNode, AdditionNode);
+Object.extend(CommutativeOpNode, AdditionNode);
 
+
+Object.extend(OperatorNode, SubtractionNode);
 /**
  * @constructor
  * @extends {OperatorNode}
@@ -562,8 +606,9 @@ Object.extend(OperatorNode, AdditionNode);
 function SubtractionNode() {
 	SubtractionNode.$super(this, '&minus;', 2);
 }
-Object.extend(OperatorNode, SubtractionNode);
 
+
+Object.extend(OperatorNode, PlusOrMinusNode);
 /**
  * @constructor
  * @extends {OperatorNode}
@@ -571,7 +616,9 @@ Object.extend(OperatorNode, SubtractionNode);
 function PlusOrMinusNode() {
 	PlusOrMinusNode.$super(this, '&plusmn;', 2);
 }
-Object.extend(OperatorNode, PlusOrMinusNode);;/* global OperatorNode */
+
+/*------------------------------------------------*/
+/* global OperatorNode */
 
 /**
  * @constructor
@@ -636,7 +683,10 @@ Object.extend(ComparisonNode, GreaterOrEqualNode);
 function LessOrEqualNode() {
 	LessOrEqualNode.$super(this, '&le;');
 }
-Object.extend(ComparisonNode, LessOrEqualNode);;/* global BaseNode, OperatorNode, LeafNode */
+Object.extend(ComparisonNode, LessOrEqualNode);
+
+/*------------------------------------------------*/
+/* global BaseNode, OperatorNode, LeafNode */
 
 /**
  * @constructor
@@ -675,7 +725,10 @@ function ParenthesisNode() {
 	};
 }
 Object.extend(EnclosureNode, ParenthesisNode);
-;/* global OperatorNode, OperatorPrefixNode, RealNumberNode */
+
+
+/*------------------------------------------------*/
+/* global OperatorNode, OperatorPrefixNode, RealNumberNode */
 
 /**
  * @constructor
@@ -735,9 +788,12 @@ function LogarithmNode(base) {
 		}*/
 	};
 }
-Object.extend(OperatorPrefixNode, LogarithmNode);;/* global OperatorNode, LeafNode, RealNumberNode, ExponentNode, LogarithmNode, SIDES */
+Object.extend(OperatorPrefixNode, LogarithmNode);
 
-Object.extend(OperatorNode, MultiplicationNode);
+/*------------------------------------------------*/
+/* global CommutativeOpNode, OperatorNode, LeafNode, RealNumberNode, ExponentNode, LogarithmNode, SIDES */
+
+Object.extend(CommutativeOpNode, MultiplicationNode);
 /**
  * @constructor
  * @extends {OperatorNode}
@@ -747,77 +803,11 @@ Object.extend(OperatorNode, MultiplicationNode);
  */
 function MultiplicationNode(leftNode, rightNode) {
 	var self = this;
-	var $super = MultiplicationNode.$super(this, '&sdot;', 3);
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3, MultiplicationNode, multiply);
 	
 	if (leftNode) {this.leftNode = leftNode;}
 	if (rightNode) {this.rightNode = rightNode;}
 	delete leftNode, rightNode;
-	
-	this.cleanup = function() { 
-		$super.cleanup();
-		
-		var leafsInScope = self.getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
-		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
-		for (var i = 0; i < sortedLeafs.length - 1; i++) {
-			var leaf = sortedLeafs[i];
-			if (leaf !== leafsInScope[i]) { 
-				leaf.replaceWith(leafsInScope[i]);
-				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
-				leafsInScope[i] = leaf;
-			}
-		}
-		/*if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
-			self.leftNode.replaceWith(self.rightNode);
-		}*/
-	};
-	
-	this.simplify = function() {
-		$super.simplify();
-		
-		var leafsInScope = self.getLeafsInScope();
-		//var checkNodes = self.nodes.slice(); 
-		 
-		nodes: for (var i = 0; i < SIDES.length; i++) { 
-			var side = SIDES[i];
-			var node = self[side];
-			for (var j = 0; j < leafsInScope.length; j++) {
-				var otherNode = leafsInScope[j];
-				if (otherNode !== node) { 
-					var multiplyResult = multiply(node, otherNode);
-					if (multiplyResult) {
-						multiplyResult.simplify();
-						if (otherNode.parent === self) {
-							self.replaceWith(multiplyResult);
-							return;
-						}
-						self[side] = multiplyResult;
-						var otherNodeSister = otherNode.parent.nodes.find(function(x) {return x !== otherNode;});
-						otherNode.parent.replaceWith(otherNodeSister);
-						leafsInScope.remove(node, otherNode);
-						leafsInScope.push(multiplyResult);
-						i--;
-						continue nodes;
-					}
-				}
-			}
-		}
-	};
-	
-	this.getLeafsInScope = function() {
-		var leafs = [];
-		var stack = self.nodes.slice();
-		while (stack.length) {
-			var node = stack.shift();
-			if (node instanceof LeafNode) {
-				leafs.push(node);
-			} else if (node instanceof MultiplicationNode) {
-				stack = node.nodes.concat(stack);
-			} else {
-				leafs.push(node);
-			}
-		}
-		return leafs;
-	};
 	
 	function multiply(a, b) { 
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
@@ -896,7 +886,10 @@ function commonDenominator(a, b) {
 	for (var i = vals[0]; i >= 2; i--) {
 		if (vals[0] % i === 0 && vals[1] % i === 0) {return i;}
 	}
-};/* global OperatorPrefixNode */
+}
+
+/*------------------------------------------------*/
+/* global OperatorPrefixNode */
 
 /**
  * @constructor
@@ -923,7 +916,10 @@ Object.extend(OperatorPrefixNode, CosNode);
 function TanNode() {  
 	TanNode.$super(this, 'tan', 3);
 }
-Object.extend(OperatorPrefixNode, TanNode);;/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
+Object.extend(OperatorPrefixNode, TanNode);
+
+/*------------------------------------------------*/
+/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
 /* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */
 /* global ExponentNode, LogarithmNode, RootNode, ConstantNode,  */
 /* global */

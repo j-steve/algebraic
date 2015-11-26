@@ -21,7 +21,7 @@ function MultiplicationNode(leftNode, rightNode) {
 		if (self.leftNode instanceof RealNumberNode && self.leftNode.value === 1) {
 			self.replaceWith(self.rightNode);
 		}
-	}
+	};
 	
 	function multiply(a, b) { 
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
@@ -106,14 +106,8 @@ function DivisionNode(leftNode, rightNode) {
 			});
 		}
 		
-		
 		$super.simplify();
-		
-			/*var gcd = commonDenominator(self.leftNode.value, self.rightNode.value);
-			if (gcd) {
-				self.leftNode.value = self.leftNode.value / gcd;
-				self.rightNode.value = self.rightNode.value / gcd;
-			}*/
+
 		if (self.rightNode instanceof RealNumberNode && self.rightNode.value === 1) {
 			self.replaceWith(self.leftNode);
 		} else if (self.leftNode instanceof DivisionNode) { 
@@ -121,23 +115,10 @@ function DivisionNode(leftNode, rightNode) {
 			self.leftNode.simplify();
 			self.replaceWith(self.leftNode);
 		}
-		
-		/*if (self.rightNode instanceof RealNumberNode && self.leftNode.value !== 1) {
-			var oneOver = new DivisionNode;
-			oneOver.leftNode = new RealNumberNode(1);
-			oneOver.rightNode = self.rightNode;
-			self.rightNode = oneOver;
-			self.replaceWith(new MultiplicationNode, true);
-		}*/
 	};
 	
 	function getScopedNodes(node) {
 		return node instanceof CommutativeOpNode ? node.getLeafsInScope() : [node];
-		
-		/*if (node instanceof CommutativeOpNode) {
-			node.getLeafsInScope()
-		}*/
-		
 	}
 }
 

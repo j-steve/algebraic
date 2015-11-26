@@ -1,83 +1,25 @@
-/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode */
+/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode, CommutativeOpNode */
 
 /**
  * @constructor
- * @extends {OperatorNode}
+ * @extends {CommutativeOpNode}
  * 
  * @param {BaseNode} leftNode
  * @param {BaseNode} rightNode
  */
 function AdditionNode(leftNode, rightNode) {
 	var self = this;
-	var $super = AdditionNode.$super(this, '+', 2);
+	var $super = AdditionNode.$super(this, '+', 2, AdditionNode, add);
 	if (leftNode) {this.leftNode = leftNode;}
 	if (rightNode) {this.rightNode = rightNode;}
-	
 	
 	this.cleanup = function() { 
 		$super.cleanup();
 		
-		var leafsInScope = getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
-		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
-		for (var i = 0; i < sortedLeafs.length - 1; i++) {
-			var leaf = sortedLeafs[i];
-			if (leaf !== leafsInScope[i]) { 
-				leaf.replaceWith(leafsInScope[i]);
-				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
-				leafsInScope[i] = leaf;
-			}
-		}
-		/*if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
+		if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
 			self.leftNode.replaceWith(self.rightNode);
-		}*/
-	};
-	
-	this.simplify = function() {
-		$super.simplify();
-		
-		var leafsInScope = getLeafsInScope();
-		 
-		nodes: for (var i = 0; i < SIDES.length; i++) { 
-			var side = SIDES[i];
-			var node = self[side];
-			for (var j = 0; j < leafsInScope.length; j++) { 
-				var otherNode = leafsInScope[j];
-				if (otherNode !== node) { 
-					var multiplyResult = add(node, otherNode);
-					if (multiplyResult) {
-						multiplyResult.simplify();
-						if (otherNode.parent === self) {
-							self.replaceWith(multiplyResult);
-							return;
-						}
-						self[side] = multiplyResult;
-						var otherNodeSister = otherNode.parent.nodes.find(function(x) {return x !== otherNode;});
-						otherNode.parent.replaceWith(otherNodeSister);
-						leafsInScope.remove(node, otherNode);
-						leafsInScope.push(multiplyResult);
-						i--;
-						continue nodes;
-					}
-				}
-			}
 		}
 	};
-	
-	function getLeafsInScope() {
-		var leafs = [];
-		var stack = self.nodes.slice();
-		while (stack.length) {
-			var node = stack.shift();
-			if (node instanceof LeafNode) {
-				leafs.push(node);
-			} else if (node instanceof AdditionNode) {
-				stack = node.nodes.concat(stack);
-			} else {
-				leafs.push(node);
-			}
-		}
-		return leafs;
-	}
 	
 	function add(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
@@ -97,8 +39,10 @@ function AdditionNode(leftNode, rightNode) {
 		}
 	}
 }
-Object.extend(OperatorNode, AdditionNode);
+Object.extend(CommutativeOpNode, AdditionNode);
 
+
+Object.extend(OperatorNode, SubtractionNode);
 /**
  * @constructor
  * @extends {OperatorNode}
@@ -106,8 +50,9 @@ Object.extend(OperatorNode, AdditionNode);
 function SubtractionNode() {
 	SubtractionNode.$super(this, '&minus;', 2);
 }
-Object.extend(OperatorNode, SubtractionNode);
 
+
+Object.extend(OperatorNode, PlusOrMinusNode);
 /**
  * @constructor
  * @extends {OperatorNode}
@@ -115,4 +60,3 @@ Object.extend(OperatorNode, SubtractionNode);
 function PlusOrMinusNode() {
 	PlusOrMinusNode.$super(this, '&plusmn;', 2);
 }
-Object.extend(OperatorNode, PlusOrMinusNode);

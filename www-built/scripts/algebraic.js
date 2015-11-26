@@ -850,6 +850,10 @@ function MultiplicationNode(leftNode, rightNode) {
 		} else if (a instanceof ExponentNode && b instanceof ExponentNode && a.leftNode.equals(b.leftNode)) {
 			var rightNode = new AdditionNode(a.rightNode, b.rightNode);
 			return new ExponentNode(a.leftNode, rightNode);
+			
+		} else if (b instanceof DivisionNode) {
+			var newMultiply = new MultiplicationNode(b.leftNode, a);
+			return new DivisionNode(newMultiply, b.rightNode);
 		}
 	}
 	

@@ -105,7 +105,7 @@ function DivisionNode(leftNode, rightNode) {
 				}
 			});
 			$super.simplify();
-		} else if (instanceOf([self.leftNode], [AdditionNode, SubtractionNode]) && self.rightNode instanceof LeafNode) {
+		} else if (instanceOf([self.leftNode], [AdditionNode, SubtractionNode]) && self.rightNode instanceof RealNumberNode) {
 			numerator.forEach(function(node) {
 				node.rotateLeft(new DivisionNode(null, self.rightNode.value));
 			});

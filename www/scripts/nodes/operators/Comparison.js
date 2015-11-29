@@ -51,7 +51,7 @@ function ComparisonNode(debugSymbol) {
 				alert('breakin up is hard');
 				break;
 			}
-			varSide.replaceWith(partToKeep);
+			varSide.replaceWith(partToKeep, false, true);
 			
 			var varSide = getSideWithVar(self);
 			var noVarSide = getSideWithoutVar(self);
@@ -61,7 +61,7 @@ function ComparisonNode(debugSymbol) {
 			noVarSide.cleanup();
 			noVarSide.simplify(); 
 			if (varSide === self.rightNode) {
-				self.leftNode.replaceWith(self.rightNode);
+				self.leftNode.replaceWith(self.rightNode, false, true);
 			}
 		}
 		

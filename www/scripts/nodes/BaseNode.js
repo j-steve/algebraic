@@ -27,7 +27,7 @@ function BaseNode(parentNode) {
 		Object.defineProperty(self, side, {
 			get: function() {return self.nodes[index];},
 			set: function(value) {
-				if (value === self) {throw new Error('Cannot set as own child.');}
+				//if (value === self) {throw new Error('Cannot set as own child.');}
 				if (typeof value === 'number') {
 					value = new RealNumberNode(value);
 				}

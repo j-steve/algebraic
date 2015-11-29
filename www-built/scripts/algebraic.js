@@ -740,6 +740,7 @@ function ComparisonNode(debugSymbol) {
 			}
 		}
 		
+		
 		/*while (self.leftNode instanceof OperatorNode) {
 			var variable = lefty.leftNode.getNodeOfType(VariableNode);
 			var coefficient = self.leftNode.getNodeOfType(RealNumberNode);
@@ -1066,9 +1067,9 @@ function DivisionNode(leftNode, rightNode) {
 		if (self.rightNode instanceof RealNumberNode && self.rightNode.value === 1) {
 			self.replaceWith(self.leftNode);
 		} else if (self.leftNode instanceof DivisionNode) { 
-			self.leftNode.rightNode.rotateLeft(new MultiplicationNode(null, self.rightNode));
-			self.leftNode.simplify();
-			self.replaceWith(self.leftNode);
+			self.rightNode = new MultiplicationNode(self.leftNode.rightNode, self.rightNode);
+			self.leftNode = self.leftNode.leftNode;
+			self.simplify();
 		}
 	};
 	

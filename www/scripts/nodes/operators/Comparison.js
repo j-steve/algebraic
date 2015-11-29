@@ -65,6 +65,7 @@ function ComparisonNode(debugSymbol) {
 			}
 		}
 		
+		
 		/*while (self.leftNode instanceof OperatorNode) {
 			var variable = lefty.leftNode.getNodeOfType(VariableNode);
 			var coefficient = self.leftNode.getNodeOfType(RealNumberNode);

@@ -151,6 +151,7 @@ function BaseNode(parentNode) {
 		Object.defineProperty(self, side, {
 			get: function() {return self.nodes[index];},
 			set: function(value) {
+				if (value === self) {throw new Error('Cannot set as own child.');}
 				if (typeof value === 'number') {
 					value = new RealNumberNode(value);
 				}
@@ -223,11 +224,11 @@ function BaseNode(parentNode) {
 	 * @param {BaseNode} replacementNode
 	 * @param {boolean} [stealNodes=false]
 	 */
-	this.replaceWith = function(replacementNode, stealNodes) {
+	this.replaceWith = function(replacementNode, stealNodes, takeReplacementParent) {
 		if (!self.parent) {self.parent = new BaseNode();}
 		var side = self.side();
 		var parent = self.parent;
-		if (replacementNode && replacementNode.parent) { 
+		if (takeReplacementParent && replacementNode && replacementNode.parent) { 
 			replacementNode.parent[replacementNode.side()] = self;
 		}
 		parent[side] = replacementNode;
@@ -332,7 +333,7 @@ function CommutativeOpNode(debugSymbol, stickinesss, opInstanceType, operatorFun
 		for (var i = 0; i < sortedLeafs.length - 1; i++) {
 			var leaf = sortedLeafs[i];
 			if (leaf !== leafsInScope[i]) { 
-				leaf.replaceWith(leafsInScope[i]);
+				leaf.replaceWith(leafsInScope[i], false, true);
 				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
 				leafsInScope[i] = leaf;
 			}
@@ -1052,9 +1053,15 @@ function DivisionNode(leftNode, rightNode) {
 					
 				}
 			});
+			$super.simplify();
+		} else if (instanceOf([self.leftNode], [AdditionNode, SubtractionNode]) && self.rightNode instanceof LeafNode) {
+			numerator.forEach(function(node) {
+				node.rotateLeft(new DivisionNode(null, self.rightNode.value));
+			});
+			self.leftNode.simplify();
+			self.replaceWith(self.leftNode);
 		}
 		
-		$super.simplify();
 
 		if (self.rightNode instanceof RealNumberNode && self.rightNode.value === 1) {
 			self.replaceWith(self.leftNode);
@@ -1066,6 +1073,7 @@ function DivisionNode(leftNode, rightNode) {
 	};
 	
 	function getScopedNodes(node) {
+		//if (node instanceof ParenthesisNode) {node = node.leftNode;}
 		return node instanceof CommutativeOpNode ? node.getLeafsInScope() : [node];
 	}
 }

@@ -23,7 +23,7 @@ function CommutativeOpNode(debugSymbol, stickinesss, opInstanceType, operatorFun
 		for (var i = 0; i < sortedLeafs.length - 1; i++) {
 			var leaf = sortedLeafs[i];
 			if (leaf !== leafsInScope[i]) { 
-				leaf.replaceWith(leafsInScope[i]);
+				leaf.replaceWith(leafsInScope[i], false, true);
 				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
 				leafsInScope[i] = leaf;
 			}

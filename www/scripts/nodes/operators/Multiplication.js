@@ -104,9 +104,15 @@ function DivisionNode(leftNode, rightNode) {
 					
 				}
 			});
+			$super.simplify();
+		} else if (instanceOf([self.leftNode], [AdditionNode, SubtractionNode]) && self.rightNode instanceof LeafNode) {
+			numerator.forEach(function(node) {
+				node.rotateLeft(new DivisionNode(null, self.rightNode.value));
+			});
+			self.leftNode.simplify();
+			self.replaceWith(self.leftNode);
 		}
 		
-		$super.simplify();
 
 		if (self.rightNode instanceof RealNumberNode && self.rightNode.value === 1) {
 			self.replaceWith(self.leftNode);
@@ -118,6 +124,7 @@ function DivisionNode(leftNode, rightNode) {
 	};
 	
 	function getScopedNodes(node) {
+		//if (node instanceof ParenthesisNode) {node = node.leftNode;}
 		return node instanceof CommutativeOpNode ? node.getLeafsInScope() : [node];
 	}
 }

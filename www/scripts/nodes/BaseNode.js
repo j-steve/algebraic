@@ -27,6 +27,7 @@ function BaseNode(parentNode) {
 		Object.defineProperty(self, side, {
 			get: function() {return self.nodes[index];},
 			set: function(value) {
+				if (value === self) {throw new Error('Cannot set as own child.');}
 				if (typeof value === 'number') {
 					value = new RealNumberNode(value);
 				}
@@ -99,11 +100,11 @@ function BaseNode(parentNode) {
 	 * @param {BaseNode} replacementNode
 	 * @param {boolean} [stealNodes=false]
 	 */
-	this.replaceWith = function(replacementNode, stealNodes) {
+	this.replaceWith = function(replacementNode, stealNodes, takeReplacementParent) {
 		if (!self.parent) {self.parent = new BaseNode();}
 		var side = self.side();
 		var parent = self.parent;
-		if (replacementNode && replacementNode.parent) { 
+		if (takeReplacementParent && replacementNode && replacementNode.parent) { 
 			replacementNode.parent[replacementNode.side()] = self;
 		}
 		parent[side] = replacementNode;

@@ -55,8 +55,8 @@ function ComparisonNode(_debugSymbol) {
 			}
 			varSide.replaceWith(partToKeep, false, true);
 			
-			var varSide = getSideWithVar(self);
-			var noVarSide = getSideWithoutVar(self);
+			varSide = getSideWithVar(self);
+			noVarSide = getSideWithoutVar(self);
 		}
 		
 		if (noVarSide) {
@@ -83,13 +83,13 @@ function ComparisonNode(_debugSymbol) {
 		return node.nodes.find(function(node) {
 			return hasVariable(node) || node.decendants().some(hasVariable);
 		});
-	};
+	}
 	
 	function getSideWithoutVar(node) {
 		return node.nodes.find(function(node) {
 			return !hasVariable(node) && !node.decendants().some(hasVariable);
 		});
-	};
+	}
 	
 }
 Object.extend(OperatorNode, ComparisonNode);

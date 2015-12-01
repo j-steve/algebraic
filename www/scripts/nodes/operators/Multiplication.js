@@ -30,16 +30,16 @@ function MultiplicationNode(_leftNode, _rightNode) {
 			return new ExponentNode(a, 2);
 			
 		} else if (a instanceof ExponentNode && a.leftNode.equals(b)) {
-			var _rightNode = new AdditionNode(a.rightNode, 1);
-			return new ExponentNode(a.leftNode, _rightNode);
+			var rightNode = new AdditionNode(a.rightNode, 1);
+			return new ExponentNode(a.leftNode, rightNode);
 			
 		} else if (b instanceof ExponentNode && b.leftNode.equals(a)) {
-			var _rightNode = new AdditionNode(b.rightNode, 1);
-			return new ExponentNode(b.leftNode, _rightNode);
+			var rightNode = new AdditionNode(b.rightNode, 1); //jshint ignore:line
+			return new ExponentNode(b.leftNode, rightNode);
 		
 		} else if (a instanceof ExponentNode && b instanceof ExponentNode && a.leftNode.equals(b.leftNode)) {
-			var _rightNode = new AdditionNode(a.rightNode, b.rightNode);
-			return new ExponentNode(a.leftNode, _rightNode);
+			var rightNode = new AdditionNode(a.rightNode, b.rightNode);  //jshint ignore:line
+			return new ExponentNode(a.leftNode, rightNode);
 			
 		} else if (b instanceof DivisionNode) {
 			var newMultiply = new MultiplicationNode(b.leftNode, a);

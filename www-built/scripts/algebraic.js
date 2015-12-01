@@ -541,7 +541,7 @@ function closeTilType(nodeType) {
 function addImplicitMultiply() {
 	if (activeNode instanceof LeafNode) {
 		var implicitMultiplyNode = new MultiplicationNode(); 
-		implicitMultiplyNode.stickiness += 1
+		implicitMultiplyNode.stickiness += 1;
 		rotateForOperator(implicitMultiplyNode);
 		activeNode = implicitMultiplyNode;
 	}
@@ -613,13 +613,13 @@ function AdditionNode(_leftNode, _rightNode) {
 				var newAdd = new AdditionNode(a.leftNode, 1);
 				return new MultiplicationNode(newAdd, a.rightNode); 
 			} else if (a.rightNode.equals(b.rightNode)) { 
-				var newAdd = new AdditionNode(a.leftNode, b.leftNode);
+				var newAdd = new AdditionNode(a.leftNode, b.leftNode); //jshint ignore:line
 				return new MultiplicationNode(newAdd, a.rightNode);
 			}
 		} else if (b instanceof DivisionNode && b.rightNode instanceof LeafNode) {
 			// TODO- this will work even if b.rightNode isn't a leaf node,
 			// but need to create a copy of rightnode rather than use its value because it's inserted in 2 places.
-			var newAdd = new AdditionNode(b.leftNode, new MultiplicationNode(a, b.rightNode.value));
+			var newAdd = new AdditionNode(b.leftNode, new MultiplicationNode(a, b.rightNode.value));  //jshint ignore:line
 			return new DivisionNode(newAdd, b.rightNode.value);
 		}
 	}
@@ -722,8 +722,8 @@ function ComparisonNode(_debugSymbol) {
 			}
 			varSide.replaceWith(partToKeep, false, true);
 			
-			var varSide = getSideWithVar(self);
-			var noVarSide = getSideWithoutVar(self);
+			varSide = getSideWithVar(self);
+			noVarSide = getSideWithoutVar(self);
 		}
 		
 		if (noVarSide) {
@@ -750,13 +750,13 @@ function ComparisonNode(_debugSymbol) {
 		return node.nodes.find(function(node) {
 			return hasVariable(node) || node.decendants().some(hasVariable);
 		});
-	};
+	}
 	
 	function getSideWithoutVar(node) {
 		return node.nodes.find(function(node) {
 			return !hasVariable(node) && !node.decendants().some(hasVariable);
 		});
-	};
+	}
 	
 }
 Object.extend(OperatorNode, ComparisonNode);
@@ -971,16 +971,16 @@ function MultiplicationNode(_leftNode, _rightNode) {
 			return new ExponentNode(a, 2);
 			
 		} else if (a instanceof ExponentNode && a.leftNode.equals(b)) {
-			var _rightNode = new AdditionNode(a.rightNode, 1);
-			return new ExponentNode(a.leftNode, _rightNode);
+			var rightNode = new AdditionNode(a.rightNode, 1);
+			return new ExponentNode(a.leftNode, rightNode);
 			
 		} else if (b instanceof ExponentNode && b.leftNode.equals(a)) {
-			var _rightNode = new AdditionNode(b.rightNode, 1);
-			return new ExponentNode(b.leftNode, _rightNode);
+			var rightNode = new AdditionNode(b.rightNode, 1); //jshint ignore:line
+			return new ExponentNode(b.leftNode, rightNode);
 		
 		} else if (a instanceof ExponentNode && b instanceof ExponentNode && a.leftNode.equals(b.leftNode)) {
-			var _rightNode = new AdditionNode(a.rightNode, b.rightNode);
-			return new ExponentNode(a.leftNode, _rightNode);
+			var rightNode = new AdditionNode(a.rightNode, b.rightNode);  //jshint ignore:line
+			return new ExponentNode(a.leftNode, rightNode);
 			
 		} else if (b instanceof DivisionNode) {
 			var newMultiply = new MultiplicationNode(b.leftNode, a);
@@ -1126,7 +1126,7 @@ var NODE_REGEX = {
 	'\\\^': ExponentNode,
 	'log': LogarithmNode,
 	'lg': Function.bind.call(LogarithmNode, null, new RealNumberNode(2)),
-	'ln': Function.bind.call(LogarithmNode, null, new ConstantNode.E),
+	'ln': Function.bind.call(LogarithmNode, null, ConstantNode.E()),
 	
 	'sin': SinNode,
 	'cos': CosNode,

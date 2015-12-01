@@ -17,7 +17,7 @@ var NODE_REGEX = {
 	'\\\^': ExponentNode,
 	'log': LogarithmNode,
 	'lg': Function.bind.call(LogarithmNode, null, new RealNumberNode(2)),
-	'ln': Function.bind.call(LogarithmNode, null, new ConstantNode.E),
+	'ln': Function.bind.call(LogarithmNode, null, ConstantNode.E()),
 	
 	'sin': SinNode,
 	'cos': CosNode,

@@ -1,4 +1,4 @@
-/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode, CommutativeOpNode, DivisionNode */
+/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode, CommutativeOpNode, DivisionNode, VariableNode */
 
 /**
  * @constructor
@@ -34,13 +34,13 @@ function AdditionNode(_leftNode, _rightNode) {
 				var newAdd = new AdditionNode(a.leftNode, 1);
 				return new MultiplicationNode(newAdd, a.rightNode); 
 			} else if (a.rightNode.equals(b.rightNode)) { 
-				var newAdd = new AdditionNode(a.leftNode, b.leftNode);
+				var newAdd = new AdditionNode(a.leftNode, b.leftNode); //jshint ignore:line
 				return new MultiplicationNode(newAdd, a.rightNode);
 			}
 		} else if (b instanceof DivisionNode && b.rightNode instanceof LeafNode) {
 			// TODO- this will work even if b.rightNode isn't a leaf node,
 			// but need to create a copy of rightnode rather than use its value because it's inserted in 2 places.
-			var newAdd = new AdditionNode(b.leftNode, new MultiplicationNode(a, b.rightNode.value));
+			var newAdd = new AdditionNode(b.leftNode, new MultiplicationNode(a, b.rightNode.value));  //jshint ignore:line
 			return new DivisionNode(newAdd, b.rightNode.value);
 		}
 	}

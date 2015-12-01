@@ -685,6 +685,7 @@ function ComparisonNode(_debugSymbol) {
 		while (noVarSide && varSide instanceof OperatorNode) { 
 			var partToSwap = getSideWithoutVar(varSide);
 			var partToKeep = getSideWithVar(varSide);
+			if (!partToSwap || !partToKeep) {break;}
 			
 			if (varSide instanceof AdditionNode) {
 				noVarSide.rotateLeft(new SubtractionNode(null, partToSwap));

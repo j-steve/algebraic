@@ -6,14 +6,14 @@ Object.extend(OperatorNode, CommutativeOpNode);
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {string} debugSymbol
- * @param {number} stickinesss
+ * @param {string} _debugSymbol
+ * @param {number} _stickinesss
  * @param {Function} opInstanceType
  * @param {Function} operatorFunction
  */
-function CommutativeOpNode(debugSymbol, stickinesss, opInstanceType, operatorFunction) {
+function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorFunction) {
 	var self = this;
-	var $super = CommutativeOpNode.$super(this, debugSymbol, stickinesss);
+	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	
 	this.cleanup = function() { 
 		$super.cleanup();

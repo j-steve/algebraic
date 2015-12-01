@@ -11,8 +11,6 @@ function instanceOf(target, instanceTypes) {
 }
 
 (function() {
-	'use strict';
-	
 	Array.prototype.remove = function() {
 		var removedCount = 0;
 		for (var i = 0; i < arguments.length; i++) {

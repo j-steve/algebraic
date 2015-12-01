@@ -3,6 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+//var TOP_LVL_FUNCTION = /^(function[^)]*\)\s*{\s*?)(\r?\n?[ \t]*)(?=[^\s}])(?!'use strict')/gm;
+//src = src.replace(TOP_LVL_FUNCTION, '$1$2\'use strict\';$2');
+var GLOBALS = /\s*\/\* global[^*]+\*\/\s*/g;
+//var USE_STRICT = /\s*'use strict';/g;
+
 module.exports = function (grunt) {
 
 	grunt.initConfig({
@@ -25,13 +30,16 @@ module.exports = function (grunt) {
 			}
 		},
 		concat: {
-			options: {
-				//separator: '\n\n//------------------------------------------------\*/\n\n',
+			options: { 
+				banner: '\'use strict\';\n',
 				process: function(src, filepath) {
+					src = src.trim().replace(GLOBALS, '');
+					
 					var line = '// ====================================================================================================\n'; 
-					var header = '//      ..' + filepath.replace('www/scripts', '') + '\n'; 
-					var globalDec = /\s*\/\* global[^*]+\*\/\s*/g;
-					return '\n\n' + line + header + line + '\n' + src.replace(globalDec, '').trim();
+					filePath = filepath.replace('www/scripts', '');
+					var header = '//      ..' + filepath.replace('www/scripts', '') + '\n';  
+					
+					return '\n\n' + line + header + line + '\n' + src;
 				}
 			},
 			dist: {

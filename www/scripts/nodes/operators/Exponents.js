@@ -4,16 +4,15 @@
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function ExponentNode(leftNode, rightNode) {
+function ExponentNode(_leftNode, _rightNode) {
 	var self = this;
 	var $super = ExponentNode.$super(this, '^', 4, true);
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode;
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.simplify = function() {
 		$super.simplify();
@@ -33,16 +32,15 @@ Object.extend(OperatorNode, ExponentNode);
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function RootNode(leftNode, rightNode) {
+function RootNode(_leftNode, _rightNode) {
 	var self = this;
 	$super = RootNode.$super(this, '&radic;');
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode; 
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.simplify = function() {
 		$super.simplify();
@@ -60,15 +58,14 @@ Object.extend(OperatorNode, RootNode);
  * @extends {OperatorPrefixNode}
  * 
  * @param {BaseNode} [base]   the log base, reprsented by the right node
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _rightNode
  */
-function LogarithmNode(base, rightNode) {  
+function LogarithmNode(base, _rightNode) {  
 	var self = this;
 	var $super = LogarithmNode.$super(this, 'log', 3);
 	
 	this.leftNode = base || new RealNumberNode(10);
-	if (rightNode) {this.rightNode = rightNode;}
-	delete base, rightNode; 
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() {
 		$super.cleanup();

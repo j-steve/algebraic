@@ -3,10 +3,12 @@
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {string} _debugSymbol
  */
-function ComparisonNode(debugSymbol) {
+function ComparisonNode(_debugSymbol) {
 	var self = this;
-	var $super = ComparisonNode.$super(this, debugSymbol, 1);
+	var $super = ComparisonNode.$super(this, _debugSymbol, 1);
 	
 	this.simplify = function() {
 		$super.simplify();

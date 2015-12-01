@@ -5,16 +5,15 @@ Object.extend(CommutativeOpNode, MultiplicationNode);
  * @constructor
  * @extends {CommutativeOpNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function MultiplicationNode(leftNode, rightNode) {
+function MultiplicationNode(_leftNode, _rightNode) {
 	var self = this;
 	var $super = MultiplicationNode.$super(this, '&sdot;', 3, MultiplicationNode, multiply);
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode;
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.simplify = function() {
 		$super.simplify();
@@ -31,16 +30,16 @@ function MultiplicationNode(leftNode, rightNode) {
 			return new ExponentNode(a, 2);
 			
 		} else if (a instanceof ExponentNode && a.leftNode.equals(b)) {
-			var rightNode = new AdditionNode(a.rightNode, 1);
-			return new ExponentNode(a.leftNode, rightNode);
+			var _rightNode = new AdditionNode(a.rightNode, 1);
+			return new ExponentNode(a.leftNode, _rightNode);
 			
 		} else if (b instanceof ExponentNode && b.leftNode.equals(a)) {
-			var rightNode = new AdditionNode(b.rightNode, 1);
-			return new ExponentNode(b.leftNode, rightNode);
+			var _rightNode = new AdditionNode(b.rightNode, 1);
+			return new ExponentNode(b.leftNode, _rightNode);
 		
 		} else if (a instanceof ExponentNode && b instanceof ExponentNode && a.leftNode.equals(b.leftNode)) {
-			var rightNode = new AdditionNode(a.rightNode, b.rightNode);
-			return new ExponentNode(a.leftNode, rightNode);
+			var _rightNode = new AdditionNode(a.rightNode, b.rightNode);
+			return new ExponentNode(a.leftNode, _rightNode);
 			
 		} else if (b instanceof DivisionNode) {
 			var newMultiply = new MultiplicationNode(b.leftNode, a);
@@ -73,16 +72,15 @@ Object.extend(OperatorNode, DivisionNode);
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function DivisionNode(leftNode, rightNode) {
+function DivisionNode(_leftNode, _rightNode) {
 	var self = this; 
 	var $super = DivisionNode.$super(this, '∕', 3);
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode;
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.simplify = function() {
 		$super.simplify(); 

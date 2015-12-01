@@ -4,22 +4,20 @@ var SIDES = ['leftNode', 'rightNode'];
 
 /**
  * @constructor
- * @param {BaseNode} parentNode
  * 
  * @property {BaseNode} parent
  * @property {Array} nodes
  * @property {BaseNode} leftNode
  * @property {BaseNode} rightNode
  */
-function BaseNode(parentNode) {
-	'use strict';
+function BaseNode() {
 	var self = this;
 
     // ================================================================================
     // Properties
     // ================================================================================
 	
-	this.parent = parentNode;
+	this.parent = null;
 	
 	this.nodes = [];
 	

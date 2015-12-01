@@ -4,19 +4,18 @@
  * @constructor
  * @extends {CommutativeOpNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function AdditionNode(leftNode, rightNode) {
+function AdditionNode(_leftNode, _rightNode) {
 	var self = this;
 	var $super = AdditionNode.$super(this, '+', 2, AdditionNode, add);
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode;
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() { 
-		$super.cleanup();
+		$super.cleanup(); 
 		
 		if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
 			self.leftNode.replaceWith(self.rightNode);
@@ -54,16 +53,15 @@ Object.extend(OperatorNode, SubtractionNode);
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function SubtractionNode(leftNode, rightNode) {
+function SubtractionNode(_leftNode, _rightNode) {
 	var self = this;
 	var $super = SubtractionNode.$super(this, '&minus;', 2);
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode;
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() { 
 		$super.simplify();

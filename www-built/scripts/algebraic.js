@@ -1,3 +1,4 @@
+'use strict';
 
 
 // ====================================================================================================
@@ -17,8 +18,6 @@ function instanceOf(target, instanceTypes) {
 }
 
 (function() {
-	'use strict';
-	
 	Array.prototype.remove = function() {
 		var removedCount = 0;
 		for (var i = 0; i < arguments.length; i++) {
@@ -128,22 +127,20 @@ var SIDES = ['leftNode', 'rightNode'];
 
 /**
  * @constructor
- * @param {BaseNode} parentNode
  * 
  * @property {BaseNode} parent
  * @property {Array} nodes
  * @property {BaseNode} leftNode
  * @property {BaseNode} rightNode
  */
-function BaseNode(parentNode) {
-	'use strict';
+function BaseNode() {
 	var self = this;
 
     // ================================================================================
     // Properties
     // ================================================================================
 	
-	this.parent = parentNode;
+	this.parent = null;
 	
 	this.nodes = [];
 	
@@ -316,14 +313,14 @@ Object.extend(OperatorNode, CommutativeOpNode);
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {string} debugSymbol
- * @param {number} stickinesss
+ * @param {string} _debugSymbol
+ * @param {number} _stickinesss
  * @param {Function} opInstanceType
  * @param {Function} operatorFunction
  */
-function CommutativeOpNode(debugSymbol, stickinesss, opInstanceType, operatorFunction) {
+function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorFunction) {
 	var self = this;
-	var $super = CommutativeOpNode.$super(this, debugSymbol, stickinesss);
+	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	
 	this.cleanup = function() { 
 		$super.cleanup();
@@ -432,7 +429,6 @@ Object.extend(BaseNode, LeafNode);
 function RealNumberNode(value) {  
 	var self = this;
 	var $super = RealNumberNode.$super(this, Number(value), 1);
-	delete value; 
 }
 Object.extend(LeafNode, RealNumberNode);
 
@@ -468,8 +464,6 @@ ConstantNode.PI = function() {return new ConstantNode('&pi;');};
 // ====================================================================================================
 
 function compute(equation, treeTableElement, prettyInputElement, simplifyElement, calculateElement) {
-	'use strict';
-
 	treeTableElement.innerHTML = '';
 	prettyInputElement.innerHTML = '';
 	simplifyElement.innerHTML = '';
@@ -589,19 +583,18 @@ function getRoot(node) {
  * @constructor
  * @extends {CommutativeOpNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function AdditionNode(leftNode, rightNode) {
+function AdditionNode(_leftNode, _rightNode) {
 	var self = this;
 	var $super = AdditionNode.$super(this, '+', 2, AdditionNode, add);
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode;
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() { 
-		$super.cleanup();
+		$super.cleanup(); 
 		
 		if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
 			self.leftNode.replaceWith(self.rightNode);
@@ -639,16 +632,15 @@ Object.extend(OperatorNode, SubtractionNode);
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function SubtractionNode(leftNode, rightNode) {
+function SubtractionNode(_leftNode, _rightNode) {
 	var self = this;
 	var $super = SubtractionNode.$super(this, '&minus;', 2);
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode;
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() { 
 		$super.simplify();
@@ -678,10 +670,12 @@ function PlusOrMinusNode() {
 /**
  * @constructor
  * @extends {OperatorNode}
+ * 
+ * @param {string} _debugSymbol
  */
-function ComparisonNode(debugSymbol) {
+function ComparisonNode(_debugSymbol) {
 	var self = this;
-	var $super = ComparisonNode.$super(this, debugSymbol, 1);
+	var $super = ComparisonNode.$super(this, _debugSymbol, 1);
 	
 	this.simplify = function() {
 		$super.simplify();
@@ -864,16 +858,15 @@ Object.extend(EnclosureNode, ParenthesisNode);
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function ExponentNode(leftNode, rightNode) {
+function ExponentNode(_leftNode, _rightNode) {
 	var self = this;
 	var $super = ExponentNode.$super(this, '^', 4, true);
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode;
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.simplify = function() {
 		$super.simplify();
@@ -893,16 +886,15 @@ Object.extend(OperatorNode, ExponentNode);
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function RootNode(leftNode, rightNode) {
+function RootNode(_leftNode, _rightNode) {
 	var self = this;
 	$super = RootNode.$super(this, '&radic;');
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode; 
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.simplify = function() {
 		$super.simplify();
@@ -920,15 +912,14 @@ Object.extend(OperatorNode, RootNode);
  * @extends {OperatorPrefixNode}
  * 
  * @param {BaseNode} [base]   the log base, reprsented by the right node
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _rightNode
  */
-function LogarithmNode(base, rightNode) {  
+function LogarithmNode(base, _rightNode) {  
 	var self = this;
 	var $super = LogarithmNode.$super(this, 'log', 3);
 	
 	this.leftNode = base || new RealNumberNode(10);
-	if (rightNode) {this.rightNode = rightNode;}
-	delete base, rightNode; 
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() {
 		$super.cleanup();
@@ -955,16 +946,15 @@ Object.extend(CommutativeOpNode, MultiplicationNode);
  * @constructor
  * @extends {CommutativeOpNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function MultiplicationNode(leftNode, rightNode) {
+function MultiplicationNode(_leftNode, _rightNode) {
 	var self = this;
 	var $super = MultiplicationNode.$super(this, '&sdot;', 3, MultiplicationNode, multiply);
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode;
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.simplify = function() {
 		$super.simplify();
@@ -981,16 +971,16 @@ function MultiplicationNode(leftNode, rightNode) {
 			return new ExponentNode(a, 2);
 			
 		} else if (a instanceof ExponentNode && a.leftNode.equals(b)) {
-			var rightNode = new AdditionNode(a.rightNode, 1);
-			return new ExponentNode(a.leftNode, rightNode);
+			var _rightNode = new AdditionNode(a.rightNode, 1);
+			return new ExponentNode(a.leftNode, _rightNode);
 			
 		} else if (b instanceof ExponentNode && b.leftNode.equals(a)) {
-			var rightNode = new AdditionNode(b.rightNode, 1);
-			return new ExponentNode(b.leftNode, rightNode);
+			var _rightNode = new AdditionNode(b.rightNode, 1);
+			return new ExponentNode(b.leftNode, _rightNode);
 		
 		} else if (a instanceof ExponentNode && b instanceof ExponentNode && a.leftNode.equals(b.leftNode)) {
-			var rightNode = new AdditionNode(a.rightNode, b.rightNode);
-			return new ExponentNode(a.leftNode, rightNode);
+			var _rightNode = new AdditionNode(a.rightNode, b.rightNode);
+			return new ExponentNode(a.leftNode, _rightNode);
 			
 		} else if (b instanceof DivisionNode) {
 			var newMultiply = new MultiplicationNode(b.leftNode, a);
@@ -1023,16 +1013,15 @@ Object.extend(OperatorNode, DivisionNode);
  * @constructor
  * @extends {OperatorNode}
  * 
- * @param {BaseNode} leftNode
- * @param {BaseNode} rightNode
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
  */
-function DivisionNode(leftNode, rightNode) {
+function DivisionNode(_leftNode, _rightNode) {
 	var self = this; 
 	var $super = DivisionNode.$super(this, '∕', 3);
 	
-	if (leftNode) {this.leftNode = leftNode;}
-	if (rightNode) {this.rightNode = rightNode;}
-	delete leftNode, rightNode;
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.simplify = function() {
 		$super.simplify(); 
@@ -1055,7 +1044,7 @@ function DivisionNode(leftNode, rightNode) {
 				}
 			});
 			$super.simplify();
-		} else if (instanceOf([self.leftNode], [AdditionNode, SubtractionNode]) && self.rightNode instanceof LeafNode) {
+		} else if (instanceOf([self.leftNode], [AdditionNode, SubtractionNode]) && self.rightNode instanceof RealNumberNode) {
 			numerator.forEach(function(node) {
 				node.rotateLeft(new DivisionNode(null, self.rightNode.value));
 			});

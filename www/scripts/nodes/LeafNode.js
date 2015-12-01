@@ -38,7 +38,6 @@ Object.extend(BaseNode, LeafNode);
 function RealNumberNode(value) {  
 	var self = this;
 	var $super = RealNumberNode.$super(this, Number(value), 1);
-	delete value; 
 }
 Object.extend(LeafNode, RealNumberNode);
 

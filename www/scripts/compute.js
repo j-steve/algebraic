@@ -1,8 +1,6 @@
 /* global makeEquationTree */
 
 function compute(equation, treeTableElement, prettyInputElement, simplifyElement, calculateElement) {
-	'use strict';
-
 	treeTableElement.innerHTML = '';
 	prettyInputElement.innerHTML = '';
 	simplifyElement.innerHTML = '';

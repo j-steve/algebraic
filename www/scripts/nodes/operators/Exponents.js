@@ -37,7 +37,7 @@ Object.extend(OperatorNode, ExponentNode);
  */
 function RootNode(_leftNode, _rightNode) {
 	var self = this;
-	$super = RootNode.$super(this, '&radic;');
+	var $super = RootNode.$super(this, '&radic;');
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}

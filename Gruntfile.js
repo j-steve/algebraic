@@ -66,7 +66,7 @@ module.exports = function (grunt) {
 						 '@echo node_modules/.bin/grunt build >> .git/hooks/pre-commit' //'cp git-hooks/pre-commit .git/hooks/'
 			},
 			commit: {
-				command: 'start cmd'
+				command: 'git add * && start cmd'
 			}
 		},
 		

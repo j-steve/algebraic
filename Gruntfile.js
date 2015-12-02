@@ -8,17 +8,25 @@ var LINE = '// =================================================================
 
 module.exports = function (grunt) {
 
-	grunt.initConfig({
-		jshint: {
-			files: ['Gruntfile.js', 'www/scripts/**/*.js'],
-			options: {
-				loopfunc: true
-			}
-		},
+	grunt.loadNpmTasks('grunt-contrib-jshint');
+	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-contrib-copy');
+	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-shell'); 
+
+	grunt.initConfig({ 
+		
 		watch: {
 			files: ['www/**/*'],
 			tasks: ['clean', 'copy', 'concat']
 		},
+		
+		clean: { 
+			build: ['www-built'], // Clean the 'built' directory.
+			installGitHooks: ['.git/hooks/pre-commit'] // Clean any pre-commit hooks in .git/hooks directory
+		},
+		
 		copy: {
 			build: {
 				cwd: 'www',
@@ -27,6 +35,7 @@ module.exports = function (grunt) {
 				expand: true
 			}
 		},
+		
 		concat: {
 			options: { 
 				banner: '\'use strict\';\n',
@@ -50,37 +59,45 @@ module.exports = function (grunt) {
 			}
 		},
 		
-		// Clean stuff up before a build.
-		clean: { 
-			build: ['www-built'], // Clean the 'built' directory.
-			hooks: ['.git/hooks/pre-commit'] // Clean any pre-commit hooks in .git/hooks directory
-		},
-		
-		// Run shell commands.
 		shell: {
-			hooks: {
+			installGitHooks: {
 				// Copy the project's pre-commit hook into .git/hooks
 				command: '@echo #!/bin/sh > .git/hooks/pre-commit && ' + 
 						 '@echo node_modules/.bin/grunt build >> .git/hooks/pre-commit' //'cp git-hooks/pre-commit .git/hooks/'
 			},
 			commit: {
-				command: 'git commit'
+				command: 'start cmd'
+			}
+		},
+		
+		jshint: {
+			files: [
+				'Gruntfile.js',
+				'www/scripts/**/*.js'
+			],
+			options: {
+				loopfunc: true
 			}
 		}
+		
 	});
-
-	grunt.loadNpmTasks('grunt-contrib-jshint');
-	grunt.loadNpmTasks('grunt-contrib-watch');
-	grunt.loadNpmTasks('grunt-contrib-copy');
-	grunt.loadNpmTasks('grunt-contrib-clean');
-	grunt.loadNpmTasks('grunt-contrib-concat');
-	grunt.loadNpmTasks('grunt-shell');
-	//grunt.loadNpmTasks('grunt-contrib-requirejs');
 
 	grunt.registerTask(
 		'default',
 		'Watches the project for changes, automatically builds them and runs a server.',
 		['watch']
+	);
+	
+	grunt.registerTask(
+		'installGitHooks',
+		'Attaches a custom git pre-commit action to build and run jslint.',
+		['clean:installGitHooks', 'shell:installGitHooks']
+	);
+	
+	grunt.registerTask(
+		'commit',
+		'Executes a git Commit operation.',
+		['shell']
 	);
 
 	grunt.registerTask(
@@ -89,10 +106,4 @@ module.exports = function (grunt) {
 		['jshint', 'clean', 'copy', 'concat']
 	);
 	
-	// Clean the .git/hooks/pre-commit file then copy in the latest version
-	grunt.registerTask('installGitHooks', ['clean:hooks', 'shell:hooks']),
-	
-	
-	grunt.registerTask('commit', 'shell');
-
 };

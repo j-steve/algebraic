@@ -3,10 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-//var TOP_LVL_FUNCTION = /^(function[^)]*\)\s*{\s*?)(\r?\n?[ \t]*)(?=[^\s}])(?!'use strict')/gm;
-//src = src.replace(TOP_LVL_FUNCTION, '$1$2\'use strict\';$2');
 var GLOBALS = /\s*\/\* global[^*]+\*\/\s*/g;
-//var USE_STRICT = /\s*'use strict';/g;
+var LINE = '// ====================================================================================================\n'; 
 
 module.exports = function (grunt) {
 
@@ -33,13 +31,10 @@ module.exports = function (grunt) {
 			options: { 
 				banner: '\'use strict\';\n',
 				process: function(src, filepath) {
-					src = src.trim().replace(GLOBALS, '');
-					
-					var line = '// ====================================================================================================\n'; 
-					filePath = filepath.replace('www/scripts', '');
-					var header = '//      ..' + filepath.replace('www/scripts', '') + '\n';  
-					
-					return '\n\n' + line + header + line + '\n' + src;
+					src = src.trim().replace(GLOBALS, ''); 
+					var fileName = filepath.replace('www/scripts', '');
+					var header = '//      ..' + fileName + '\n'; 
+					return '\n\n' + LINE + header + LINE + '\n' + src;
 				}
 			},
 			dist: {
@@ -56,20 +51,17 @@ module.exports = function (grunt) {
 		},
 		
 		// Clean stuff up before a build.
-		clean: {
-			build: {
-				src: 'www-built'
-			},
-			
-			// Clean any pre-commit hooks in .git/hooks directory
-			hooks: ['.git/hooks/pre-commit']
+		clean: { 
+			build: ['www-built'], // Clean the 'built' directory.
+			hooks: ['.git/hooks/pre-commit'] // Clean any pre-commit hooks in .git/hooks directory
 		},
 		
 		// Run shell commands.
 		shell: {
 			hooks: {
 				// Copy the project's pre-commit hook into .git/hooks
-				command: '@echo grunt jshint >> .git/hooks/pre-commit'//'cp git-hooks/pre-commit .git/hooks/'
+				command: '@echo #!/bin/sh > .git/hooks/pre-commit && ' + 
+						 '@echo node_modules/.bin/grunt build >> .git/hooks/pre-commit' //'cp git-hooks/pre-commit .git/hooks/'
 			}
 		}
 	});
@@ -95,6 +87,6 @@ module.exports = function (grunt) {
 	);
 	
 	// Clean the .git/hooks/pre-commit file then copy in the latest version
-	grunt.registerTask('hookmeup', ['clean:hooks', 'shell:hooks']);
+	grunt.registerTask('installGitHooks', ['clean:hooks', 'shell:hooks']);
 
 };

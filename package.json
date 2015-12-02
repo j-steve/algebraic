@@ -20,6 +20,6 @@
 		"grunt-shell": "*"
 	},
 	"scripts": {
-		"postinstall": "grunt hookmeup"
+		"postinstall": "grunt installGitHooks"
 	}
 }

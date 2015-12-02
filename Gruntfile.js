@@ -62,6 +62,9 @@ module.exports = function (grunt) {
 				// Copy the project's pre-commit hook into .git/hooks
 				command: '@echo #!/bin/sh > .git/hooks/pre-commit && ' + 
 						 '@echo node_modules/.bin/grunt build >> .git/hooks/pre-commit' //'cp git-hooks/pre-commit .git/hooks/'
+			},
+			commit: {
+				command: 'git commit'
 			}
 		}
 	});
@@ -87,6 +90,9 @@ module.exports = function (grunt) {
 	);
 	
 	// Clean the .git/hooks/pre-commit file then copy in the latest version
-	grunt.registerTask('installGitHooks', ['clean:hooks', 'shell:hooks']);
+	grunt.registerTask('installGitHooks', ['clean:hooks', 'shell:hooks']),
+	
+	
+	grunt.registerTask('commit', 'shell');
 
 };

@@ -11,7 +11,7 @@ function ComparisonNode(_debugSymbol) {
 	var $super = ComparisonNode.$super(this, _debugSymbol, 1);
 	
 	this.simplify = function() {
-		$super.simplify()
+		$super.simplify();
 		
 		var varSide = getSideWithVar(self);
 		var noVarSide = getSideWithoutVar(self);

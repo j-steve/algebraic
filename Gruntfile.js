@@ -54,20 +54,24 @@ module.exports = function (grunt) {
 				dest: 'www-built/scripts/algebraic.js'
 			}
 		},
+		
+		// Clean stuff up before a build.
 		clean: {
 			build: {
 				src: 'www-built'
+			},
+			
+			// Clean any pre-commit hooks in .git/hooks directory
+			hooks: ['.git/hooks/pre-commit']
+		},
+		
+		// Run shell commands.
+		shell: {
+			hooks: {
+				// Copy the project's pre-commit hook into .git/hooks
+				command: '@echo grunt jshint >> .git/hooks/pre-commit'//'cp git-hooks/pre-commit .git/hooks/'
 			}
-		}/*,
-		 requirejs: {
-		 compile: {
-		 options: {
-		 baseUrl: "www/scripts/requirejs",
-		 mainConfigFile: "path/to/config.js",
-		 out: "www/scripts/requirejs.js"
-		 }
-		 }
-		 }*/
+		}
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -75,6 +79,7 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-shell');
 	//grunt.loadNpmTasks('grunt-contrib-requirejs');
 
 	grunt.registerTask(
@@ -88,5 +93,8 @@ module.exports = function (grunt) {
 		'Compiles all of the assets and copies the files to the build directory.',
 		['jshint', 'clean', 'copy', 'concat']
 	);
+	
+	// Clean the .git/hooks/pre-commit file then copy in the latest version
+	grunt.registerTask('hookmeup', ['clean:hooks', 'shell:hooks']);
 
 };

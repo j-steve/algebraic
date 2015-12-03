@@ -18,7 +18,7 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	this.cleanup = function() { 
 		$super.cleanup();
 		
-		var leafsInScope = self.getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
+		var leafsInScope = self.getNodesInScope().filter(function(x) {return x instanceof LeafNode;});
 		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
 		for (var i = 0; i < sortedLeafs.length - 1; i++) {
 			var leaf = sortedLeafs[i];
@@ -33,8 +33,8 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	this.simplify = function() {
 		$super.simplify();
 		
-		var leafsInScope = self.getLeafsInScope();
-		//var checkNodes = self.nodes.slice(); 
+		var leafsInScope = self.getNodesInScope();
+		//var checkNodes = self.nodes.slice();
 		 
 		nodes: for (var i = 0; i < SIDES.length; i++) { 
 			var side = SIDES[i];
@@ -62,19 +62,17 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 		}
 	};
 	
-	this.getLeafsInScope = function() {
-		var leafs = [];
+	this.getNodesInScope = function() {
+		var endNodes = [];
 		var stack = self.nodes.slice();
 		while (stack.length) {
 			var node = stack.shift();
-			if (node instanceof LeafNode) {
-				leafs.push(node);
-			} else if (node instanceof opInstanceType) {
+			if (node instanceof opInstanceType) {
 				stack = node.nodes.concat(stack);
 			} else {
-				leafs.push(node);
+				endNodes.push(node);
 			}
 		}
-		return leafs;
+		return endNodes;
 	};
 }

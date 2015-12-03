@@ -57,7 +57,7 @@ function DivisionNode(_leftNode, _rightNode) {
 	
 	function getScopedNodes(node) {
 		//if (node instanceof ParenthesisNode) {node = node.leftNode;}
-		return node instanceof CommutativeOpNode ? node.getLeafsInScope() : [node];
+		return node instanceof CommutativeOpNode ? node.getNodesInScope() : [node];
 	}
 }
 

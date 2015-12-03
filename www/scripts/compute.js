@@ -1,4 +1,4 @@
-/* global EquationTree */
+/* global EquationTreeParser */
 
 function compute(equation, treeTableElement, prettyInputElement, simplifyElement, calculateElement) {
 	treeTableElement.innerHTML = '';

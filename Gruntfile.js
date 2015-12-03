@@ -49,6 +49,11 @@ module.exports = function (grunt) {
 			dist: {
 				src: [
 					'www/scripts/polyfill.js',
+					
+					'www/scripts/**/compute.js',
+					'www/scripts/**/EquationTree.js',
+					'www/scripts/**/parseInput.js',
+					
 					'www/scripts/**/BaseNode.js',
 					'www/scripts/**/OperatorNode.js',
 					'www/scripts/**/CommutativeOpNode.js', 

@@ -1,8 +1,7 @@
 /* global ParenthesisNode, OperatorNode, LeafNode, parseNextNode, EnclosureNode, OperatorPrefixNode, TreeRootNode, CommutativeOpNode */
 
 /**
- * @constructor
- * @property {TreeRootNode} root
+ * @constructor 
  * 
  * @param {string} inputEquation
  */

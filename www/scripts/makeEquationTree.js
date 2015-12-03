@@ -29,18 +29,13 @@ function EquationTree(inputEquation) {
 				nodeStack.peek().rightNode = parenthesis;
 				nodeStack.push(parenthesis);
 			} else if (match.node instanceof EnclosureNode || match.node instanceof OperatorPrefixNode) { 
-				addImplicitMultiply();
-				nodeStack.peek().addChild(match.node);
+				addChildNode(match.node);
 			} else if (match.node instanceof OperatorNode) {
 				rotateForOperator(match.node); 
 			} else if (match.node instanceof LeafNode) {
-				addImplicitMultiply();
-				{nodeStack.peek().addChild(match.node);}
+				addChildNode(match.node);
 			}
 			if (typeof match.node !== 'string') {
-				if (nodeStack.peek().nodes.peek() === nodeStack.peek()) {
-					nodeStack.pop();
-				}
 				nodeStack.push(match.node);
 			}
 			i += match.charCount;
@@ -48,6 +43,12 @@ function EquationTree(inputEquation) {
 
 		nodeStack[0].finalize();
 		return nodeStack[0];
+	}
+	
+	function addChildNode(newNode) {
+		addImplicitMultiply();
+		nodeStack.peek().nodes.push(newNode);
+		newNode.parent = nodeStack.peek();
 	}
 
 	function closeTilType(nodeType) { 

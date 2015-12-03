@@ -17,17 +17,9 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	
 	this.cleanup = function() { 
 		$super.cleanup();
-		
-		var leafsInScope = self.getNodesInScope().filter(function(x) {return x instanceof LeafNode;});
-		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
-		for (var i = 0; i < sortedLeafs.length - 1; i++) {
-			var leaf = sortedLeafs[i];
-			if (leaf !== leafsInScope[i]) { 
-				leaf.replaceWith(leafsInScope[i], false, true);
-				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
-				leafsInScope[i] = leaf;
-			}
-		}
+		self.nodes.sort(function(a, b) {
+			return a.displaySequence - b.displaySequence || a.value > b.value;
+		});
 	};
 	
 	this.finalize = function() {

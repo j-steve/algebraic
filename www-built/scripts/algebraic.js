@@ -234,6 +234,10 @@ function BaseNode() {
 			replacementNode.rightNode = self.rightNode;
 		}
 	};
+	
+	this.finalize = function() { 
+		self.nodes.forEach(function(node) {node.finalize();}); 
+	};
 	 
 	this.cleanup = function() { 
 		self.nodes.forEach(function(node) {
@@ -259,8 +263,11 @@ function BaseNode() {
 	this.toString = function() {
 		var result = self.printVals.before; 
 		if (self.leftNode) {result += '<span class="leftNode">' + self.leftNode + '</span>';}
-		result += self.printVals.middle;
-		if (self.rightNode) {result += '<span class="rightNode">' + self.rightNode + '</span>';}
+		var nodes = self.nodes.slice(1);
+		while (nodes.length) { 
+			result += self.printVals.middle;
+			result += '<span class="rightNode">' + nodes.shift() + '</span>';
+		}
 		return result + self.printVals.after;
 	};
 	
@@ -337,11 +344,16 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 		}
 	};
 	
+	this.finalize = function() {
+		self.nodes = self.getNodesInScope();
+		$super.finalize();
+	};
+	
 	this.simplify = function() {
 		$super.simplify();
 		
 		var leafsInScope = self.getNodesInScope();
-		//var checkNodes = self.nodes.slice(); 
+		//var checkNodes = self.nodes.slice();
 		 
 		nodes: for (var i = 0; i < SIDES.length; i++) { 
 			var side = SIDES[i];
@@ -370,19 +382,17 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	};
 	
 	this.getNodesInScope = function() {
-		var leafs = [];
+		var endNodes = [];
 		var stack = self.nodes.slice();
 		while (stack.length) {
 			var node = stack.shift();
-			if (node instanceof LeafNode) {
-				leafs.push(node);
-			} else if (node instanceof opInstanceType) {
+			if (node instanceof opInstanceType) {
 				stack = node.nodes.concat(stack);
 			} else {
-				leafs.push(node);
+				endNodes.push(node);
 			}
 		}
-		return leafs;
+		return endNodes;
 	};
 }
 
@@ -527,9 +537,11 @@ function makeEquationTree(inputEquation) {
 		}
 		if (typeof match.node !== 'string') {activeNode = match.node;}
 		i += match.charCount;
-	}
-	 
-	return getRoot(activeNode);
+	} 
+	
+	var root = getRoot(activeNode);
+	root.finalize();
+	return root;
 }
 
 function closeTilType(nodeType) { 

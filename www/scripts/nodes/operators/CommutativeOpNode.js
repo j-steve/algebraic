@@ -30,6 +30,11 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 		}
 	};
 	
+	this.finalize = function() {
+		self.nodes = self.getNodesInScope();
+		$super.finalize();
+	};
+	
 	this.simplify = function() {
 		$super.simplify();
 		

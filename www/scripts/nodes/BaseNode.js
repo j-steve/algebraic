@@ -111,6 +111,10 @@ function BaseNode() {
 			replacementNode.rightNode = self.rightNode;
 		}
 	};
+	
+	this.finalize = function() { 
+		self.nodes.forEach(function(node) {node.finalize();}); 
+	};
 	 
 	this.cleanup = function() { 
 		self.nodes.forEach(function(node) {
@@ -136,8 +140,11 @@ function BaseNode() {
 	this.toString = function() {
 		var result = self.printVals.before; 
 		if (self.leftNode) {result += '<span class="leftNode">' + self.leftNode + '</span>';}
-		result += self.printVals.middle;
-		if (self.rightNode) {result += '<span class="rightNode">' + self.rightNode + '</span>';}
+		var nodes = self.nodes.slice(1);
+		while (nodes.length) { 
+			result += self.printVals.middle;
+			result += '<span class="rightNode">' + nodes.shift() + '</span>';
+		}
 		return result + self.printVals.after;
 	};
 	

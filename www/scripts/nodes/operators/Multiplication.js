@@ -17,9 +17,9 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	
 	this.simplify = function() {
 		$super.simplify();
-		if (self.leftNode instanceof RealNumberNode && self.leftNode.value === 1) {
-			self.replaceWith(self.rightNode);
-		}
+		self.nodes.forEach(function(node) {
+			if (node.equals(1)) {node.remove();}
+		});
 	};
 	
 	function multiply(a, b) { 

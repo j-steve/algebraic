@@ -181,9 +181,16 @@ function BaseNode() {
 		return children;
 	};
 	
+	this.rotateLeft = function(newNode) {
+		if (self.parent) {self.replaceWith(newNode);}
+		newNode.leftNode = self;
+		return newNode;
+	};
 	
-	this.hasBothLeafs = function() {
-		return self.leftNode instanceof LeafNode && self.rightNode instanceof LeafNode;
+	this.rotateRight = function(newNode) {
+		if (self.parent) {self.replaceWith(newNode);}
+		newNode.rightNode = self;
+		return newNode;
 	};
 	
 	this.addChild = function(newNode) {
@@ -196,16 +203,8 @@ function BaseNode() {
 		}
 	};
 	
-	this.rotateLeft = function(newNode) {
-		if (self.parent) {self.replaceWith(newNode);}
-		newNode.leftNode = self;
-		return newNode;
-	};
-	
-	this.rotateRight = function(newNode) {
-		if (self.parent) {self.replaceWith(newNode);}
-		newNode.rightNode = self;
-		return newNode;
+	this.detach = function() {
+		self.parent.nodes.remove(self);
 	};
 	
 	/**
@@ -236,20 +235,30 @@ function BaseNode() {
 	};
 	
 	this.finalize = function() { 
-		self.nodes.forEach(function(node) {node.finalize();}); 
-	};
-	 
-	this.cleanup = function() { 
 		self.nodes.forEach(function(node) {
-			node.cleanup();
-			if (node.leftNode && !node.rightNode) {
-				node.replaceWith(node.leftNode); 
-			}
+			var fnode = node.removeIfObsolete();
+			if (fnode) {fnode.finalize();}
 		}); 
 	};
 	
+	this.removeIfObsolete = function() {
+		switch (self.nodes.length) {
+			case 0:		self.detach(); 						return null;
+			case 1:		self.replaceWith(self.leftNode);	return self.leftNode;
+			default:	return self;
+		}
+	};
+	
+	this.cleanup = function() { 
+		/*self.nodes.forEach(function(node) {
+			node.cleanup();
+			node.removeIfObsolete();
+		}); */
+	};
+	
 	this.simplify = function() {
-		self.nodes.forEach(function(node) {node.simplify();});
+		//self.nodes.forEach(function(node) {node.simplify();});
+		
 	};
 	
 	this.equals = function(other) {
@@ -411,6 +420,16 @@ function LeafNode(value, displaySequence) {
 
 	this.value = value; 
 	this.displaySequence = displaySequence;
+	
+	/**
+	 * LeafNodes are never obsolete, so override the function to return itself everytime
+	 * to prevent the LeafNode from being removed from the heirchy (since LeafNodes have no child nodes).
+	 * 
+	 * @returns {LeafNode}
+	 */
+	this.removeIfObsolete = function() {
+		return self;
+	};
 	
 	this.toString = function() {
 		return self.value;
@@ -1035,9 +1054,9 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	
 	this.simplify = function() {
 		$super.simplify();
-		if (self.leftNode instanceof RealNumberNode && self.leftNode.value === 1) {
-			self.replaceWith(self.rightNode);
-		}
+		self.nodes.forEach(function(node) {
+			if (node.equals(1)) {node.remove();}
+		});
 	};
 	
 	function multiply(a, b) { 

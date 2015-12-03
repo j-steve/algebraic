@@ -19,6 +19,16 @@ function LeafNode(value, displaySequence) {
 	this.value = value; 
 	this.displaySequence = displaySequence;
 	
+	/**
+	 * LeafNodes are never obsolete, so override the function to return itself everytime
+	 * to prevent the LeafNode from being removed from the heirchy (since LeafNodes have no child nodes).
+	 * 
+	 * @returns {LeafNode}
+	 */
+	this.removeIfObsolete = function() {
+		return self;
+	};
+	
 	this.toString = function() {
 		return self.value;
 	};

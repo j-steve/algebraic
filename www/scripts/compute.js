@@ -16,7 +16,7 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		prettyInputElement.innerHTML = rootNode.toString(); 
 		
 		rootNode.cleanup();
-		//rootNode.simplify();
+		rootNode.simplify();
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();
 		

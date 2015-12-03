@@ -9,14 +9,21 @@
  */
 function AdditionNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = AdditionNode.$super(this, '+', 2, AdditionNode, add);
+	var $super = AdditionNode.$super(this, '+', 2, add, true);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() { 
 		$super.cleanup();
-		self.nodes = self.nodes.filter(function(n) {return !n.equals(0);});
+		self.nodes = self.nodes.filter(function(n) {return !n.equals(0);}); 
+		self.nodes.sort(function(a, b) {
+			if (instanceOf([a, b], LeafNode)) {
+				return b.displaySequence - a.displaySequence || a.value > b.value;
+			} else if (instanceOf([a, b], ExponentNode)) {
+				return b.displaySequence - a.displaySequence || a.value > b.value;
+			}
+		});
 	};
 	
 	function add(a, b) {

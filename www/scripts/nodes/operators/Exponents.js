@@ -14,6 +14,16 @@ function ExponentNode(_leftNode, _rightNode) {
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
+	/*Object.defineProperty(self, 'displaySequence', {
+		get: function() {
+			if (self.rightNode instanceof RealNumberNode) {
+				return Math.abs(self.rightNode.value);
+			} else {
+				return self.rightNode.displaySequence;
+			}
+		}
+	});*/
+	
 	this.simplify = function() {
 		$super.simplify();
 		/*

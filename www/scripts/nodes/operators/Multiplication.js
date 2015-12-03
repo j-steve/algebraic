@@ -10,7 +10,7 @@ Object.extend(CommutativeOpNode, MultiplicationNode);
  */
 function MultiplicationNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = MultiplicationNode.$super(this, '&sdot;', 3, MultiplicationNode, multiply);
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3, multiply);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -18,6 +18,9 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	this.cleanup = function() {
 		$super.cleanup();
 		self.nodes = self.nodes.filter(function(n) {return !n.equals(1);});
+		self.nodes.sort(function(a, b) {
+			return a.displaySequence - b.displaySequence || a.value > b.value;
+		});
 	};
 	
 	function multiply(a, b) { 

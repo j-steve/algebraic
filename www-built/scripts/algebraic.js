@@ -287,36 +287,19 @@ Object.extend(OperatorNode, CommutativeOpNode);
  * 
  * @param {string} _debugSymbol
  * @param {number} _stickinesss
- * @param {Function} opInstanceType
  * @param {Function} operatorFunction
+ * @param {boolean} reverseSequence
  */
-function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorFunction) {
+function CommutativeOpNode(_debugSymbol, _stickinesss, operatorFunction) {
 	var self = this;
 	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	
 	this.cleanup = function() { 
 		$super.cleanup();
-		self.nodes.sort(function(a, b) {
-			return a.displaySequence - b.displaySequence || a.value > b.value;
-		});
 	};
 	
 	this.simplify = function() {
 		$super.simplify();
-	};
-	
-	this.getNodesInScope = function() {
-		var endNodes = [];
-		var stack = self.nodes.slice();
-		while (stack.length) {
-			var node = stack.shift();
-			if (node instanceof opInstanceType) {
-				stack = node.nodes.concat(stack);
-			} else {
-				endNodes.push(node);
-			}
-		}
-		return endNodes;
 	};
 }
 
@@ -543,7 +526,7 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		prettyInputElement.innerHTML = rootNode.toString(); 
 		
 		rootNode.cleanup();
-		//rootNode.simplify();
+		rootNode.simplify();
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();
 		
@@ -570,14 +553,21 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
  */
 function AdditionNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = AdditionNode.$super(this, '+', 2, AdditionNode, add);
+	var $super = AdditionNode.$super(this, '+', 2, add, true);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() { 
 		$super.cleanup();
-		self.nodes = self.nodes.filter(function(n) {return !n.equals(0);});
+		self.nodes = self.nodes.filter(function(n) {return !n.equals(0);}); 
+		self.nodes.sort(function(a, b) {
+			if (instanceOf([a, b], LeafNode)) {
+				return b.displaySequence - a.displaySequence || a.value > b.value;
+			} else if (instanceOf([a, b], ExponentNode)) {
+				return b.displaySequence - a.displaySequence || a.value > b.value;
+			}
+		});
 	};
 	
 	function add(a, b) {
@@ -872,6 +862,16 @@ function ExponentNode(_leftNode, _rightNode) {
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
+	/*Object.defineProperty(self, 'displaySequence', {
+		get: function() {
+			if (self.rightNode instanceof RealNumberNode) {
+				return Math.abs(self.rightNode.value);
+			} else {
+				return self.rightNode.displaySequence;
+			}
+		}
+	});*/
+	
 	this.simplify = function() {
 		$super.simplify();
 		/*
@@ -955,7 +955,7 @@ Object.extend(CommutativeOpNode, MultiplicationNode);
  */
 function MultiplicationNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = MultiplicationNode.$super(this, '&sdot;', 3, MultiplicationNode, multiply);
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3, multiply);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -963,6 +963,9 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	this.cleanup = function() {
 		$super.cleanup();
 		self.nodes = self.nodes.filter(function(n) {return !n.equals(1);});
+		self.nodes.sort(function(a, b) {
+			return a.displaySequence - b.displaySequence || a.value > b.value;
+		});
 	};
 	
 	function multiply(a, b) { 

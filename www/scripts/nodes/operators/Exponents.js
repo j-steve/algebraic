@@ -16,6 +16,7 @@ function ExponentNode(_leftNode, _rightNode) {
 	
 	this.simplify = function() {
 		$super.simplify();
+		/*
 		if (self.rightNode.equals(1)) {
 			self.replaceWith(self.leftNode);
 		} else if (self.rightNode.equals(0)) {
@@ -23,7 +24,7 @@ function ExponentNode(_leftNode, _rightNode) {
 		} else if (instanceOf(self.nodes, RealNumberNode)) {
 			var result = Math.pow(self.leftNode.value, self.rightNode.value);
 			self.replaceWith(new RealNumberNode(result));
-		}
+		}*/
 	};
 }
 Object.extend(OperatorNode, ExponentNode);

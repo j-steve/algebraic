@@ -31,9 +31,6 @@ function ParenthesisNode() {
 	
 	this.cleanup = function() {
 		$super.cleanup();
-		if (self.leftNode instanceof LeafNode) {
-			self.replaceWith(self.leftNode);
-		}
 	};
 }
 Object.extend(EnclosureNode, ParenthesisNode);

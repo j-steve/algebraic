@@ -21,11 +21,11 @@ function ComparisonNode(_debugSymbol) {
 			if (!partToSwap || !partToKeep) {break;}
 			
 			if (varSide instanceof AdditionNode) {
-				noVarSide.rotateLeft(new SubtractionNode(null, partToSwap));
+				self.rotateLeft(noVarSide, new SubtractionNode(partToSwap));
 				
 			} else if (varSide instanceof SubtractionNode) {
 				if (partToSwap === varSide.rightNode) { 
-					noVarSide.rotateLeft(new AdditionNode(null, partToSwap));
+					self.rotateLeft(noVarSide, new AdditionNode(partToSwap));
 				} else {  
 					var subtractor = noVarSide.rotateLeft(new SubtractionNode(null, partToSwap));  
 					var neg1Multiplier = subtractor.rotateLeft(new MultiplicationNode(null, -1)); 
@@ -33,28 +33,28 @@ function ComparisonNode(_debugSymbol) {
 				}
 				
 			} else if (varSide instanceof MultiplicationNode) {
-				noVarSide.rotateLeft(new DivisionNode(null, partToSwap));
+				self.rotateLeft(noVarSide, new DivisionNode(partToSwap));
 				
 			} else if (varSide instanceof DivisionNode) {
 				if (partToSwap === varSide.rightNode) { 
-					noVarSide.rotateLeft(new MultiplicationNode(null, partToSwap));
+					self.rotateLeft(noVarSide, new MultiplicationNode(partToSwap));
 				} else { // x is the denominator, e.g. "2/x", so multiply other side by x to solve.
-					noVarSide.rotateLeft(new MultiplicationNode(null, partToKeep));
+					self.rotateLeft(noVarSide, new MultiplicationNode(partToKeep));
 					partToKeep = partToSwap;
 				} 
 				
 			} else if (varSide instanceof ExponentNode) {
 				if (partToSwap === varSide.rightNode) { 
-					noVarSide.rotateRight(new NthRootNode(partToSwap, null));
+					self.rotateRight(noVarSide, new NthRootNode(partToSwap));
 				} else { // x is the exponent, e.g., 2^x
-					noVarSide.rotateRight(new LogarithmNode(partToSwap, null)); 
+					self.rotateRight(noVarSide, new LogarithmNode(partToSwap)); 
 				}
 				
 			} else {
 				alert('breakin up is hard');
 				break;
 			}
-			varSide.replaceWith(partToKeep, false, true);
+			self.replace(varSide, partToKeep, false);
 			
 			varSide = getSideWithVar(self);
 			noVarSide = getSideWithoutVar(self);
@@ -64,7 +64,7 @@ function ComparisonNode(_debugSymbol) {
 			noVarSide.cleanup();
 			noVarSide.simplify(); 
 			if (varSide === self.rightNode) {
-				self.leftNode.replaceWith(self.rightNode, false, true);
+				self.replace(self.leftNode, self.rightNode, false);
 			}
 		}
 		

@@ -17,9 +17,7 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	
 	this.cleanup = function() {
 		$super.cleanup();
-		self.nodes.forEach(function(node) {
-			if (node.equals(1)) {node.remove();}
-		});
+		self.nodes = self.nodes.filter(function(n) {return !n.equals(1);});
 	};
 	
 	function multiply(a, b) { 

@@ -45,34 +45,6 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	
 	this.simplify = function() {
 		$super.simplify();
-		
-		var leafsInScope = self.getNodesInScope();
-		//var checkNodes = self.nodes.slice();
-		 
-		nodes: for (var i = 0; i < SIDES.length; i++) { 
-			var side = SIDES[i];
-			var node = self[side];
-			for (var j = 0; j < leafsInScope.length; j++) {
-				var otherNode = leafsInScope[j];
-				if (otherNode !== node) { 
-					var opResult = operatorFunction.call(null, node, otherNode);
-					if (opResult) {
-						opResult.simplify();
-						if (otherNode.parent === self) {
-							self.replaceWith(opResult);
-							return;
-						}
-						self[side] = opResult;
-						var otherNodeSister = otherNode.parent.nodes.find(function(x) {return x !== otherNode;});
-						otherNode.parent.replaceWith(otherNodeSister);
-						leafsInScope.remove(node, otherNode);
-						leafsInScope.push(opResult);
-						i--;
-						continue nodes;
-					}
-				}
-			}
-		}
 	};
 	
 	this.getNodesInScope = function() {

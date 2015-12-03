@@ -16,9 +16,7 @@ function AdditionNode(_leftNode, _rightNode) {
 	
 	this.cleanup = function() { 
 		$super.cleanup();
-		self.nodes.forEach(function(node) {
-			if (node.equals(0)) {node.remove();}
-		});
+		self.nodes = self.nodes.filter(function(n) {return !n.equals(0);});
 	};
 	
 	function add(a, b) {
@@ -63,12 +61,7 @@ function SubtractionNode(_leftNode, _rightNode) {
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() { 
-		$super.simplify();
-		
-		if (self.rightNode instanceof RealNumberNode) {
-			self.rightNode.value *= -1;
-			self.replaceWith(new AdditionNode(), true);
-		}
+		$super.cleanup();
 	};
 }
 

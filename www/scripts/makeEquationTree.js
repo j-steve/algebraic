@@ -48,7 +48,6 @@ function EquationTree(inputEquation) {
 	function addChildNode(newNode) {
 		addImplicitMultiply();
 		nodeStack.peek().nodes.push(newNode);
-		newNode.parent = nodeStack.peek();
 	}
 
 	function closeTilType(nodeType) { 
@@ -70,7 +69,8 @@ function EquationTree(inputEquation) {
 		while (activeNodeSticksToOperator(newOperatorNode) && parentOfLatest()) {
 			nodeStack.pop();
 		}
-		nodeStack.pop().rotateLeft(newOperatorNode);
+		var oldOp = nodeStack.pop();
+		nodeStack.peek().rotateLeft(oldOp, newOperatorNode);
 	}
 
 	function activeNodeSticksToOperator(newOperatorNode) {  

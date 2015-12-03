@@ -5,7 +5,6 @@ var SIDES = ['leftNode', 'rightNode'];
 /**
  * @constructor
  * 
- * @property {BaseNode} parent
  * @property {Array} nodes
  * @property {BaseNode} leftNode
  * @property {BaseNode} rightNode
@@ -17,20 +16,16 @@ function BaseNode() {
     // Properties
     // ================================================================================
 	
-	this.parent = null;
-	
 	this.nodes = [];
+	
+	this.requiresNodes = true;
 	
 	SIDES.forEach(function(side, index) {
 		Object.defineProperty(self, side, {
 			get: function() {return self.nodes[index];},
 			set: function(value) {
-				//if (value === self) {throw new Error('Cannot set as own child.');}
 				if (typeof value === 'number') {
 					value = new RealNumberNode(value);
-				}
-				if (value) {
-					value.parent = self;
 				}
 				self.nodes[index] = value;
 			}
@@ -58,72 +53,33 @@ function BaseNode() {
 		return children;
 	};
 	
-	this.rotateLeft = function(newNode) {
-		if (self.parent) {self.replaceWith(newNode);}
-		newNode.leftNode = self;
-		return newNode;
+	this.rotateLeft = function(oldNode, newNode) {
+		self.replace(oldNode, newNode);
+		newNode.nodes.unshift(oldNode);
 	};
 	
-	this.rotateRight = function(newNode) {
-		if (self.parent) {self.replaceWith(newNode);}
-		newNode.rightNode = self;
-		return newNode;
-	};
-	
-	this.addChild = function(newNode) {
-		var nextNode = self.nodes.length;
-		if (nextNode >= SIDES.length) {
-			//throw new Error('Cannot add child, already has all children.');
-			this.rotateLeft(newNode);
-		} else {
-			self[SIDES[nextNode]] = newNode;
-		}
-	};
-	
-	this.remove = function() {
-		self.parent.nodes.remove(self);
-	};
-	
-	/**
-	 * Returns the string name of the side of the parentNode on which this node appears.
-	 * 
-	 * @returns {string}   either "leftNode" or "rightNode"
-	 */
-	this.side = function() { 
-		return SIDES[self.parent.nodes.indexOf(self)];
+	this.rotateRight = function(oldNode, newNode) {
+		self.replace(oldNode, newNode);
+		newNode.nodes.push(oldNode);
 	};
 	
 	/**
 	 * @param {BaseNode} replacementNode
 	 * @param {boolean} [stealNodes=false]
 	 */
-	this.replaceWith = function(replacementNode, stealNodes, takeReplacementParent) {
-		if (!self.parent) {self.parent = new BaseNode();}
-		var side = self.side();
-		var parent = self.parent;
-		if (takeReplacementParent && replacementNode && replacementNode.parent) { 
-			replacementNode.parent[replacementNode.side()] = self;
-		}
-		parent[side] = replacementNode;
-		if (stealNodes) {  
-			replacementNode.leftNode = self.leftNode;
-			replacementNode.rightNode = self.rightNode;
-		}
+	this.replace = function(oldNode, newNode) {
+		var i = self.nodes.indexOf(oldNode);
+		if (i === -1) {throw new Error('Does not contain oldnode.');}
+		if (newNode) {self.nodes.splice(i, 1, newNode);} else {self.nodes.splice(i, 1);}
 	};
 	
 	this.finalize = function() { 
-		self.nodes.forEach(function(node) {
-			var fnode = node.removeIfObsolete();
-			if (fnode) {fnode.finalize();}
+		self.nodes.forEach(function(n) {
+			n.finalize();
+			if (n.requiresNodes && n.nodes.length <= 1) {
+				self.replace(n, n.leftNode);
+			}
 		}); 
-	};
-	
-	this.removeIfObsolete = function() {
-		switch (self.nodes.length) {
-			case 0:		self.detach(); 						return null;
-			case 1:		self.replaceWith(self.leftNode);	return self.leftNode;
-			default:	return self;
-		}
 	};
 	
 	this.cleanup = function() { 
@@ -166,4 +122,6 @@ Object.extend(BaseNode, TreeRootNode);
  */
 function TreeRootNode() {
 	var $super = TreeRootNode.$super(this);
+	
+	this.requiresNodes = false;
 }

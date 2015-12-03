@@ -30,9 +30,11 @@ function makeEquationTree(inputEquation) {
 		}
 		if (typeof match.node !== 'string') {activeNode = match.node;}
 		i += match.charCount;
-	}
-	 
-	return getRoot(activeNode);
+	} 
+	
+	var root = getRoot(activeNode);
+	root.finalize();
+	return root;
 }
 
 function closeTilType(nodeType) { 

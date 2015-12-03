@@ -234,6 +234,10 @@ function BaseNode() {
 			replacementNode.rightNode = self.rightNode;
 		}
 	};
+	
+	this.finalize = function() { 
+		self.nodes.forEach(function(node) {node.finalize();}); 
+	};
 	 
 	this.cleanup = function() { 
 		self.nodes.forEach(function(node) {
@@ -259,8 +263,11 @@ function BaseNode() {
 	this.toString = function() {
 		var result = self.printVals.before; 
 		if (self.leftNode) {result += '<span class="leftNode">' + self.leftNode + '</span>';}
-		result += self.printVals.middle;
-		if (self.rightNode) {result += '<span class="rightNode">' + self.rightNode + '</span>';}
+		var nodes = self.nodes.slice(1);
+		while (nodes.length) { 
+			result += self.printVals.middle;
+			result += '<span class="rightNode">' + nodes.shift() + '</span>';
+		}
 		return result + self.printVals.after;
 	};
 	
@@ -324,24 +331,21 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	
 	this.cleanup = function() { 
 		$super.cleanup();
-		
-		var leafsInScope = self.getLeafsInScope().filter(function(x) {return x instanceof LeafNode;});
-		var sortedLeafs = leafsInScope.sorted(function(a, b) {return a.displaySequence - b.displaySequence || a.value > b.value;});
-		for (var i = 0; i < sortedLeafs.length - 1; i++) {
-			var leaf = sortedLeafs[i];
-			if (leaf !== leafsInScope[i]) { 
-				leaf.replaceWith(leafsInScope[i], false, true);
-				leafsInScope[leafsInScope.indexOf(leaf)] = leafsInScope[i];
-				leafsInScope[i] = leaf;
-			}
-		}
+		self.nodes.sort(function(a, b) {
+			return a.displaySequence - b.displaySequence || a.value > b.value;
+		});
+	};
+	
+	this.finalize = function() {
+		self.nodes = self.getNodesInScope();
+		$super.finalize();
 	};
 	
 	this.simplify = function() {
 		$super.simplify();
 		
-		var leafsInScope = self.getLeafsInScope();
-		//var checkNodes = self.nodes.slice(); 
+		var leafsInScope = self.getNodesInScope();
+		//var checkNodes = self.nodes.slice();
 		 
 		nodes: for (var i = 0; i < SIDES.length; i++) { 
 			var side = SIDES[i];
@@ -369,20 +373,18 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 		}
 	};
 	
-	this.getLeafsInScope = function() {
-		var leafs = [];
+	this.getNodesInScope = function() {
+		var endNodes = [];
 		var stack = self.nodes.slice();
 		while (stack.length) {
 			var node = stack.shift();
-			if (node instanceof LeafNode) {
-				leafs.push(node);
-			} else if (node instanceof opInstanceType) {
+			if (node instanceof opInstanceType) {
 				stack = node.nodes.concat(stack);
 			} else {
-				leafs.push(node);
+				endNodes.push(node);
 			}
 		}
-		return leafs;
+		return endNodes;
 	};
 }
 
@@ -527,9 +529,11 @@ function makeEquationTree(inputEquation) {
 		}
 		if (typeof match.node !== 'string') {activeNode = match.node;}
 		i += match.charCount;
-	}
-	 
-	return getRoot(activeNode);
+	} 
+	
+	var root = getRoot(activeNode);
+	root.finalize();
+	return root;
 }
 
 function closeTilType(nodeType) { 
@@ -809,6 +813,78 @@ Object.extend(ComparisonNode, LessOrEqualNode);
 
 
 // ====================================================================================================
+//      ../nodes/operators/Division.js
+// ====================================================================================================
+
+Object.extend(OperatorNode, DivisionNode);
+/**
+ * @constructor
+ * @extends {OperatorNode}
+ * 
+ * @param {BaseNode} _leftNode
+ * @param {BaseNode} _rightNode
+ */
+function DivisionNode(_leftNode, _rightNode) {
+	var self = this; 
+	var $super = DivisionNode.$super(this, '∕', 3);
+	
+	if (_leftNode) {this.leftNode = _leftNode;}
+	if (_rightNode) {this.rightNode = _rightNode;}
+	
+	this.simplify = function() {
+		$super.simplify(); 
+		
+		var numerator = getScopedNodes(self.leftNode);
+		var denominator = getScopedNodes(self.rightNode);
+		if (instanceOf([self.leftNode, self.rightNode], [LeafNode, MultiplicationNode])) {
+			Array.combos(numerator, denominator).forEach(function(combo) {
+				if (instanceOf(combo, RealNumberNode)) {
+					var gcd = commonDenominator(combo[0].value, combo[1].value);
+					if (gcd) {
+						combo[0].value /= gcd;
+						combo[1].value /= gcd;
+					}
+				} else if (combo[0].equals(combo[1])) {
+					combo[0].replaceWith(new RealNumberNode(1));
+					combo[1].replaceWith(new RealNumberNode(1));
+				} else if (instanceOf(combo, [ExponentNode, LeafNode])) {
+					
+				}
+			});
+			$super.simplify();
+		} else if (instanceOf([self.leftNode], [AdditionNode, SubtractionNode]) && self.rightNode instanceof RealNumberNode) {
+			numerator.forEach(function(node) {
+				node.rotateLeft(new DivisionNode(null, self.rightNode.value));
+			});
+			self.leftNode.simplify();
+			self.replaceWith(self.leftNode);
+		}
+		
+
+		if (self.rightNode instanceof RealNumberNode && self.rightNode.value === 1) {
+			self.replaceWith(self.leftNode);
+		} else if (self.leftNode instanceof DivisionNode) { 
+			self.rightNode = new MultiplicationNode(self.leftNode.rightNode, self.rightNode);
+			self.leftNode = self.leftNode.leftNode;
+			self.simplify();
+		}
+	};
+	
+	function getScopedNodes(node) {
+		//if (node instanceof ParenthesisNode) {node = node.leftNode;}
+		return node instanceof CommutativeOpNode ? node.getNodesInScope() : [node];
+	}
+}
+
+function commonDenominator(a, b) {
+	var vals = [a, b].map(Math.abs);
+	for (var i = vals[0]; i >= 2; i--) {
+		if (vals[0] % i === 0 && vals[1] % i === 0) {return i;}
+	}
+}
+
+
+// ====================================================================================================
 //      ../nodes/operators/Enclosures.js
 // ====================================================================================================
 
@@ -1006,74 +1082,6 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		} 
 		return $super.toString();
 	}; 
-}
-
-
-Object.extend(OperatorNode, DivisionNode);
-/**
- * @constructor
- * @extends {OperatorNode}
- * 
- * @param {BaseNode} _leftNode
- * @param {BaseNode} _rightNode
- */
-function DivisionNode(_leftNode, _rightNode) {
-	var self = this; 
-	var $super = DivisionNode.$super(this, '∕', 3);
-	
-	if (_leftNode) {this.leftNode = _leftNode;}
-	if (_rightNode) {this.rightNode = _rightNode;}
-	
-	this.simplify = function() {
-		$super.simplify(); 
-		
-		var numerator = getScopedNodes(self.leftNode);
-		var denominator = getScopedNodes(self.rightNode);
-		if (instanceOf([self.leftNode, self.rightNode], [LeafNode, MultiplicationNode])) {
-			Array.combos(numerator, denominator).forEach(function(combo) {
-				if (instanceOf(combo, RealNumberNode)) {
-					var gcd = commonDenominator(combo[0].value, combo[1].value);
-					if (gcd) {
-						combo[0].value /= gcd;
-						combo[1].value /= gcd;
-					}
-				} else if (combo[0].equals(combo[1])) {
-					combo[0].replaceWith(new RealNumberNode(1));
-					combo[1].replaceWith(new RealNumberNode(1));
-				} else if (instanceOf(combo, [ExponentNode, LeafNode])) {
-					
-				}
-			});
-			$super.simplify();
-		} else if (instanceOf([self.leftNode], [AdditionNode, SubtractionNode]) && self.rightNode instanceof RealNumberNode) {
-			numerator.forEach(function(node) {
-				node.rotateLeft(new DivisionNode(null, self.rightNode.value));
-			});
-			self.leftNode.simplify();
-			self.replaceWith(self.leftNode);
-		}
-		
-
-		if (self.rightNode instanceof RealNumberNode && self.rightNode.value === 1) {
-			self.replaceWith(self.leftNode);
-		} else if (self.leftNode instanceof DivisionNode) { 
-			self.rightNode = new MultiplicationNode(self.leftNode.rightNode, self.rightNode);
-			self.leftNode = self.leftNode.leftNode;
-			self.simplify();
-		}
-	};
-	
-	function getScopedNodes(node) {
-		//if (node instanceof ParenthesisNode) {node = node.leftNode;}
-		return node instanceof CommutativeOpNode ? node.getLeafsInScope() : [node];
-	}
-}
-
-function commonDenominator(a, b) {
-	var vals = [a, b].map(Math.abs);
-	for (var i = vals[0]; i >= 2; i--) {
-		if (vals[0] % i === 0 && vals[1] % i === 0) {return i;}
-	}
 }
 
 

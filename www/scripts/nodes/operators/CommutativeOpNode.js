@@ -15,16 +15,31 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	var self = this;
 	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	
+	
+	this.finalize = function() {
+		self.nodes = getNodesInScope();
+		self.nodes.forEach(function(node) {node.parent = self;});
+		$super.finalize();
+	};
+	
+	function getNodesInScope() {
+		var nodeStack = self.nodes.slice();
+		while (nodeStack.length) {
+			var node = nodeStack.shift();
+			if (node instanceof opInstanceType) {
+				nodeStack = node.nodes.concat(nodeStack);
+			} else {
+				nodeStack.push(node);
+			}
+		}
+		return nodeStack;
+	}
+	
 	this.cleanup = function() { 
 		$super.cleanup();
 		self.nodes.sort(function(a, b) {
 			return a.displaySequence - b.displaySequence || a.value > b.value;
 		});
-	};
-	
-	this.finalize = function() {
-		self.nodes = self.getNodesInScope();
-		$super.finalize();
 	};
 	
 	this.simplify = function() {

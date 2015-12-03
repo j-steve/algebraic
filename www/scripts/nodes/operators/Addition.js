@@ -15,11 +15,10 @@ function AdditionNode(_leftNode, _rightNode) {
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() { 
-		$super.cleanup(); 
-		
-		if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
-			self.leftNode.replaceWith(self.rightNode);
-		}
+		$super.cleanup();
+		self.nodes.forEach(function(node) {
+			if (node.equals(0)) {node.remove();}
+		});
 	};
 	
 	function add(a, b) {

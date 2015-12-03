@@ -69,7 +69,6 @@ function LogarithmNode(base, _rightNode) {
 	
 	this.cleanup = function() {
 		$super.cleanup();
-		if (!self.rightNode) {self.replaceWith(null);}
 	};
 	
 	this.simplify = function() {

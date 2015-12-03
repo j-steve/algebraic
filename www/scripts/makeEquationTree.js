@@ -1,5 +1,6 @@
 /* global ParenthesisNode, OperatorNode, LeafNode, parseInput, EnclosureNode, OperatorPrefixNode */
 
+
 var activeNode;
 
 /**

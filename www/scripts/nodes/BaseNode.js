@@ -80,7 +80,7 @@ function BaseNode() {
 		}
 	};
 	
-	this.detach = function() {
+	this.remove = function() {
 		self.parent.nodes.remove(self);
 	};
 	
@@ -127,10 +127,10 @@ function BaseNode() {
 	};
 	
 	this.cleanup = function() { 
-		/*self.nodes.forEach(function(node) {
+		self.nodes.forEach(function(node) {
 			node.cleanup();
 			node.removeIfObsolete();
-		}); */
+		});
 	};
 	
 	this.simplify = function() {

@@ -203,7 +203,7 @@ function BaseNode() {
 		}
 	};
 	
-	this.detach = function() {
+	this.remove = function() {
 		self.parent.nodes.remove(self);
 	};
 	
@@ -250,10 +250,10 @@ function BaseNode() {
 	};
 	
 	this.cleanup = function() { 
-		/*self.nodes.forEach(function(node) {
+		self.nodes.forEach(function(node) {
 			node.cleanup();
 			node.removeIfObsolete();
-		}); */
+		});
 	};
 	
 	this.simplify = function() {
@@ -338,16 +338,31 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	var self = this;
 	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	
+	
+	this.finalize = function() {
+		self.nodes = getNodesInScope();
+		self.nodes.forEach(function(node) {node.parent = self;});
+		$super.finalize();
+	};
+	
+	function getNodesInScope() {
+		var nodeStack = self.nodes.slice();
+		while (nodeStack.length) {
+			var node = nodeStack.shift();
+			if (node instanceof opInstanceType) {
+				nodeStack = node.nodes.concat(nodeStack);
+			} else {
+				nodeStack.push(node);
+			}
+		}
+		return nodeStack;
+	}
+	
 	this.cleanup = function() { 
 		$super.cleanup();
 		self.nodes.sort(function(a, b) {
 			return a.displaySequence - b.displaySequence || a.value > b.value;
 		});
-	};
-	
-	this.finalize = function() {
-		self.nodes = self.getNodesInScope();
-		$super.finalize();
 	};
 	
 	this.simplify = function() {
@@ -617,11 +632,10 @@ function AdditionNode(_leftNode, _rightNode) {
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() { 
-		$super.cleanup(); 
-		
-		if (self.leftNode instanceof LeafNode && self.rightNode instanceof MultiplicationNode) {
-			self.leftNode.replaceWith(self.rightNode);
-		}
+		$super.cleanup();
+		self.nodes.forEach(function(node) {
+			if (node.equals(0)) {node.remove();}
+		});
 	};
 	
 	function add(a, b) {
@@ -1019,7 +1033,6 @@ function LogarithmNode(base, _rightNode) {
 	
 	this.cleanup = function() {
 		$super.cleanup();
-		if (!self.rightNode) {self.replaceWith(null);}
 	};
 	
 	this.simplify = function() {
@@ -1052,8 +1065,8 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
-	this.simplify = function() {
-		$super.simplify();
+	this.cleanup = function() {
+		$super.cleanup();
 		self.nodes.forEach(function(node) {
 			if (node.equals(1)) {node.remove();}
 		});

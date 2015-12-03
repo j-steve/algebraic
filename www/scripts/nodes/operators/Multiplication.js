@@ -15,8 +15,8 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
-	this.simplify = function() {
-		$super.simplify();
+	this.cleanup = function() {
+		$super.cleanup();
 		self.nodes.forEach(function(node) {
 			if (node.equals(1)) {node.remove();}
 		});

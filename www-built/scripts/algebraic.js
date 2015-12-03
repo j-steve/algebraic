@@ -141,8 +141,6 @@ function BaseNode() {
 	
 	this.nodes = [];
 	
-	this.requiresNodes = true;
-	
 	SIDES.forEach(function(side, index) {
 		Object.defineProperty(self, side, {
 			get: function() {return self.nodes[index];},
@@ -196,15 +194,6 @@ function BaseNode() {
 		if (newNode) {self.nodes.splice(i, 1, newNode);} else {self.nodes.splice(i, 1);}
 	};
 	
-	this.finalize = function() { 
-		self.nodes.forEach(function(n) {
-			n.finalize();
-			if (n.requiresNodes && n.nodes.length <= 1) {
-				self.replace(n, n.leftNode);
-			}
-		}); 
-	};
-	
 	this.cleanup = function() { 
 		self.nodes.forEach(function(node) {
 			node.cleanup();
@@ -245,8 +234,6 @@ Object.extend(BaseNode, TreeRootNode);
  */
 function TreeRootNode() {
 	var $super = TreeRootNode.$super(this);
-	
-	this.requiresNodes = false;
 }
 
 
@@ -305,27 +292,6 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	var self = this;
 	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	
-	
-	this.finalize = function() {
-		self.nodes = getNodesInScope();
-		self.nodes.forEach(function(node) {node.parent = self;});
-		$super.finalize();
-	};
-	
-	function getNodesInScope() {
-		var results = [];
-		var nodeStack = self.nodes.slice();
-		while (nodeStack.length) {
-			var node = nodeStack.shift();
-			if (node instanceof opInstanceType) {
-				nodeStack = node.nodes.concat(nodeStack);
-			} else {
-				results.push(node);
-			}
-		}
-		return results;
-	}
-	
 	this.cleanup = function() { 
 		$super.cleanup();
 		self.nodes.sort(function(a, b) {
@@ -373,7 +339,6 @@ function LeafNode(value, displaySequence) {
 	var self = this;
 	var $super = LeafNode.$super(this);
 
-	this.requiresNodes = false;
 	this.value = value; 
 	this.displaySequence = displaySequence;
 	
@@ -516,7 +481,7 @@ function EquationTree(inputEquation) {
 			i += match.charCount;
 		} 
 
-		nodeStack[0].finalize();
+		finalize(nodeStack[0]);
 		return nodeStack[0];
 	}
 	
@@ -562,6 +527,29 @@ function EquationTree(inputEquation) {
 	
 	function parentOfLatest() {
 		return nodeStack[nodeStack.length - 2]; 
+	} 
+	
+	function finalize(node) { 
+		if (node instanceof CommutativeOpNode) {setNodesInScope(node);}
+		
+		node.nodes.forEach(function(n) {
+			finalize(n);
+			if (n.nodes.length <= 1 && !instanceOf(n, [LeafNode, TreeRootNode]) {
+				node.replace(n, n.leftNode); // replace with any existing child, or remove if no children
+			}
+		}); 
+	}
+	
+	function setNodesInScope(target) { 
+		var nodeStack = target.nodes.splice(0);
+		while (nodeStack.length) {
+			var node = nodeStack.shift();
+			if (node instanceof opInstanceType) {
+				nodeStack = target.nodes.concat(nodeStack);
+			} else {
+				node.nodes.push(node);
+			}
+		} 
 	}
 	
 	return parse();

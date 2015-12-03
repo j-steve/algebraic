@@ -16,7 +16,6 @@ function LeafNode(value, displaySequence) {
 	var self = this;
 	var $super = LeafNode.$super(this);
 
-	this.requiresNodes = false;
 	this.value = value; 
 	this.displaySequence = displaySequence;
 	

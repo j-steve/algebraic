@@ -41,7 +41,7 @@ function EquationTree(inputEquation) {
 			i += match.charCount;
 		} 
 
-		nodeStack[0].finalize();
+		finalize(nodeStack[0]);
 		return nodeStack[0];
 	}
 	
@@ -87,6 +87,29 @@ function EquationTree(inputEquation) {
 	
 	function parentOfLatest() {
 		return nodeStack[nodeStack.length - 2]; 
+	} 
+	
+	function finalize(node) { 
+		if (node instanceof CommutativeOpNode) {setNodesInScope(node);}
+		
+		node.nodes.forEach(function(n) {
+			finalize(n);
+			if (n.nodes.length <= 1 && !instanceOf(n, [LeafNode, TreeRootNode]) {
+				node.replace(n, n.leftNode); // replace with any existing child, or remove if no children
+			}
+		}); 
+	}
+	
+	function setNodesInScope(target) { 
+		var nodeStack = target.nodes.splice(0);
+		while (nodeStack.length) {
+			var node = nodeStack.shift();
+			if (node instanceof opInstanceType) {
+				nodeStack = target.nodes.concat(nodeStack);
+			} else {
+				node.nodes.push(node);
+			}
+		} 
 	}
 	
 	return parse();

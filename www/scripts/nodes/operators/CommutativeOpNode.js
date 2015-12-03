@@ -15,27 +15,6 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	var self = this;
 	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	
-	
-	this.finalize = function() {
-		self.nodes = getNodesInScope();
-		self.nodes.forEach(function(node) {node.parent = self;});
-		$super.finalize();
-	};
-	
-	function getNodesInScope() {
-		var results = [];
-		var nodeStack = self.nodes.slice();
-		while (nodeStack.length) {
-			var node = nodeStack.shift();
-			if (node instanceof opInstanceType) {
-				nodeStack = node.nodes.concat(nodeStack);
-			} else {
-				results.push(node);
-			}
-		}
-		return results;
-	}
-	
 	this.cleanup = function() { 
 		$super.cleanup();
 		self.nodes.sort(function(a, b) {

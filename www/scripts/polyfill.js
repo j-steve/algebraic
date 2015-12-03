@@ -23,6 +23,10 @@ function instanceOf(target, instanceTypes) {
 		}
 		return removedCount;
 	};
+	
+	Array.prototype.includes = function(value) {
+		return this.indexOf(value) !== -1;
+	};
 
 	Array.prototype.peek = function() {
 		return this.length ? this[this.length - 1] : false;
@@ -34,24 +38,21 @@ function instanceOf(target, instanceTypes) {
 		return clone;
 	};
 	
-	Array.combos = function(a, b) {
-		var combos = [];
+	/**
+	 * @param {Array} a
+	 * @param {Array} b
+	 * @param {boolean} isPermutation   {@code true} to return two copies of each combo, once for each order.
+	 * @returns {Array}
+	 */
+	Array.combos = function(a, b, isPermutation) {
+		var combos = []; 
 		for (var i = 0; i < a.length; i++) {
-			for (var j = 0; j < b.length; j++) { 
+			for (var j = (isPermutation ? 0 : i); j < b.length; j++) { 
 				combos.push([a[i], b[j]]); 
 			}
 		}
 		return combos;
 	};
-	/*Array.combos = function(array) {
-		var combos = [];
-		for (var i = 0; i < array.length - 1; i++) {
-			for (var j = i + 1; j < array.length; j++) { 
-				combos.push([array[i], array[j]]); 
-			}
-		}
-		return combos;
-	};*/
 
 	Object.extend = function(parent, child) {
 		child.prototype = Object.create(parent.prototype);

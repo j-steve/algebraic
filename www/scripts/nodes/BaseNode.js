@@ -94,6 +94,10 @@ function BaseNode() {
 		return SIDES[self.parent.nodes.indexOf(self)];
 	};
 	
+	this.detach = function() {
+		self.parent.nodes.remove(self);
+	};
+	
 	/**
 	 * @param {BaseNode} replacementNode
 	 * @param {boolean} [stealNodes=false]

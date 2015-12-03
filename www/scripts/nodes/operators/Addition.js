@@ -24,25 +24,29 @@ function AdditionNode(_leftNode, _rightNode) {
 	
 	function add(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
-			return new RealNumberNode(a.value + b.value);
+			a.value += b.value;
 			
 		} else if (a instanceof LeafNode && a.equals(b)) {
-			return new MultiplicationNode(2, a);
+			a.rotateRight(new MultiplicationNode(2));
 			
-		} else if (a instanceof MultiplicationNode && a.rightNode instanceof VariableNode) {
-			if (a.rightNode.equals(b)) {
-				var newAdd = new AdditionNode(a.leftNode, 1);
-				return new MultiplicationNode(newAdd, a.rightNode); 
-			} else if (a.rightNode.equals(b.rightNode)) { 
-				var newAdd = new AdditionNode(a.leftNode, b.leftNode); //jshint ignore:line
-				return new MultiplicationNode(newAdd, a.rightNode);
+		} else if (a instanceof MultiplicationNode) {
+			if (a.rightNode.equals(b)) { 
+				a.leftNode = new AdditionNode(a.leftNode, 1);
+			} else if (b instanceof MultiplicationNode && a.rightNode.equals(b.rightNode)) {
+				a.leftNode = new AdditionNode(a.leftNode, b.leftNode);
+			} else {
+				return false;
 			}
-		} else if (b instanceof DivisionNode && b.rightNode instanceof LeafNode) {
-			// TODO- this will work even if b.rightNode isn't a leaf node,
+		} else if (a instanceof DivisionNode && a.rightNode instanceof LeafNode && b instanceof LeafNode) {
+			// TODO- this will work even if a.rightNode isn't a leaf node,
 			// but need to create a copy of rightnode rather than use its value because it's inserted in 2 places.
-			var newAdd = new AdditionNode(b.leftNode, new MultiplicationNode(a, b.rightNode.value));  //jshint ignore:line
-			return new DivisionNode(newAdd, b.rightNode.value);
+			// Also, B doesn't need to be a LeafNode, but it gets removed in CommutativeOpNode so we need to clone it too.
+			var bTimesDenominator = new MultiplicationNode(a.rightNode.value, b.value);
+			a.leftNode = new AdditionNode(a.leftNode, bTimesDenominator);
+		} else {
+			return false;
 		}
+		return true;
 	}
 }
 Object.extend(CommutativeOpNode, AdditionNode);

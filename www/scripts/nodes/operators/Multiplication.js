@@ -24,27 +24,24 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	
 	function multiply(a, b) { 
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
-			return new RealNumberNode(a.value * b.value);
-			
+			a.value *= b.value;
 		} else if (a instanceof LeafNode && a.equals(b)) {
-			return new ExponentNode(a, 2);
-			
-		} else if (a instanceof ExponentNode && a.leftNode.equals(b)) {
-			var rightNode = new AdditionNode(a.rightNode, 1);
-			return new ExponentNode(a.leftNode, rightNode);
-			
-		} else if (b instanceof ExponentNode && b.leftNode.equals(a)) {
-			var rightNode = new AdditionNode(b.rightNode, 1); //jshint ignore:line
-			return new ExponentNode(b.leftNode, rightNode);
-		
-		} else if (a instanceof ExponentNode && b instanceof ExponentNode && a.leftNode.equals(b.leftNode)) {
-			var rightNode = new AdditionNode(a.rightNode, b.rightNode);  //jshint ignore:line
-			return new ExponentNode(a.leftNode, rightNode);
-			
+			a.rotateLeft(new ExponentNode(null, 2));
+		} else if (a instanceof ExponentNode) {
+			if (a.leftNode.equals(b)) {
+				a.rightNode = new AdditionNode(a.rightNode, 1);
+			} else if (b instanceof ExponentNode && a.leftNode.equals(b.leftNode)) { 
+				a.rightNode = new AdditionNode(a.rightNode, b.rightNode);
+			} else {
+				return false;
+			}
 		} else if (b instanceof DivisionNode) {
 			var newMultiply = new MultiplicationNode(b.leftNode, a);
 			return new DivisionNode(newMultiply, b.rightNode);
+		} else {
+			return false;
 		}
+		return true;
 	}
 	
 	this.isCoefficient = function() {

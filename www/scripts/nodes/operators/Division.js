@@ -22,7 +22,7 @@ function DivisionNode(_leftNode, _rightNode) {
 		var numerator = getScopedNodes(self.leftNode);
 		var denominator = getScopedNodes(self.rightNode);
 		if (instanceOf([self.leftNode, self.rightNode], [LeafNode, MultiplicationNode])) {
-			Array.combos(numerator, denominator).forEach(function(combo) {
+			Array.combos(numerator, denominator, true).forEach(function(combo) {
 				if (instanceOf(combo, RealNumberNode)) {
 					var gcd = commonDenominator(combo[0].value, combo[1].value);
 					if (gcd) {

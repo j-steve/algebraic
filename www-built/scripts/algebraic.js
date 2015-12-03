@@ -545,9 +545,9 @@ function EquationTree(inputEquation) {
 		while (nodeStack.length) {
 			var node = nodeStack.shift();
 			if (node instanceof target.constructor) {
-				nodeStack = target.nodes.concat(nodeStack);
+				nodeStack = node.nodes.concat(nodeStack);
 			} else {
-				node.nodes.push(node);
+				target.nodes.push(node);
 			}
 		} 
 	}

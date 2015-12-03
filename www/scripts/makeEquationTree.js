@@ -1,4 +1,4 @@
-/* global ParenthesisNode, OperatorNode, LeafNode, parseNextNode, EnclosureNode, OperatorPrefixNode, TreeRootNode */
+/* global ParenthesisNode, OperatorNode, LeafNode, parseNextNode, EnclosureNode, OperatorPrefixNode, TreeRootNode, CommutativeOpNode */
 
 /**
  * @constructor
@@ -105,9 +105,9 @@ function EquationTree(inputEquation) {
 		while (nodeStack.length) {
 			var node = nodeStack.shift();
 			if (node instanceof target.constructor) {
-				nodeStack = target.nodes.concat(nodeStack);
+				nodeStack = node.nodes.concat(nodeStack);
 			} else {
-				node.nodes.push(node);
+				target.nodes.push(node);
 			}
 		} 
 	}

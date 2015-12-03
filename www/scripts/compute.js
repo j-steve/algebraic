@@ -1,4 +1,4 @@
-/* global makeEquationTree */
+/* global EquationTree */
 
 function compute(equation, treeTableElement, prettyInputElement, simplifyElement, calculateElement) {
 	treeTableElement.innerHTML = '';
@@ -6,8 +6,8 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 	simplifyElement.innerHTML = '';
 	calculateElement.innerHTML = '';
 
-	try {
-		var rootNode = makeEquationTree(equation.value);
+	//try {
+		var rootNode = new EquationTree(equation.value);
 
 		// Output results
 		treeTableElement.innerHTML = rootNode.toString();
@@ -15,16 +15,16 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		prettyInputElement.className = 'formatted';
 		prettyInputElement.innerHTML = rootNode.toString(); 
 		
-		rootNode.cleanup();
-		rootNode.simplify();
+		//rootNode.cleanup();
+		//rootNode.simplify();
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();
 		
 		calculateElement.className = 'formatted result';
 		calculateElement.innerHTML = rootNode.toString();
 		
-	} catch (err) {
-		console.warn([].slice(arguments).join(' '));
-		prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
-	}
+	//} catch (err) {
+		//console.warn([].slice(arguments).join(' '));
+		//prettyInputElement.innerHTML = '<span style="color:red; font-size:80%;">' + err.message + '</span>';
+	//}
 }

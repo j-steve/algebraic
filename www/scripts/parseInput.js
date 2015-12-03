@@ -1,6 +1,6 @@
 /* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
 /* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */
-/* global ExponentNode, LogarithmNode, RootNode, ConstantNode,  */
+/* global ExponentNode, LogarithmNode, TreeRootNode, ConstantNode,  */
 /* global */
 
 var NODE_REGEX = {
@@ -48,7 +48,7 @@ var NODE_REGEX = {
  * @param {type} substring
  * @returns {ParseInputResult}
  */
-function parseInput(substring) {
+function parseNextNode(substring) {
 	for (var key in NODE_REGEX) {
 		if (NODE_REGEX.hasOwnProperty(key)) {
 			var regex = new RegExp('^' + key);

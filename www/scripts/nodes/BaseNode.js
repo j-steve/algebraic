@@ -159,3 +159,11 @@ function BaseNode() {
 	
 }
 
+Object.extend(BaseNode, TreeRootNode);
+/**
+ * @constructor
+ * @extends {BaseNode}
+ */
+function TreeRootNode() {
+	var $super = TreeRootNode.$super(this);
+}

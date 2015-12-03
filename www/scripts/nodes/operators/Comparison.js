@@ -45,7 +45,7 @@ function ComparisonNode(_debugSymbol) {
 				
 			} else if (varSide instanceof ExponentNode) {
 				if (partToSwap === varSide.rightNode) { 
-					noVarSide.rotateRight(new RootNode(partToSwap, null));
+					noVarSide.rotateRight(new NthRootNode(partToSwap, null));
 				} else { // x is the exponent, e.g., 2^x
 					noVarSide.rotateRight(new LogarithmNode(partToSwap, null)); 
 				}

@@ -23,16 +23,17 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, opInstanceType, operatorF
 	};
 	
 	function getNodesInScope() {
+		var results = [];
 		var nodeStack = self.nodes.slice();
 		while (nodeStack.length) {
 			var node = nodeStack.shift();
 			if (node instanceof opInstanceType) {
 				nodeStack = node.nodes.concat(nodeStack);
 			} else {
-				nodeStack.push(node);
+				results.push(node);
 			}
 		}
-		return nodeStack;
+		return results;
 	}
 	
 	this.cleanup = function() { 

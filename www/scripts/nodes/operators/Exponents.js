@@ -35,9 +35,9 @@ Object.extend(OperatorNode, ExponentNode);
  * @param {BaseNode} _leftNode
  * @param {BaseNode} _rightNode
  */
-function RootNode(_leftNode, _rightNode) {
+function NthRootNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = RootNode.$super(this, '&radic;');
+	var $super = NthRootNode.$super(this, '&radic;');
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -51,7 +51,7 @@ function RootNode(_leftNode, _rightNode) {
 	};
 	
 }
-Object.extend(OperatorNode, RootNode); 
+Object.extend(OperatorNode, NthRootNode); 
 
 /**
  * @constructor

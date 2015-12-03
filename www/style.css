@@ -110,11 +110,11 @@ output.formatted .LogarithmNode > .rightNode > .operator-node::after {
 	content: ')';
 }
 
-output.formatted .RootNode > .leftNode { 
+output.formatted .NthRootNode > .leftNode { 
 	vertical-align: super;
 	font-size: 70%;
     margin-right: -5px;
 }
-output.formatted .RootNode > .operator { 
+output.formatted .NthRootNode > .operator { 
 	font-size: 70%;
 }

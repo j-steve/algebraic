@@ -534,7 +534,7 @@ function EquationTree(inputEquation) {
 		
 		node.nodes.forEach(function(n) {
 			finalize(n);
-			if (n.nodes.length <= 1 && !instanceOf(n, [LeafNode, TreeRootNode]) {
+			if (n.nodes.length <= 1 && !instanceOf(n, [LeafNode, TreeRootNode])) {
 				node.replace(n, n.leftNode); // replace with any existing child, or remove if no children
 			}
 		}); 
@@ -544,7 +544,7 @@ function EquationTree(inputEquation) {
 		var nodeStack = target.nodes.splice(0);
 		while (nodeStack.length) {
 			var node = nodeStack.shift();
-			if (node instanceof opInstanceType) {
+			if (node instanceof target.constructor) {
 				nodeStack = target.nodes.concat(nodeStack);
 			} else {
 				node.nodes.push(node);

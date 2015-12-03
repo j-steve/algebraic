@@ -185,8 +185,8 @@ function BaseNode() {
 	};
 	
 	/**
-	 * @param {BaseNode} replacementNode
-	 * @param {boolean} [stealNodes=false]
+	 * @param {BaseNode} oldNode
+	 * @param {BaseNode} newNode
 	 */
 	this.replace = function(oldNode, newNode) {
 		var i = self.nodes.indexOf(oldNode);

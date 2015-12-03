@@ -195,9 +195,11 @@ function BaseNode() {
 	};
 	
 	this.cleanup = function() { 
-		self.nodes.forEach(function(node) {
-			node.cleanup();
-			node.removeIfObsolete();
+		self.nodes.forEach(function(child) {
+			child.cleanup();
+			if (child.nodes.length <= 1 && !instanceOf(child, LeafNode)) {
+				self.replace(child, child.leftNode);
+			}
 		});
 	};
 	
@@ -540,7 +542,7 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		prettyInputElement.className = 'formatted';
 		prettyInputElement.innerHTML = rootNode.toString(); 
 		
-		//rootNode.cleanup();
+		rootNode.cleanup();
 		//rootNode.simplify();
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();
@@ -987,7 +989,7 @@ function MultiplicationNode(_leftNode, _rightNode) {
 			return new DivisionNode(newMultiply, b.rightNode);
 		}
 	}
-	
+	/*
 	this.isCoefficient = function() {
 		for (var i = 0; i < SIDES.length; i++) { 
 			var node = self[SIDES[i]];
@@ -1005,6 +1007,7 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		} 
 		return $super.toString();
 	}; 
+	*/
 }
 
 

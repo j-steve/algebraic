@@ -44,7 +44,7 @@ function MultiplicationNode(_leftNode, _rightNode) {
 			return new DivisionNode(newMultiply, b.rightNode);
 		}
 	}
-	
+	/*
 	this.isCoefficient = function() {
 		for (var i = 0; i < SIDES.length; i++) { 
 			var node = self[SIDES[i]];
@@ -62,5 +62,6 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		} 
 		return $super.toString();
 	}; 
+	*/
 }
 

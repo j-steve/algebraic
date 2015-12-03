@@ -72,9 +72,11 @@ function BaseNode() {
 	};
 	
 	this.cleanup = function() { 
-		self.nodes.forEach(function(node) {
-			node.cleanup();
-			node.removeIfObsolete();
+		self.nodes.forEach(function(child) {
+			child.cleanup();
+			if (child.nodes.length <= 1 && !instanceOf(child, LeafNode)) {
+				self.replace(child, child.leftNode);
+			}
 		});
 	};
 	

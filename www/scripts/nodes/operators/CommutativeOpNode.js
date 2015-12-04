@@ -19,11 +19,11 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSeq
 	
 	this.cleanup = function() { 
 		$super.cleanup();
-		self.nodes = self.nodes.filter(function(n) {return !n.equals(identityNumber);});
 		self.nodes.sort(opSortSequence);
 	};
 	
 	this.simplify = function() {
 		$super.simplify();
+		self.nodes = self.nodes.filter(function(n) {return !n.equals(identityNumber);});
 	};
 }

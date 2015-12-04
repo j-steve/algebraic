@@ -26,27 +26,16 @@ function ExponentNode(_leftNode, _rightNode) {
 		set: function(value) {self.rightNode = value;}
 	});
 	
-	/*Object.defineProperty(self, 'displaySequence', {
-		get: function() {
-			if (self.rightNode instanceof RealNumberNode) {
-				return Math.abs(self.rightNode.value);
-			} else {
-				return self.rightNode.displaySequence;
-			}
-		}
-	});*/
-	
 	this.simplify = function() {
-		$super.simplify();
-		/*
+		$super.simplify(); 
 		if (self.rightNode.equals(1)) {
-			self.replaceWith(self.leftNode);
+			return self.leftNode;
 		} else if (self.rightNode.equals(0)) {
-			self.replaceWith(new RealNumberNode(1));
-		} else if (instanceOf(self.nodes, RealNumberNode)) {
-			var result = Math.pow(self.leftNode.value, self.rightNode.value);
-			self.replaceWith(new RealNumberNode(result));
-		}*/
+			return new RealNumberNode(1);
+		} else if (instanceOf(self.nodes, RealNumberNode) && self.power.value >= 0) {
+			var result = Math.pow(self.base.value, self.power.value); 
+			return new RealNumberNode(result);
+		}
 	};
 }
 Object.extend(OperatorNode, ExponentNode);

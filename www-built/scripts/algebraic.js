@@ -22,7 +22,7 @@ function clone(cloneFrom) {
 		}
 		return result;
 	}
-};
+}
 
 function instanceOf(target, instanceTypes) {
 	if (Array.isArray(target)) {

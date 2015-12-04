@@ -873,12 +873,12 @@ function ExponentNode(_leftNode, _rightNode) {
 	
 	Object.defineProperty(self, 'base', {
 		get: function() {return self.leftNode;},
-		set: function(value) {return self.leftNode = value;}
+		set: function(value) {self.leftNode = value;}
 	});
 	 
 	Object.defineProperty(self, 'power', {
 		get: function() {return self.rightNode;},
-		set: function(value) {return self.rightNode = value;}
+		set: function(value) {self.rightNode = value;}
 	});
 	
 	/*Object.defineProperty(self, 'displaySequence', {

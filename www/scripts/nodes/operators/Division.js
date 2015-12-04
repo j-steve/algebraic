@@ -30,7 +30,6 @@ function DivisionNode(_leftNode, _rightNode) {
 	
 	this.cleanup = function() {
 		$super.cleanup();
-		if (self.denominator.equals(1)) {self.replace(self.denominator, null);}
 	};
 	
 	this.simplify = function() {
@@ -49,7 +48,7 @@ function DivisionNode(_leftNode, _rightNode) {
 					}
 				} else if (combo[0].equals(combo[1])) {
 					replaceNode(combo[0], new RealNumberNode(1));
-					replaceNode(combo[2], new RealNumberNode(1));
+					replaceNode(combo[1], new RealNumberNode(1));
 				}
 			});
 			$super.simplify();
@@ -64,6 +63,10 @@ function DivisionNode(_leftNode, _rightNode) {
 		if (self.leftNode instanceof DivisionNode) { 
 			self.rightNode = new MultiplicationNode(self.leftNode.rightNode, self.rightNode);
 			self.leftNode = self.leftNode.leftNode;
+		}
+		
+		if (self.denominator.equals(1)) {
+			return self.numerator;
 		}
 	};
 	

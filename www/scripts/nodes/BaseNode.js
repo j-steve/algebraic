@@ -75,14 +75,21 @@ function BaseNode() {
 	this.cleanup = function() { 
 		self.nodes.forEach(function(child) {
 			child.cleanup();
-			if (child.nodes.length <= 1 && !instanceOf(child, LeafNode)) {
+			/*if (child.nodes.length <= 1 && !instanceOf(child, LeafNode)) {
 				self.replace(child, child.leftNode);
-			}
+			}*/
 		});
 	};
 	
 	this.simplify = function() {
-		self.nodes.forEach(function(node) {node.simplify();});
+		self.nodes.forEach(function(x) {
+			var replacementNode = x.simplify();
+			if (replacementNode) {
+				self.replace(x, replacementNode);
+			} else if (x.nodes.length <= 1 && !instanceOf(x, LeafNode)) {
+				self.replace(x, x.leftNode);
+			}
+		});
 	};
 	
 	this.equals = function(other) {

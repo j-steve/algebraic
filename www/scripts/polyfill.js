@@ -1,3 +1,22 @@
+var JS_NATIVE_OBJECTS = [Date, RegExp, Function, String, Number, Boolean];
+
+function clone(cloneFrom) {
+	if (cloneFrom == null || typeof cloneFrom !== "object") {  //jshint ignore:line
+		return cloneFrom;
+	} else if (Array.isArray(cloneFrom)) {
+		return cloneFrom.map(function(x) {return clone(x);});
+	} else if (JS_NATIVE_OBJECTS.indexOf(cloneFrom.constructor) !== -1) {
+        return new cloneFrom.constructor(cloneFrom);
+	} else {
+		var result = Object.create(cloneFrom.constructor.prototype);
+		//result.constructor = cloneFrom.constructor;
+		for (var prop in cloneFrom) {
+			result.prop = clone(cloneFrom[prop]);
+		}
+		return result;
+	}
+};
+
 function instanceOf(target, instanceTypes) {
 	if (Array.isArray(target)) {
 		return target.every(function(x) {return instanceOf(x, instanceTypes);});

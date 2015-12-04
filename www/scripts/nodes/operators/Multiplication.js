@@ -58,8 +58,8 @@ function MultiplicationNode(_leftNode, _rightNode) {
 			a.power = new AdditionNode(a.rightNode, 1);
 		} else if (a instanceof ExponentNode && b instanceof ExponentNode && a.leftNode.equals(b.leftNode)) {
 			a.power = new AdditionNode(a.rightNode, b.rightNode);
-		} else if (a instanceof DivisionNode) {
-			a.numerator = new MultiplicationNode(a.numerator, a.denominator); //TODO- this is dangerous, same node in 2 places
+		} else if (a instanceof DivisionNode) { 
+			a.numerator = new MultiplicationNode(a.numerator, clone(a.denominator)); //TODO- this is dangerous, same node in 2 places
 		} else {
 			return null;
 		}

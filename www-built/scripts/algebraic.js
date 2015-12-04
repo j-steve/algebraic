@@ -297,23 +297,8 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSeq
 	this.cleanup = function() { 
 		$super.cleanup();
 		self.nodes = self.nodes.filter(function(n) {return !n.equals(identityNumber);});
-		self.nodes.sort(sortNodes);
+		self.nodes.sort(opSortSequence);
 	};
-	
-	function sortNodes(a, b) {
-		
-		if (a.constructor !== b.constructor) {
-			return opSortSequence.indexOf(a.constructor) - opSortSequence.indexOf(b.constructor);
-		} else { 
-			if (a instanceof MultiplicationNode && a.rightNode instanceof ExponentNode) {a = a.rightNode;}
-			if (b instanceof MultiplicationNode && b.rightNode instanceof ExponentNode) {b = b.rightNode;}
-			if (instanceOf([a, b], ExponentNode) && instanceOf([a.power, b.power], RealNumberNode)) {
-				return b.power.value - a.power.value;
-			} else if (a instanceof VariableNode) {
-				return a.value > b.value ? 1 : a.value === b.value ? 0 : -1;
-			}
-		}
-	}
 	
 	this.simplify = function() {
 		$super.simplify();
@@ -561,10 +546,6 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 //      ../nodes/operators/Addition.js
 // ====================================================================================================
 
-var ADDITION_SEQUENCE = [
-	ExponentNode, MultiplicationNode, ConstantNode, VariableNode, RealNumberNode
-];
-
 /**
  * @constructor
  * @extends {CommutativeOpNode}
@@ -574,7 +555,7 @@ var ADDITION_SEQUENCE = [
  */
 function AdditionNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = AdditionNode.$super(this, '+', 2, 0, ADDITION_SEQUENCE);
+	var $super = AdditionNode.$super(this, '+', 2, 0, sortNodes);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -582,6 +563,19 @@ function AdditionNode(_leftNode, _rightNode) {
 	this.cleanup = function() { 
 		$super.cleanup();
 	};
+	
+	function sortNodes(a, b) {
+		if (a instanceof MultiplicationNode && a.rightNode instanceof ExponentNode) {a = a.rightNode;}
+		if (b instanceof MultiplicationNode && b.rightNode instanceof ExponentNode) {b = b.rightNode;}
+		
+		if (instanceOf([a, b], ExponentNode) && instanceOf([a.power, b.power], RealNumberNode)) {
+			return b.power.value - a.power.value;
+		} else {
+			var OP_SEQ = [ExponentNode, MultiplicationNode, VariableNode, RealNumberNode, ConstantNode];
+			var aIndex = OP_SEQ.indexOf(a.constructor), bIndex = OP_SEQ.indexOf(b.constructor);
+			if (aIndex > -1 && bIndex > -1) {return aIndex - bIndex;}
+		}
+	}
 	
 	function add(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
@@ -984,7 +978,7 @@ Object.extend(CommutativeOpNode, MultiplicationNode);
  */
 function MultiplicationNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = MultiplicationNode.$super(this, '&sdot;', 3, 1, MULTIPLICATION_SEQUENCE);
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3, 1, sortNodes);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -992,6 +986,12 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	this.cleanup = function() {
 		$super.cleanup();
 	};
+	 
+	function sortNodes(a, b) { 
+		var OP_SEQ = [RealNumberNode, ConstantNode, ParenthesisNode, VariableNode];
+		var aIndex = OP_SEQ.indexOf(a.constructor), bIndex = OP_SEQ.indexOf(b.constructor);
+		if (aIndex > -1 && bIndex > -1) {return aIndex - bIndex;} 
+	}
 	
 	function multiply(a, b) { 
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {

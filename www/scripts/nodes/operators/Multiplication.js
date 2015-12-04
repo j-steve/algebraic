@@ -1,4 +1,4 @@
-/* global CommutativeOpNode, OperatorNode, ExponentNode, LogarithmNode, SIDES */
+/* global CommutativeOpNode, OperatorNode, ExponentNode, LogarithmNode, ParenthesisNode */
 /* global LeafNode, RealNumberNode, ConstantNode, VariableNode */
 
 var MULTIPLICATION_SEQUENCE = [
@@ -15,7 +15,7 @@ Object.extend(CommutativeOpNode, MultiplicationNode);
  */
 function MultiplicationNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = MultiplicationNode.$super(this, '&sdot;', 3, 1, MULTIPLICATION_SEQUENCE);
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3, 1, sortNodes);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -23,6 +23,12 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	this.cleanup = function() {
 		$super.cleanup();
 	};
+	 
+	function sortNodes(a, b) { 
+		var OP_SEQ = [RealNumberNode, ConstantNode, ParenthesisNode, VariableNode];
+		var aIndex = OP_SEQ.indexOf(a.constructor), bIndex = OP_SEQ.indexOf(b.constructor);
+		if (aIndex > -1 && bIndex > -1) {return aIndex - bIndex;} 
+	}
 	
 	function multiply(a, b) { 
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {

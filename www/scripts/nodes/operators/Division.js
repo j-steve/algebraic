@@ -52,13 +52,13 @@ function DivisionNode(_leftNode, _rightNode) {
 				}
 			});
 			$super.simplify();
-		} else if (instanceOf([self.leftNode], [AdditionNode, SubtractionNode]) && self.rightNode instanceof RealNumberNode) {
+		}/* else if (instanceOf([self.leftNode], [AdditionNode, SubtractionNode]) && self.rightNode instanceof RealNumberNode) {
 			numerator.forEach(function(node) {
 				node.rotateLeft(new DivisionNode(null, self.rightNode.value));
 			});
 			self.leftNode.simplify();
 			replaceNode(self.leftNode);
-		} 
+		} */
 		
 		if (self.leftNode instanceof DivisionNode) { 
 			self.rightNode = new MultiplicationNode(self.leftNode.rightNode, self.rightNode);

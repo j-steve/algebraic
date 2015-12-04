@@ -59,22 +59,12 @@ function ComparisonNode(_debugSymbol) {
 			varSide = getSideWithVar(self);
 			noVarSide = getSideWithoutVar(self);
 		}
-		
-		if (noVarSide) {
-			noVarSide.cleanup();
-			noVarSide.simplify(); 
-			if (varSide === self.rightNode) {
-				self.replace(self.leftNode, self.rightNode, false);
-			}
+		 
+		if (varSide === self.rightNode) {
+			self.replace(self.leftNode, self.rightNode, false);
 		}
 		
-		
-		/*while (self.leftNode instanceof OperatorNode) {
-			var variable = lefty.leftNode.getNodeOfType(VariableNode);
-			var coefficient = self.leftNode.getNodeOfType(RealNumberNode);
-			var leftNodes = self.leftNode.decendants();
-			if (leftNodes.any(function(node) {return node instanceof VariableNode;}))
-		}*/
+		$super.simplify();
 	};
 	
 	

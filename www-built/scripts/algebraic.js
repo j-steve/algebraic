@@ -287,16 +287,33 @@ Object.extend(OperatorNode, CommutativeOpNode);
  * 
  * @param {string} _debugSymbol
  * @param {number} _stickinesss
- * @param {Function} operatorFunction
- * @param {boolean} reverseSequence
+ * @param {number} identityNumber   the identity number, which may be discarded as it does not change the equation
+ * @param {Array} opSortSequence
  */
-function CommutativeOpNode(_debugSymbol, _stickinesss, operatorFunction) {
+function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSequence) {
 	var self = this;
 	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	
 	this.cleanup = function() { 
 		$super.cleanup();
+		self.nodes = self.nodes.filter(function(n) {return !n.equals(identityNumber);});
+		self.nodes.sort(sortNodes);
 	};
+	
+	function sortNodes(a, b) {
+		
+		if (a.constructor !== b.constructor) {
+			return opSortSequence.indexOf(a.constructor) - opSortSequence.indexOf(b.constructor);
+		} else { 
+			if (a instanceof MultiplicationNode && a.rightNode instanceof ExponentNode) {a = a.rightNode;}
+			if (b instanceof MultiplicationNode && b.rightNode instanceof ExponentNode) {b = b.rightNode;}
+			if (instanceOf([a, b], ExponentNode) && instanceOf([a.power, b.power], RealNumberNode)) {
+				return b.power.value - a.power.value;
+			} else if (a instanceof VariableNode) {
+				return a.value > b.value ? 1 : a.value === b.value ? 0 : -1;
+			}
+		}
+	}
 	
 	this.simplify = function() {
 		$super.simplify();
@@ -545,8 +562,7 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 // ====================================================================================================
 
 var ADDITION_SEQUENCE = [
-	NthRootNode, LogarithmNode, ExponentNode, MultiplicationNode, 
-	DivisionNode, RealNumberNode, VariableNode, ConstantNode
+	ExponentNode, MultiplicationNode, ConstantNode, VariableNode, RealNumberNode
 ];
 
 /**
@@ -558,31 +574,14 @@ var ADDITION_SEQUENCE = [
  */
 function AdditionNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = AdditionNode.$super(this, '+', 2, add, true);
+	var $super = AdditionNode.$super(this, '+', 2, 0, ADDITION_SEQUENCE);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() { 
 		$super.cleanup();
-		self.nodes = self.nodes.filter(function(n) {return !n.equals(0);}); 
-		self.nodes.sort(sortNodes);
 	};
-	
-	function sortNodes(a, b) {
-		if (a instanceof MultiplicationNode && a.rightNode instanceof ExponentNode) {a = a.rightNode;}
-		if (b instanceof MultiplicationNode && b.rightNode instanceof ExponentNode) {b = b.rightNode;}
-
-		if (a.constructor !== b.constructor) {
-			return ADDITION_SEQUENCE.indexOf(b.constructor) - ADDITION_SEQUENCE.indexOf(a.constructor);
-		} else if (a instanceof ExponentNode && instanceOf([a.power, b.power], RealNumberNode)) {
-			return b.power.value - a.power.value;
-		} else if (a instanceof RealNumberNode) {
-			return b.value - a.value;
-		} else if (a instanceof VariableNode) {
-			return a.value > b.value ? 1 : a.value === b.value ? 0 : -1;
-		}
-	}
 	
 	function add(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
@@ -971,6 +970,10 @@ Object.extend(OperatorPrefixNode, LogarithmNode);
 //      ../nodes/operators/Multiplication.js
 // ====================================================================================================
 
+var MULTIPLICATION_SEQUENCE = [
+	RealNumberNode, ConstantNode, ExponentNode, VariableNode
+];
+
 Object.extend(CommutativeOpNode, MultiplicationNode);
 /**
  * @constructor
@@ -981,17 +984,13 @@ Object.extend(CommutativeOpNode, MultiplicationNode);
  */
 function MultiplicationNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = MultiplicationNode.$super(this, '&sdot;', 3, multiply);
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3, 1, MULTIPLICATION_SEQUENCE);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
 	
 	this.cleanup = function() {
 		$super.cleanup();
-		self.nodes = self.nodes.filter(function(n) {return !n.equals(1);});
-		self.nodes.sort(function(a, b) {
-			return a.displaySequence - b.displaySequence || a.value > b.value;
-		});
 	};
 	
 	function multiply(a, b) { 

@@ -65,6 +65,13 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		}
 		return a;
 	}
+	
+	this.toString = function() {
+		if (self.rightNode instanceof VariableNode || self.rightNode.leftNode instanceof VariableNode) {
+			self.printVals.before = self.printVals.before.replace('node', 'node coefficient');
+		} 
+		return $super.toString();
+	};
 	/*
 	this.isCoefficient = function() {
 		for (var i = 0; i < SIDES.length; i++) { 

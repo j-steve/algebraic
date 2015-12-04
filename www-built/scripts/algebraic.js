@@ -443,7 +443,11 @@ function EquationTree(inputEquation) {
 		nodeStack = [new TreeRootNode()];
 		for (var i = 0; i < inputEquation.length;) {
 			var match = parseNextNode(inputEquation.substring(i));
-			if (!match) {throw new Error(String.format('Invalid character: "{0}"', inputEquation[i]));}
+			if (!match) {
+				//throw new Error(String.format('Invalid character: "{0}"', inputEquation[i]));
+				i+= 1;
+				continue;
+			}
 			if (match.node === 'CLOSE_PAREN') {
 				closeTilType(EnclosureNode);
 				if (!nodeStack.length) {throw new Error('Unmatched ")" detected.');}
@@ -1129,6 +1133,13 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		}
 		return a;
 	}
+	
+	this.toString = function() {
+		if (self.rightNode instanceof VariableNode || self.rightNode.leftNode instanceof VariableNode) {
+			self.printVals.before = self.printVals.before.replace('node', 'node coefficient');
+		} 
+		return $super.toString();
+	};
 	/*
 	this.isCoefficient = function() {
 		for (var i = 0; i < SIDES.length; i++) { 

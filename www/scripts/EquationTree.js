@@ -16,7 +16,11 @@ function EquationTree(inputEquation) {
 		nodeStack = [new TreeRootNode()];
 		for (var i = 0; i < inputEquation.length;) {
 			var match = parseNextNode(inputEquation.substring(i));
-			if (!match) {throw new Error(String.format('Invalid character: "{0}"', inputEquation[i]));}
+			if (!match) {
+				//throw new Error(String.format('Invalid character: "{0}"', inputEquation[i]));
+				i+= 1;
+				continue;
+			}
 			if (match.node === 'CLOSE_PAREN') {
 				closeTilType(EnclosureNode);
 				if (!nodeStack.length) {throw new Error('Unmatched ")" detected.');}

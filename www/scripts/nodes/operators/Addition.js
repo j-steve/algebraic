@@ -11,7 +11,7 @@
  */
 function AdditionNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = AdditionNode.$super(this, '+', 2, 0, sortNodes);
+	var $super = AdditionNode.$super(this, '+', 2, 0, sortNodes, add);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -33,27 +33,53 @@ function AdditionNode(_leftNode, _rightNode) {
 		}
 	}
 	
+	this.simplify = function() {
+		$super.simplify();
+		for (var i = 1; i <= self.nodes.length; i++) {
+			var a = self.nodes[self.nodes.length - i];
+			for (var j = self.nodes.length - 1; j >= 0; j--) {
+				var b = self.nodes[j];
+				if (a !== b) {
+					var result = add(a, b);
+					if (result) {
+						self.replace(b, null);
+						self.replace(a, result);
+						result.simplify();
+						a = result;
+					}
+				}
+			}
+		}
+	};
+	
 	function add(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
-			return new RealNumberNode(a.value + b.value);
-			
+			a.value += b.value;
 		} else if (a instanceof LeafNode && a.equals(b)) {
 			return new MultiplicationNode(2, a);
-			
-		} else if (a instanceof MultiplicationNode && a.rightNode instanceof VariableNode) {
-			if (a.rightNode.equals(b)) {
-				var newAdd = new AdditionNode(a.leftNode, 1);
-				return new MultiplicationNode(newAdd, a.rightNode); 
-			} else if (a.rightNode.equals(b.rightNode)) { 
-				var newAdd = new AdditionNode(a.leftNode, b.leftNode); //jshint ignore:line
-				return new MultiplicationNode(newAdd, a.rightNode);
-			}
-		} else if (b instanceof DivisionNode && b.rightNode instanceof LeafNode) {
-			// TODO- this will work even if b.rightNode isn't a leaf node,
-			// but need to create a copy of rightnode rather than use its value because it's inserted in 2 places.
-			var newAdd = new AdditionNode(b.leftNode, new MultiplicationNode(a, b.rightNode.value));  //jshint ignore:line
-			return new DivisionNode(newAdd, b.rightNode.value);
+		} else if (a instanceof MultiplicationNode && a.rightNode.equals(b)) {
+			a.leftNode = new AdditionNode(a.leftNode, 1);
+		} else if (a instanceof MultiplicationNode && b instanceof MultiplicationNode && sameFactors(a, b)) {
+			a.leftNode = new AdditionNode(a.leftNode, b.leftNode);
+		} else {
+			return null;
 		}
+		return a; 
+	}
+	
+	function sameFactors(a, b) {
+		if (!instanceOf([a.leftNode, b.leftNode], RealNumberNode)) {return false;}
+		
+		var aFactors = a.nodes.slice(1);
+		var bFactors = b.nodes.slice(1);
+		for (var i = 0; i < aFactors.length; i++) {
+			var aNode = aFactors[i];
+			var bNode = bFactors.find(function(x) {return aNode.equals(x);});
+			if (!bNode) {return false;}
+			var bIndex = bFactors.indexOf(bNode);
+			bFactors.splice(bIndex, 1);
+		}
+		return true;
 	}
 }
 Object.extend(CommutativeOpNode, AdditionNode);

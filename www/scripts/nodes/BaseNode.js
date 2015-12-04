@@ -69,6 +69,7 @@ function BaseNode() {
 		var i = self.nodes.indexOf(oldNode);
 		if (i === -1) {throw new Error('Does not contain oldnode.');}
 		if (newNode) {self.nodes.splice(i, 1, newNode);} else {self.nodes.splice(i, 1);}
+		return newNode;
 	};
 	
 	this.cleanup = function() { 
@@ -81,8 +82,7 @@ function BaseNode() {
 	};
 	
 	this.simplify = function() {
-		//self.nodes.forEach(function(node) {node.simplify();});
-		
+		self.nodes.forEach(function(node) {node.simplify();});
 	};
 	
 	this.equals = function(other) {

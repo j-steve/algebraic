@@ -11,8 +11,9 @@ Object.extend(OperatorNode, CommutativeOpNode);
  * @param {number} _stickinesss
  * @param {number} identityNumber   the identity number, which may be discarded as it does not change the equation
  * @param {Array} opSortSequence
+ * @param {Function} operate
  */
-function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSequence) {
+function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSequence, operate) {
 	var self = this;
 	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	

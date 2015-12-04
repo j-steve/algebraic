@@ -3,6 +3,8 @@
 /**
  * @constructor
  * @extends {OperatorNode}
+ * @property {BaseNode} base   synonym for leftNode
+ * @property {power} power   synonym for rightNode
  * 
  * @param {BaseNode} _leftNode
  * @param {BaseNode} _rightNode
@@ -13,6 +15,16 @@ function ExponentNode(_leftNode, _rightNode) {
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
+	
+	Object.defineProperty(self, 'base', {
+		get: function() {return self.leftNode;},
+		set: function(value) {return self.leftNode = value;}
+	});
+	 
+	Object.defineProperty(self, 'power', {
+		get: function() {return self.rightNode;},
+		set: function(value) {return self.rightNode = value;}
+	});
 	
 	/*Object.defineProperty(self, 'displaySequence', {
 		get: function() {

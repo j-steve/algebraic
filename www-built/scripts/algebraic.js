@@ -544,6 +544,11 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 //      ../nodes/operators/Addition.js
 // ====================================================================================================
 
+var ADDITION_SEQUENCE = [
+	NthRootNode, LogarithmNode, ExponentNode, MultiplicationNode, 
+	DivisionNode, RealNumberNode, VariableNode, ConstantNode
+];
+
 /**
  * @constructor
  * @extends {CommutativeOpNode}
@@ -561,14 +566,23 @@ function AdditionNode(_leftNode, _rightNode) {
 	this.cleanup = function() { 
 		$super.cleanup();
 		self.nodes = self.nodes.filter(function(n) {return !n.equals(0);}); 
-		self.nodes.sort(function(a, b) {
-			if (instanceOf([a, b], LeafNode)) {
-				return b.displaySequence - a.displaySequence || a.value > b.value;
-			} else if (instanceOf([a, b], ExponentNode)) {
-				return b.displaySequence - a.displaySequence || a.value > b.value;
-			}
-		});
+		self.nodes.sort(sortNodes);
 	};
+	
+	function sortNodes(a, b) {
+		if (a instanceof MultiplicationNode && a.rightNode instanceof ExponentNode) {a = a.rightNode;}
+		if (b instanceof MultiplicationNode && b.rightNode instanceof ExponentNode) {b = b.rightNode;}
+
+		if (a.constructor !== b.constructor) {
+			return ADDITION_SEQUENCE.indexOf(b.constructor) - ADDITION_SEQUENCE.indexOf(a.constructor);
+		} else if (a instanceof ExponentNode && instanceOf([a.power, b.power], RealNumberNode)) {
+			return b.power.value - a.power.value;
+		} else if (a instanceof RealNumberNode) {
+			return b.value - a.value;
+		} else if (a instanceof VariableNode) {
+			return a.value > b.value ? 1 : a.value === b.value ? 0 : -1;
+		}
+	}
 	
 	function add(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
@@ -851,6 +865,8 @@ Object.extend(EnclosureNode, ParenthesisNode);
 /**
  * @constructor
  * @extends {OperatorNode}
+ * @property {BaseNode} base   synonym for leftNode
+ * @property {power} power   synonym for rightNode
  * 
  * @param {BaseNode} _leftNode
  * @param {BaseNode} _rightNode
@@ -861,6 +877,16 @@ function ExponentNode(_leftNode, _rightNode) {
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
+	
+	Object.defineProperty(self, 'base', {
+		get: function() {return self.leftNode;},
+		set: function(value) {return self.leftNode = value;}
+	});
+	 
+	Object.defineProperty(self, 'power', {
+		get: function() {return self.rightNode;},
+		set: function(value) {return self.rightNode = value;}
+	});
 	
 	/*Object.defineProperty(self, 'displaySequence', {
 		get: function() {

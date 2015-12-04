@@ -1,4 +1,10 @@
-/* global OperatorNode, RealNumberNode, LeafNode, SIDES, MultiplicationNode, CommutativeOpNode, DivisionNode, VariableNode */
+/* global OperatorNode, RealNumberNode, LeafNode, MultiplicationNode, CommutativeOpNode, DivisionNode, VariableNode */
+/* global LogarithmNode, NthRootNode, ExponentNode, ConstantNode */
+
+var ADDITION_SEQUENCE = [
+	NthRootNode, LogarithmNode, ExponentNode, MultiplicationNode, 
+	DivisionNode, RealNumberNode, VariableNode, ConstantNode
+];
 
 /**
  * @constructor
@@ -17,14 +23,23 @@ function AdditionNode(_leftNode, _rightNode) {
 	this.cleanup = function() { 
 		$super.cleanup();
 		self.nodes = self.nodes.filter(function(n) {return !n.equals(0);}); 
-		self.nodes.sort(function(a, b) {
-			if (instanceOf([a, b], LeafNode)) {
-				return b.displaySequence - a.displaySequence || a.value > b.value;
-			} else if (instanceOf([a, b], ExponentNode)) {
-				return b.displaySequence - a.displaySequence || a.value > b.value;
-			}
-		});
+		self.nodes.sort(sortNodes);
 	};
+	
+	function sortNodes(a, b) {
+		if (a instanceof MultiplicationNode && a.rightNode instanceof ExponentNode) {a = a.rightNode;}
+		if (b instanceof MultiplicationNode && b.rightNode instanceof ExponentNode) {b = b.rightNode;}
+
+		if (a.constructor !== b.constructor) {
+			return ADDITION_SEQUENCE.indexOf(b.constructor) - ADDITION_SEQUENCE.indexOf(a.constructor);
+		} else if (a instanceof ExponentNode && instanceOf([a.power, b.power], RealNumberNode)) {
+			return b.power.value - a.power.value;
+		} else if (a instanceof RealNumberNode) {
+			return b.value - a.value;
+		} else if (a instanceof VariableNode) {
+			return a.value > b.value ? 1 : a.value === b.value ? 0 : -1;
+		}
+	}
 	
 	function add(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {

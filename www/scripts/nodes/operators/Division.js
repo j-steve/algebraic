@@ -49,7 +49,7 @@ function DivisionNode(_leftNode, _rightNode) {
 					}
 				} else if (combo[0].equals(combo[1])) {
 					replaceNode(combo[0], new RealNumberNode(1));
-					replaceNode(combo[2], RealNumberNode(1));
+					replaceNode(combo[2], new RealNumberNode(1));
 				}
 			});
 			$super.simplify();

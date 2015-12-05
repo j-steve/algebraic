@@ -771,7 +771,8 @@ function ComparisonNode(_debugSymbol) {
 			self.rightNode = noVarSide;
 		}
 		
-		$super.simplify();
+		self.leftNode = self.leftNode.simplify() || self.leftNode;
+		self.rightNode = self.rightNode.simplify() || self.rightNode; 
 	};
 	
 	

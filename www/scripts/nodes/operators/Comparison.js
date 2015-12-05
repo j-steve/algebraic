@@ -17,7 +17,7 @@ function ComparisonNode(_debugSymbol) {
 		var noVarSide = getSideWithoutVar(self);
 		while (noVarSide && varSide instanceof OperatorNode) { 
 			if (varSide instanceof NegativeNode) {
-				self.rotateLeft(noVarSide, new NegativeNode);
+				self.rotateLeft(noVarSide, new NegativeNode());
 				continue;
 			}
 			

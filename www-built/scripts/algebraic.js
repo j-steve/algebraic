@@ -652,9 +652,9 @@ function AdditionNode(_leftNode, _rightNode) {
 				if (a !== b) {
 					var result = add(a, b);
 					if (result) {
+						result = result.simplify() || result;
 						self.replace(b, null);
 						self.replace(a, result);
-						result.simplify();
 						a = result;
 					}
 				}
@@ -1130,9 +1130,9 @@ function MultiplicationNode(_leftNode, _rightNode) {
 				if (a !== b) {
 					var result = multiply(a, b);
 					if (result) {
+						result = result.simplify() || result;
 						self.replace(b, null);
 						self.replace(a, result);
-						result.simplify();
 						a = result;
 					}
 				}

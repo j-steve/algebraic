@@ -714,6 +714,11 @@ function ComparisonNode(_debugSymbol) {
 		var varSide = getSideWithVar(self);
 		var noVarSide = getSideWithoutVar(self);
 		while (noVarSide && varSide instanceof OperatorNode) { 
+			if (varSide instanceof NegativeNode) {
+				self.rotateLeft(noVarSide, new NegativeNode);
+				continue;
+			}
+			
 			var partToSwap = getSideWithoutVar(varSide);
 			var partToKeep = getSideWithVar(varSide);
 			if (!partToSwap || !partToKeep) {break;}
@@ -722,20 +727,11 @@ function ComparisonNode(_debugSymbol) {
 				var addNegative = new AdditionNode(new NegativeNode(partToSwap));
 				self.rotateLeft(noVarSide, addNegative);
 				
-			/*} else if (varSide instanceof SubtractionNode) {
-				if (partToSwap === varSide.rightNode) { 
-					self.rotateLeft(noVarSide, new AdditionNode(partToSwap));
-				} else {  
-					var subtractor = noVarSide.rotateLeft(new SubtractionNode(null, partToSwap));  
-					var neg1Multiplier = subtractor.rotateLeft(new MultiplicationNode(null, -1)); 
-					neg1Multiplier.cleanup(); 
-				}
-			*/	
 			} else if (varSide instanceof MultiplicationNode) {
 				self.rotateLeft(noVarSide, new DivisionNode(partToSwap));
 				
 			} else if (varSide instanceof DivisionNode) {
-				if (partToSwap === varSide.rightNode) { 
+				if (partToSwap === varSide.denominator) { 
 					self.rotateLeft(noVarSide, new MultiplicationNode(partToSwap));
 				} else { // x is the denominator, e.g. "2/x", so multiply other side by x to solve.
 					self.rotateLeft(noVarSide, new MultiplicationNode(partToKeep));
@@ -759,8 +755,9 @@ function ComparisonNode(_debugSymbol) {
 			noVarSide = getSideWithoutVar(self);
 		}
 		 
-		if (varSide === self.rightNode) {
-			self.replace(self.leftNode, self.rightNode, false);
+		if (varSide === self.rightNode && noVarSide === self.leftNode) {
+			self.leftNode = varSide;
+			self.rightNode = noVarSide;
 		}
 		
 		$super.simplify();

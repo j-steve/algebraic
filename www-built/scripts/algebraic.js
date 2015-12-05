@@ -722,46 +722,51 @@ function ComparisonNode(_debugSymbol) {
 	this.simplify = function() {
 		$super.simplify();
 		
+		replaceParens();
 		var varSide = getSideWithVar(self);
 		var noVarSide = getSideWithoutVar(self);
+
 		while (noVarSide && varSide instanceof OperatorNode) { 
+			
 			if (varSide instanceof NegativeNode) {
 				self.rotateLeft(noVarSide, new NegativeNode());
-				continue;
-			}
+				self.replace(varSide, varSide.leftNode);
 			
-			var partToSwap = getSideWithoutVar(varSide);
-			var partToKeep = getSideWithVar(varSide);
-			if (!partToSwap || !partToKeep) {break;}
-			
-			if (varSide instanceof AdditionNode) {
-				var addNegative = new AdditionNode(new NegativeNode(partToSwap));
-				self.rotateLeft(noVarSide, addNegative);
-				
-			} else if (varSide instanceof MultiplicationNode) {
-				self.rotateLeft(noVarSide, new DivisionNode(partToSwap));
-				
-			} else if (varSide instanceof DivisionNode) {
-				if (partToSwap === varSide.denominator) { 
-					self.rotateLeft(noVarSide, new MultiplicationNode(partToSwap));
-				} else { // x is the denominator, e.g. "2/x", so multiply other side by x to solve.
-					self.rotateLeft(noVarSide, new MultiplicationNode(partToKeep));
-					partToKeep = partToSwap;
-				} 
-				
-			} else if (varSide instanceof ExponentNode) {
-				if (partToSwap === varSide.rightNode) { 
-					self.rotateRight(noVarSide, new NthRootNode(partToSwap));
-				} else { // x is the exponent, e.g., 2^x
-					self.rotateRight(noVarSide, new LogarithmNode(partToSwap)); 
-				}
-				
 			} else {
-				alert('breakin up is hard');
-				break;
+				var partToSwap = getSideWithoutVar(varSide);
+				var partToKeep = getSideWithVar(varSide);
+				if (!partToSwap || !partToKeep) {break;}
+
+				if (varSide instanceof AdditionNode) {
+					var addNegative = new AdditionNode(new NegativeNode(partToSwap));
+					self.rotateLeft(noVarSide, addNegative);
+
+				} else if (varSide instanceof MultiplicationNode) {
+					self.rotateLeft(noVarSide, new DivisionNode(partToSwap));
+
+				} else if (varSide instanceof DivisionNode) {
+					if (partToSwap === varSide.denominator) { 
+						self.rotateLeft(noVarSide, new MultiplicationNode(partToSwap));
+					} else { // x is the denominator, e.g. "2/x", so multiply other side by x to solve.
+						self.rotateLeft(noVarSide, new MultiplicationNode(partToKeep));
+						partToKeep = partToSwap;
+					} 
+
+				} else if (varSide instanceof ExponentNode) {
+					if (partToSwap === varSide.rightNode) { 
+						self.rotateRight(noVarSide, new NthRootNode(partToSwap));
+					} else { // x is the exponent, e.g., 2^x
+						self.rotateRight(noVarSide, new LogarithmNode(partToSwap)); 
+					}
+
+				} else {
+					alert('breakin up is hard');
+					break;
+				}
+				self.replace(varSide, partToKeep, false);
 			}
-			self.replace(varSide, partToKeep, false);
 			
+			replaceParens();
 			varSide = getSideWithVar(self);
 			noVarSide = getSideWithoutVar(self);
 		}
@@ -787,6 +792,14 @@ function ComparisonNode(_debugSymbol) {
 	function getSideWithoutVar(node) {
 		return node.nodes.find(function(node) {
 			return !hasVariable(node) && !node.decendants().some(hasVariable);
+		});
+	}
+	
+	function replaceParens() {
+		self.nodes.forEach(function(n) {
+			if (n instanceof ParenthesisNode) {
+				self.replace(n, n.leftNode);
+			}
 		});
 	}
 	

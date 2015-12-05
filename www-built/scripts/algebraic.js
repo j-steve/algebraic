@@ -580,8 +580,8 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		prettyInputElement.className = 'formatted';
 		prettyInputElement.innerHTML = rootNode.toString(); 
 		
-		rootNode.cleanup();
 		rootNode.simplify();
+		rootNode.cleanup();
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();
 		

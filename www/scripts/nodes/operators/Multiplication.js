@@ -1,10 +1,6 @@
 /* global CommutativeOpNode, OperatorNode, ExponentNode, LogarithmNode, ParenthesisNode, DivisionNode */
 /* global LeafNode, RealNumberNode, ConstantNode, VariableNode */
 
-var MULTIPLICATION_SEQUENCE = [
-	RealNumberNode, ConstantNode, ExponentNode, VariableNode
-];
-
 Object.extend(CommutativeOpNode, MultiplicationNode);
 /**
  * @constructor
@@ -25,7 +21,7 @@ function MultiplicationNode(_leftNode, _rightNode) {
 	};
 	 
 	function sortNodes(a, b) { 
-		var OP_SEQ = [RealNumberNode, ConstantNode, ParenthesisNode, VariableNode];
+		var OP_SEQ = [RealNumberNode, ConstantNode, ParenthesisNode, ExponentNode, VariableNode];
 		var aIndex = OP_SEQ.indexOf(a.constructor), bIndex = OP_SEQ.indexOf(b.constructor);
 		if (aIndex > -1 && bIndex > -1) {return aIndex - bIndex;} 
 	}

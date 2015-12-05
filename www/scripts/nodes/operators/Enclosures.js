@@ -1,5 +1,6 @@
 /* global BaseNode, OperatorNode, LeafNode */
 
+Object.extend(BaseNode, EnclosureNode);
 /**
  * @constructor
  * @extends {BaseNode}
@@ -10,6 +11,8 @@
 function EnclosureNode(openSymbol, closeSymbol) {
 	var self = this;
 	
+	this.miniminumNodes = 1;
+	
 	self.openSymbol = openSymbol || '';
 	self.closeSymbol = closeSymbol || ''; 
 	
@@ -19,8 +22,8 @@ function EnclosureNode(openSymbol, closeSymbol) {
 	
 	self.printVals.after = self.closeSymbol + self.printVals.after;
 } 
-Object.extend(BaseNode, EnclosureNode);
 
+Object.extend(EnclosureNode, ParenthesisNode);
 /**
  * @constructor
  * @extends {EnclosureNode}
@@ -33,4 +36,3 @@ function ParenthesisNode() {
 		$super.cleanup();
 	};
 }
-Object.extend(EnclosureNode, ParenthesisNode);

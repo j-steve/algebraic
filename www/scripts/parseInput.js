@@ -1,6 +1,6 @@
-/* global Operators, LeafNode, ParenthesisNode, AdditionNode, SubtractionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
+/* global Operators, LeafNode, ParenthesisNode, AdditionNode, PlusOrMinusNode, MultiplicationNode, DivisionNode */
 /* global GreaterOrEqualNode, LessOrEqualNode, LessThanNode, GreaterThanNode, EqualsNode, RealNumberNode, VariableNode */
-/* global ExponentNode, LogarithmNode, TreeRootNode, ConstantNode,  */
+/* global ExponentNode, LogarithmNode, TreeRootNode, ConstantNode, NegativeNode */
 /* global */
 
 var NODE_REGEX = {
@@ -9,8 +9,8 @@ var NODE_REGEX = {
 	'\\\s': 'WHITESPACE',
 	'\\\(': ParenthesisNode,
 	'\\\+': AdditionNode,
-	'[-−]': SubtractionNode,
-	'\\\+[-−]': PlusOrMinusNode,
+	'[-−]': NegativeNode,
+	'\\\+\/[-−]': PlusOrMinusNode,
 	'±': PlusOrMinusNode,
 	'[*·∙×\u22C5]': MultiplicationNode,
 	'[\/∕÷]': DivisionNode, 

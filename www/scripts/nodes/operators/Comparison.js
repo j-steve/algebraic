@@ -1,4 +1,4 @@
-/* global OperatorNode, SIDES, VariableNode, AdditionNode, SubtractionNode, MultiplicationNode, DivisionNode, ExponentNode */
+/* global OperatorNode, SIDES, VariableNode, AdditionNode, MultiplicationNode, DivisionNode, ExponentNode */
 
 /**
  * @constructor
@@ -21,9 +21,10 @@ function ComparisonNode(_debugSymbol) {
 			if (!partToSwap || !partToKeep) {break;}
 			
 			if (varSide instanceof AdditionNode) {
-				self.rotateLeft(noVarSide, new SubtractionNode(partToSwap));
+				var addNegative = new AdditionNode(new NegativeNode(partToSwap));
+				self.rotateLeft(noVarSide, addNegative);
 				
-			} else if (varSide instanceof SubtractionNode) {
+			/*} else if (varSide instanceof SubtractionNode) {
 				if (partToSwap === varSide.rightNode) { 
 					self.rotateLeft(noVarSide, new AdditionNode(partToSwap));
 				} else {  
@@ -31,7 +32,7 @@ function ComparisonNode(_debugSymbol) {
 					var neg1Multiplier = subtractor.rotateLeft(new MultiplicationNode(null, -1)); 
 					neg1Multiplier.cleanup(); 
 				}
-				
+			*/	
 			} else if (varSide instanceof MultiplicationNode) {
 				self.rotateLeft(noVarSide, new DivisionNode(partToSwap));
 				

@@ -167,6 +167,8 @@ function BaseNode() {
 	
 	this.nodes = [];
 	
+	this.miniminumNodes = 0;
+	
 	SIDES.forEach(function(side, index) {
 		Object.defineProperty(self, side, {
 			get: function() {return self.nodes[index];},
@@ -235,7 +237,7 @@ function BaseNode() {
 			var replacementNode = x.simplify();
 			if (replacementNode) {
 				self.replace(x, replacementNode);
-			} else if (x.nodes.length <= 1 && !instanceOf(x, LeafNode)) {
+			} else if (x.nodes.length < x.minimumNodes) {
 				self.replace(x, x.leftNode);
 			}
 		});
@@ -287,6 +289,8 @@ function TreeRootNode() {
 function OperatorNode(debugSymbol, stickiness, rightToLeft) { 
 	OperatorNode.$super(this);
 	
+	this.minimumNodes = 2;
+	
 	this.printVals.middle =  '<div class="operator">' + debugSymbol + '</div>';
 	
 	this.stickiness = stickiness;
@@ -305,6 +309,10 @@ Object.extend(BaseNode, OperatorNode);
  */
 function OperatorPrefixNode(debugSymbol, stickiness, rightToLeft) { 
 	OperatorPrefixNode.$super(this, debugSymbol, stickiness, rightToLeft);
+	
+	this.minimumNodes = 1;
+	
+	this.printVals.before +=  '<div class="operator">' + debugSymbol + '</div>';
 }
 Object.extend(OperatorNode, OperatorPrefixNode);
 
@@ -453,11 +461,18 @@ function EquationTree(inputEquation) {
 				if (!nodeStack.length) {throw new Error('Unmatched ")" detected.');}
 				nodeStack.pop();
 			} else if (match.node === 'COMMA') {
-				closeTilType(OperatorPrefixNode);
+				closeTilType(EnclosureNode);
 				nodeStack.peek().nodes.shift(); // chop off the Base: THAT was the base, next is operand
 				var parenthesis = new ParenthesisNode();
 				nodeStack.peek().rightNode = parenthesis;
 				nodeStack.push(parenthesis);
+			} else if (match.node instanceof NegativeNode) {	
+				if (nodeStack.peek() instanceof LeafNode) {
+					var implicitAddNode = new AdditionNode(); 
+					rotateForOperator(implicitAddNode);
+					nodeStack.push(implicitAddNode); 
+				}
+				addChildNode(match.node);
 			} else if (match.node instanceof EnclosureNode || match.node instanceof OperatorPrefixNode) { 
 				addChildNode(match.node);
 			} else if (match.node instanceof OperatorNode) {
@@ -524,7 +539,7 @@ function EquationTree(inputEquation) {
 		
 		node.nodes.forEach(function(n) {
 			finalize(n);
-			if (n.nodes.length <= 1 && !instanceOf(n, [LeafNode, TreeRootNode])) {
+			if (n.nodes.length < n.minimumNodes) {
 				node.replace(n, n.leftNode); // replace with any existing child, or remove if no children
 			}
 		}); 
@@ -583,6 +598,8 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 // ====================================================================================================
 //      ../nodes/operators/Addition.js
 // ====================================================================================================
+
+//TODO: -4*-4/2x+4-2-2 -> 8/x + 0
 
 /**
  * @constructor
@@ -667,27 +684,6 @@ function AdditionNode(_leftNode, _rightNode) {
 Object.extend(CommutativeOpNode, AdditionNode);
 
 
-Object.extend(OperatorNode, SubtractionNode);
-/**
- * @constructor
- * @extends {OperatorNode}
- * 
- * @param {BaseNode} _leftNode
- * @param {BaseNode} _rightNode
- */
-function SubtractionNode(_leftNode, _rightNode) {
-	var self = this;
-	var $super = SubtractionNode.$super(this, '&minus;', 2);
-	
-	if (_leftNode) {this.leftNode = _leftNode;}
-	if (_rightNode) {this.rightNode = _rightNode;}
-	
-	this.cleanup = function() { 
-		$super.cleanup();
-	};
-}
-
-
 Object.extend(OperatorNode, PlusOrMinusNode);
 /**
  * @constructor
@@ -723,9 +719,10 @@ function ComparisonNode(_debugSymbol) {
 			if (!partToSwap || !partToKeep) {break;}
 			
 			if (varSide instanceof AdditionNode) {
-				self.rotateLeft(noVarSide, new SubtractionNode(partToSwap));
+				var addNegative = new AdditionNode(new NegativeNode(partToSwap));
+				self.rotateLeft(noVarSide, addNegative);
 				
-			} else if (varSide instanceof SubtractionNode) {
+			/*} else if (varSide instanceof SubtractionNode) {
 				if (partToSwap === varSide.rightNode) { 
 					self.rotateLeft(noVarSide, new AdditionNode(partToSwap));
 				} else {  
@@ -733,7 +730,7 @@ function ComparisonNode(_debugSymbol) {
 					var neg1Multiplier = subtractor.rotateLeft(new MultiplicationNode(null, -1)); 
 					neg1Multiplier.cleanup(); 
 				}
-				
+			*/	
 			} else if (varSide instanceof MultiplicationNode) {
 				self.rotateLeft(noVarSide, new DivisionNode(partToSwap));
 				
@@ -872,7 +869,19 @@ function DivisionNode(_leftNode, _rightNode) {
 		$super.simplify();
 		
 		var numerator = getScopedNodes(self.leftNode);
-		var denominator = getScopedNodes(self.rightNode);
+		var denominator = getScopedNodes(self.rightNode); 
+		
+		var negNodes = numerator.concat(denominator).filter(function(x) {
+			return x instanceof NegativeNode || x instanceof RealNumberNode && x.value < 0;
+		});
+		var isNegative = negNodes.length % 2 !== 0;
+		negNodes.forEach(function(x) { 
+			if (x instanceof NegativeNode) {
+				replaceNode(x, x.leftNode);
+			} else {
+				x.value = -x.value;
+			}
+		});
 		
 		if (instanceOf([self.leftNode, self.rightNode], [LeafNode, MultiplicationNode])) {
 			Array.combos(numerator, denominator).forEach(function(combo) {
@@ -902,13 +911,15 @@ function DivisionNode(_leftNode, _rightNode) {
 		}
 		
 		if (self.denominator.equals(1)) {
-			return self.numerator;
+			return isNegative ? new NegativeNode(self.numerator) : self.numerator;
+		} else if (isNegative) {
+			return new NegativeNode(self);
 		}
 	};
 	
 	function getScopedNodes(node) {
 		//if (node instanceof ParenthesisNode) {node = node.leftNode;}
-		return node instanceof CommutativeOpNode ? node.nodes : [node];
+		return node instanceof MultiplicationNode ? node.nodes : [node];
 	}
 	
 	function replaceNode(node, newNode) {
@@ -916,7 +927,7 @@ function DivisionNode(_leftNode, _rightNode) {
 			return x.nodes.includes(node);
 		});
 		parent.replace(node, newNode);
-	}
+	} 
 }
 
 function commonDenominator(a, b) {
@@ -931,6 +942,7 @@ function commonDenominator(a, b) {
 //      ../nodes/operators/Enclosures.js
 // ====================================================================================================
 
+Object.extend(BaseNode, EnclosureNode);
 /**
  * @constructor
  * @extends {BaseNode}
@@ -941,6 +953,8 @@ function commonDenominator(a, b) {
 function EnclosureNode(openSymbol, closeSymbol) {
 	var self = this;
 	
+	this.miniminumNodes = 1;
+	
 	self.openSymbol = openSymbol || '';
 	self.closeSymbol = closeSymbol || ''; 
 	
@@ -950,8 +964,8 @@ function EnclosureNode(openSymbol, closeSymbol) {
 	
 	self.printVals.after = self.closeSymbol + self.printVals.after;
 } 
-Object.extend(BaseNode, EnclosureNode);
 
+Object.extend(EnclosureNode, ParenthesisNode);
 /**
  * @constructor
  * @extends {EnclosureNode}
@@ -964,7 +978,6 @@ function ParenthesisNode() {
 		$super.cleanup();
 	};
 }
-Object.extend(EnclosureNode, ParenthesisNode);
 
 
 // ====================================================================================================
@@ -1098,7 +1111,7 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		if (aIndex > -1 && bIndex > -1) {return aIndex - bIndex;} 
 	}
 	 
-	this.simplify = function() {
+	this.simplify = function() { 
 		$super.simplify();
 		for (var i = 1; i <= self.nodes.length; i++) {
 			var a = self.nodes[self.nodes.length - i];
@@ -1164,6 +1177,36 @@ function MultiplicationNode(_leftNode, _rightNode) {
 
 
 // ====================================================================================================
+//      ../nodes/operators/NegativeNode.js
+// ====================================================================================================
+
+Object.extend(OperatorPrefixNode, NegativeNode);
+/**
+ * @constructor
+ * @extends {OperatorPrefixNode}
+ * 
+ * @param {BaseNode} _leftNode 
+ */
+function NegativeNode(_leftNode) {
+	var self = this;
+	var $super = NegativeNode.$super(this, '&minus;', 4);
+	
+	if (_leftNode) {this.leftNode = _leftNode;}
+	 
+	this.simplify = function() {
+		$super.simplify(); 
+		if (self.leftNode instanceof NegativeNode) {
+			return self.leftNode.leftNode;
+		} else if (self.leftNode instanceof RealNumberNode) {
+			self.leftNode.value = -self.leftNode.value;
+			return self.leftNode;
+		}
+	};
+	
+}
+
+
+// ====================================================================================================
 //      ../nodes/operators/Trigonometry.js
 // ====================================================================================================
 
@@ -1205,8 +1248,8 @@ var NODE_REGEX = {
 	'\\\s': 'WHITESPACE',
 	'\\\(': ParenthesisNode,
 	'\\\+': AdditionNode,
-	'[-−]': SubtractionNode,
-	'\\\+[-−]': PlusOrMinusNode,
+	'[-−]': NegativeNode,
+	'\\\+\/[-−]': PlusOrMinusNode,
 	'±': PlusOrMinusNode,
 	'[*·∙×\u22C5]': MultiplicationNode,
 	'[\/∕÷]': DivisionNode, 

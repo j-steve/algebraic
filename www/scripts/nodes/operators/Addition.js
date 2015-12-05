@@ -1,6 +1,7 @@
 /* global OperatorNode, RealNumberNode, LeafNode, MultiplicationNode, CommutativeOpNode, DivisionNode, VariableNode */
 /* global LogarithmNode, NthRootNode, ExponentNode, ConstantNode */
 
+//TODO: -4*-4/2x+4-2-2 -> 8/x + 0
 
 /**
  * @constructor
@@ -83,27 +84,6 @@ function AdditionNode(_leftNode, _rightNode) {
 	}
 }
 Object.extend(CommutativeOpNode, AdditionNode);
-
-
-Object.extend(OperatorNode, SubtractionNode);
-/**
- * @constructor
- * @extends {OperatorNode}
- * 
- * @param {BaseNode} _leftNode
- * @param {BaseNode} _rightNode
- */
-function SubtractionNode(_leftNode, _rightNode) {
-	var self = this;
-	var $super = SubtractionNode.$super(this, '&minus;', 2);
-	
-	if (_leftNode) {this.leftNode = _leftNode;}
-	if (_rightNode) {this.rightNode = _rightNode;}
-	
-	this.cleanup = function() { 
-		$super.cleanup();
-	};
-}
 
 
 Object.extend(OperatorNode, PlusOrMinusNode);

@@ -30,7 +30,7 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		if (aIndex > -1 && bIndex > -1) {return aIndex - bIndex;} 
 	}
 	 
-	this.simplify = function() {
+	this.simplify = function() { 
 		$super.simplify();
 		for (var i = 1; i <= self.nodes.length; i++) {
 			var a = self.nodes[self.nodes.length - i];

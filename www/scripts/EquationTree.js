@@ -1,4 +1,5 @@
-/* global ParenthesisNode, OperatorNode, LeafNode, parseNextNode, EnclosureNode, OperatorPrefixNode, TreeRootNode, CommutativeOpNode */
+/* global ParenthesisNode, OperatorNode, LeafNode, parseNextNode, EnclosureNode */
+/* global OperatorPrefixNode, TreeRootNode, CommutativeOpNode, NegativeNode */
 
 /**
  * @constructor 
@@ -26,11 +27,18 @@ function EquationTree(inputEquation) {
 				if (!nodeStack.length) {throw new Error('Unmatched ")" detected.');}
 				nodeStack.pop();
 			} else if (match.node === 'COMMA') {
-				closeTilType(OperatorPrefixNode);
+				closeTilType(EnclosureNode);
 				nodeStack.peek().nodes.shift(); // chop off the Base: THAT was the base, next is operand
 				var parenthesis = new ParenthesisNode();
 				nodeStack.peek().rightNode = parenthesis;
 				nodeStack.push(parenthesis);
+			} else if (match.node instanceof NegativeNode) {	
+				if (nodeStack.peek() instanceof LeafNode) {
+					var implicitAddNode = new AdditionNode(); 
+					rotateForOperator(implicitAddNode);
+					nodeStack.push(implicitAddNode); 
+				}
+				addChildNode(match.node);
 			} else if (match.node instanceof EnclosureNode || match.node instanceof OperatorPrefixNode) { 
 				addChildNode(match.node);
 			} else if (match.node instanceof OperatorNode) {
@@ -97,7 +105,7 @@ function EquationTree(inputEquation) {
 		
 		node.nodes.forEach(function(n) {
 			finalize(n);
-			if (n.nodes.length <= 1 && !instanceOf(n, [LeafNode, TreeRootNode])) {
+			if (n.nodes.length < n.minimumNodes) {
 				node.replace(n, n.leftNode); // replace with any existing child, or remove if no children
 			}
 		}); 

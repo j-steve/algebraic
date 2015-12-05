@@ -1,4 +1,4 @@
-/* global LeafNode, RealNumberNode */
+/* global LeafNode, RealNumberNode, OperatorPrefixNode */
 
 var SIDES = ['leftNode', 'rightNode'];
 
@@ -17,6 +17,8 @@ function BaseNode() {
     // ================================================================================
 	
 	this.nodes = [];
+	
+	this.miniminumNodes = 0;
 	
 	SIDES.forEach(function(side, index) {
 		Object.defineProperty(self, side, {
@@ -86,7 +88,7 @@ function BaseNode() {
 			var replacementNode = x.simplify();
 			if (replacementNode) {
 				self.replace(x, replacementNode);
-			} else if (x.nodes.length <= 1 && !instanceOf(x, LeafNode)) {
+			} else if (x.nodes.length < x.minimumNodes) {
 				self.replace(x, x.leftNode);
 			}
 		});

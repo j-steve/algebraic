@@ -1,5 +1,5 @@
 /* global OperatorNode, LeafNode, MultiplicationNode, RealNumberNode */
-/* global ExponentNode, AdditionNode, SubtractionNode, CommutativeOpNode */
+/* global ExponentNode, AdditionNode, CommutativeOpNode, NegativeNode */
 
 Object.extend(OperatorNode, DivisionNode);
 /**
@@ -36,7 +36,19 @@ function DivisionNode(_leftNode, _rightNode) {
 		$super.simplify();
 		
 		var numerator = getScopedNodes(self.leftNode);
-		var denominator = getScopedNodes(self.rightNode);
+		var denominator = getScopedNodes(self.rightNode); 
+		
+		var negNodes = numerator.concat(denominator).filter(function(x) {
+			return x instanceof NegativeNode || x instanceof RealNumberNode && x.value < 0;
+		});
+		var isNegative = negNodes.length % 2 !== 0;
+		negNodes.forEach(function(x) { 
+			if (x instanceof NegativeNode) {
+				replaceNode(x, x.leftNode);
+			} else {
+				x.value = -x.value;
+			}
+		});
 		
 		if (instanceOf([self.leftNode, self.rightNode], [LeafNode, MultiplicationNode])) {
 			Array.combos(numerator, denominator).forEach(function(combo) {
@@ -66,13 +78,15 @@ function DivisionNode(_leftNode, _rightNode) {
 		}
 		
 		if (self.denominator.equals(1)) {
-			return self.numerator;
+			return isNegative ? new NegativeNode(self.numerator) : self.numerator;
+		} else if (isNegative) {
+			return new NegativeNode(self);
 		}
 	};
 	
 	function getScopedNodes(node) {
 		//if (node instanceof ParenthesisNode) {node = node.leftNode;}
-		return node instanceof CommutativeOpNode ? node.nodes : [node];
+		return node instanceof MultiplicationNode ? node.nodes : [node];
 	}
 	
 	function replaceNode(node, newNode) {
@@ -80,7 +94,7 @@ function DivisionNode(_leftNode, _rightNode) {
 			return x.nodes.includes(node);
 		});
 		parent.replace(node, newNode);
-	}
+	} 
 }
 
 function commonDenominator(a, b) {

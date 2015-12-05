@@ -18,7 +18,7 @@ function clone(cloneFrom) {
 		var result = Object.create(cloneFrom.constructor.prototype);
 		//result.constructor = cloneFrom.constructor;
 		for (var prop in cloneFrom) {
-			result.prop = clone(cloneFrom[prop]);
+			result[prop] = clone(cloneFrom[prop]);
 		}
 		return result;
 	}
@@ -581,7 +581,8 @@ function compute(equation, treeTableElement, prettyInputElement, simplifyElement
 		prettyInputElement.innerHTML = rootNode.toString(); 
 		
 		rootNode.simplify();
-		rootNode.cleanup();
+		rootNode.cleanup(); 
+		
 		simplifyElement.className = 'treeTable';
 		simplifyElement.innerHTML = rootNode.toString();
 		

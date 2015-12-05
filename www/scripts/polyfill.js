@@ -11,7 +11,7 @@ function clone(cloneFrom) {
 		var result = Object.create(cloneFrom.constructor.prototype);
 		//result.constructor = cloneFrom.constructor;
 		for (var prop in cloneFrom) {
-			result.prop = clone(cloneFrom[prop]);
+			result[prop] = clone(cloneFrom[prop]);
 		}
 		return result;
 	}

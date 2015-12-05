@@ -4,7 +4,7 @@
  * @constructor
  * @extends {OperatorNode}
  * @property {BaseNode} base   synonym for leftNode
- * @property {power} power   synonym for rightNode
+ * @property {BaseNode} power   synonym for rightNode
  * 
  * @param {BaseNode} _leftNode
  * @param {BaseNode} _rightNode
@@ -43,6 +43,8 @@ Object.extend(OperatorNode, ExponentNode);
 /**
  * @constructor
  * @extends {OperatorNode}
+ * @property {BaseNode} base   synonym for rightNode
+ * @property {BaseNode} power   synonym for leftNode
  * 
  * @param {BaseNode} _leftNode
  * @param {BaseNode} _rightNode
@@ -53,9 +55,25 @@ function NthRootNode(_leftNode, _rightNode) {
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
+	 
+	Object.defineProperty(self, 'power', {
+		get: function() {return self.leftNode;},
+		set: function(value) {self.leftNode = value;}
+	});
+	 
+	Object.defineProperty(self, 'base', {
+		get: function() {return self.rightNode;},
+		set: function(value) {self.rightNode = value;}
+	});
 	
 	this.simplify = function() {
 		$super.simplify();
+		if (instanceOf([self.leftNode, self.rightNode], RealNumberNode) && self.power.value !== 0) {
+			var result = Math.pow(self.base.value, 1/self.power.value);
+			if (Number.isInteger(result)) {
+				return new RealNumberNode(result);
+			}
+		}
 		 /*if (!instanceOf(self.leftNode, RealNumberNode)) {
 			var exp = new ExponentNode(self.rightNode, new DivisionNode(1, self.leftNode));
 			self.replaceWith(exp);

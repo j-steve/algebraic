@@ -514,6 +514,9 @@ function EquationTree(inputEquation) {
 		while (activeNodeSticksToOperator(newOperatorNode) && parentOfLatest()) {
 			nodeStack.pop();
 		}
+		if (nodeStack.peek() instanceof TreeRootNode) {
+			nodeStack.push(nodeStack.peek().leftNode);
+		}
 		var oldOp = nodeStack.pop();
 		nodeStack.peek().rotateLeft(oldOp, newOperatorNode);
 	}
@@ -564,6 +567,13 @@ function EquationTree(inputEquation) {
 // ====================================================================================================
 //      ../compute.js
 // ====================================================================================================
+
+/*
+ * TODO: make these work:
+ *	->	(4+2)/4
+ *	->	543/2x+3=100
+ *	->	5/4*2
+ */
 
 function compute(equation, treeTableElement, prettyInputElement, simplifyElement, calculateElement) {
 	treeTableElement.innerHTML = '';

@@ -80,6 +80,9 @@ function EquationTree(inputEquation) {
 		while (activeNodeSticksToOperator(newOperatorNode) && parentOfLatest()) {
 			nodeStack.pop();
 		}
+		if (nodeStack.peek() instanceof TreeRootNode) {
+			nodeStack.push(nodeStack.peek().leftNode);
+		}
 		var oldOp = nodeStack.pop();
 		nodeStack.peek().rotateLeft(oldOp, newOperatorNode);
 	}

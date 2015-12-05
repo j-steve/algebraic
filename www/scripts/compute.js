@@ -1,5 +1,12 @@
 /* global EquationTreeParser */
 
+/*
+ * TODO: make these work:
+ *	->	(4+2)/4
+ *	->	543/2x+3=100
+ *	->	5/4*2
+ */
+
 function compute(equation, treeTableElement, prettyInputElement, simplifyElement, calculateElement) {
 	treeTableElement.innerHTML = '';
 	prettyInputElement.innerHTML = '';

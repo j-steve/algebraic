@@ -32,8 +32,6 @@ Object.extend(BaseNode, OperatorNode);
 function OperatorPrefixNode(debugSymbol, stickiness, rightToLeft) { 
 	OperatorPrefixNode.$super(this, debugSymbol, stickiness, rightToLeft);
 	
-	this.minimumNodes = 1;
-	
-	this.printVals.before +=  '<div class="operator">' + debugSymbol + '</div>';
+	this.minimumNodes = 1; 
 }
 Object.extend(OperatorNode, OperatorPrefixNode);

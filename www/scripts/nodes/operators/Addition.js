@@ -1,5 +1,5 @@
 /* global OperatorNode, RealNumberNode, LeafNode, MultiplicationNode, CommutativeOpNode, DivisionNode, VariableNode */
-/* global LogarithmNode, NthRootNode, ExponentNode, ConstantNode */
+/* global LogarithmNode, NthRootNode, ExponentNode, ConstantNode, NegativeNode */
 
 //TODO: -4*-4/2x+4-2-2 -> 8/x + 0
 
@@ -13,7 +13,7 @@ Object.extend(CommutativeOpNode, AdditionNode);
  */
 function AdditionNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = AdditionNode.$super(this, '+', 2, 0, sortNodes, add);
+	var $super = AdditionNode.$super(this, '+', 2, 0, sortNodes, add, printSymbol);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -63,6 +63,16 @@ function AdditionNode(_leftNode, _rightNode) {
 			bFactors.splice(bIndex, 1);
 		}
 		return true;
+	}
+		
+	/** 
+	 * @param {BaseNode} nextNode 
+	 * @returns {string}
+	 */
+	function printSymbol(nextNode) { 
+		if (nextNode instanceof NegativeNode || nextNode instanceof RealNumberNode && nextNode.value < 0) {
+			return '<span class="operator minus"></span>';
+		}
 	}
 }
 

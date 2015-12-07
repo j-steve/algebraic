@@ -11,7 +11,7 @@ Object.extend(CommutativeOpNode, MultiplicationNode);
  */
 function MultiplicationNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = MultiplicationNode.$super(this, '&sdot;', 3, 1, sortNodes, multiply);
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3, 1, sortNodes, multiply, printSymbol);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -25,25 +25,6 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		var aIndex = OP_SEQ.indexOf(a.constructor), bIndex = OP_SEQ.indexOf(b.constructor);
 		if (aIndex > -1 && bIndex > -1) {return aIndex - bIndex;} 
 	}
-	 
-	this.simplify = function() { 
-		$super.simplify();
-		for (var i = 1; i <= self.nodes.length; i++) {
-			var a = self.nodes[self.nodes.length - i];
-			for (var j = self.nodes.length - 1; j >= 0; j--) {
-				var b = self.nodes[j];
-				if (a !== b) {
-					var result = multiply(a, b);
-					if (result) {
-						result = result.simplify() || result;
-						self.replace(b, null);
-						self.replace(a, result);
-						a = result;
-					}
-				}
-			}
-		}
-	};
 	
 	function multiply(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
@@ -62,31 +43,15 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		return a;
 	}
 	
-	this.toString = function() {
-		if (self.rightNode instanceof VariableNode || self.rightNode.leftNode instanceof VariableNode) {
-			self.printVals.before = self.printVals.before.replace('node', 'node coefficient');
-		} 
-		return $super.toString();
-	};
-	/*
-	this.isCoefficient = function() {
-		for (var i = 0; i < SIDES.length; i++) { 
-			var node = self[SIDES[i]];
-			if (!(node instanceof LeafNode || node instanceof ExponentNode && node.leftNode instanceof LeafNode ||
-					node instanceof MultiplicationNode && node.isCoefficient())) {
-				return false;
-			}
+	/** 
+	 * @param {BaseNode} nextNode
+	 * @returns {string}
+	 */
+	function printSymbol(nextNode) {
+		if (nextNode instanceof VariableNode || nextNode.leftNode instanceof VariableNode) {
+			return '<span class="operator coefficient"></span>';
 		}
-		return true;
-	};
-	
-	this.toString = function() {
-		if (self.isCoefficient()) {
-			self.printVals.before = self.printVals.before.replace('node', 'node coefficient');
-		} 
-		return $super.toString();
-	}; 
-	*/
+	}
    
 }
 

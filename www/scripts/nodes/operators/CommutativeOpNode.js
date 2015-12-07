@@ -13,7 +13,7 @@ Object.extend(OperatorNode, CommutativeOpNode);
  * @param {Array} opSortSequence
  * @param {Function} operate
  */
-function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSequence, operate) {
+function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSequence, operate, printSymbol) {
 	var self = this;
 	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	
@@ -41,5 +41,16 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSeq
 				}
 			}
 		}
+	};
+	
+	
+	this.toString = function() {
+		var result = self.printVals.before; 
+		if (self.leftNode) {result += '<span class="leftNode">' + self.leftNode + '</span>';}
+		for (var i = 1; i < self.nodes.length; i++) { 
+			result += printSymbol(self.nodes[i], self.nodes[i-1]) || self.printVals.middle;
+			result += '<span class="rightNode">' + self.nodes[i] + '</span>';
+		}
+		return result + self.printVals.after;
 	};
 }

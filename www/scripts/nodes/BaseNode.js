@@ -53,11 +53,19 @@ function BaseNode() {
 		return children;
 	};
 	
+	/**
+	 * @param {BaseNode} oldNode
+	 * @param {BaseNode} newNode
+	 */
 	this.rotateLeft = function(oldNode, newNode) {
 		self.replace(oldNode, newNode);
 		newNode.nodes.unshift(oldNode);
 	};
 	
+	/**
+	 * @param {BaseNode} oldNode
+	 * @param {BaseNode} newNode
+	 */
 	this.rotateRight = function(oldNode, newNode) {
 		self.replace(oldNode, newNode);
 		newNode.nodes.push(oldNode);
@@ -66,6 +74,7 @@ function BaseNode() {
 	/**
 	 * @param {BaseNode} oldNode
 	 * @param {BaseNode} newNode
+	 * @returns {BaseNode} the newNode object
 	 */
 	this.replace = function(oldNode, newNode) {
 		var i = self.nodes.indexOf(oldNode);
@@ -77,9 +86,6 @@ function BaseNode() {
 	this.cleanup = function() { 
 		self.nodes.forEach(function(child) {
 			child.cleanup();
-			/*if (child.nodes.length <= 1 && !instanceOf(child, LeafNode)) {
-				self.replace(child, child.leftNode);
-			}*/
 		});
 	};
 	

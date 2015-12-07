@@ -202,11 +202,19 @@ function BaseNode() {
 		return children;
 	};
 	
+	/**
+	 * @param {BaseNode} oldNode
+	 * @param {BaseNode} newNode
+	 */
 	this.rotateLeft = function(oldNode, newNode) {
 		self.replace(oldNode, newNode);
 		newNode.nodes.unshift(oldNode);
 	};
 	
+	/**
+	 * @param {BaseNode} oldNode
+	 * @param {BaseNode} newNode
+	 */
 	this.rotateRight = function(oldNode, newNode) {
 		self.replace(oldNode, newNode);
 		newNode.nodes.push(oldNode);
@@ -215,6 +223,7 @@ function BaseNode() {
 	/**
 	 * @param {BaseNode} oldNode
 	 * @param {BaseNode} newNode
+	 * @returns {BaseNode} the newNode object
 	 */
 	this.replace = function(oldNode, newNode) {
 		var i = self.nodes.indexOf(oldNode);
@@ -226,9 +235,6 @@ function BaseNode() {
 	this.cleanup = function() { 
 		self.nodes.forEach(function(child) {
 			child.cleanup();
-			/*if (child.nodes.length <= 1 && !instanceOf(child, LeafNode)) {
-				self.replace(child, child.leftNode);
-			}*/
 		});
 	};
 	
@@ -310,9 +316,7 @@ Object.extend(BaseNode, OperatorNode);
 function OperatorPrefixNode(debugSymbol, stickiness, rightToLeft) { 
 	OperatorPrefixNode.$super(this, debugSymbol, stickiness, rightToLeft);
 	
-	this.minimumNodes = 1;
-	
-	this.printVals.before +=  '<div class="operator">' + debugSymbol + '</div>';
+	this.minimumNodes = 1; 
 }
 Object.extend(OperatorNode, OperatorPrefixNode);
 
@@ -332,7 +336,7 @@ Object.extend(OperatorNode, CommutativeOpNode);
  * @param {Array} opSortSequence
  * @param {Function} operate
  */
-function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSequence, operate) {
+function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSequence, operate, printSymbol) {
 	var self = this;
 	var $super = CommutativeOpNode.$super(this, _debugSymbol, _stickinesss);
 	
@@ -360,6 +364,17 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSeq
 				}
 			}
 		}
+	};
+	
+	
+	this.toString = function() {
+		var result = self.printVals.before; 
+		if (self.leftNode) {result += '<span class="leftNode">' + self.leftNode + '</span>';}
+		for (var i = 1; i < self.nodes.length; i++) { 
+			result += printSymbol(self.nodes[i], self.nodes[i-1]) || self.printVals.middle;
+			result += '<span class="rightNode">' + self.nodes[i] + '</span>';
+		}
+		return result + self.printVals.after;
 	};
 }
 
@@ -638,7 +653,7 @@ Object.extend(CommutativeOpNode, AdditionNode);
  */
 function AdditionNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = AdditionNode.$super(this, '+', 2, 0, sortNodes, add);
+	var $super = AdditionNode.$super(this, '+', 2, 0, sortNodes, add, printSymbol);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -688,6 +703,16 @@ function AdditionNode(_leftNode, _rightNode) {
 			bFactors.splice(bIndex, 1);
 		}
 		return true;
+	}
+		
+	/** 
+	 * @param {BaseNode} nextNode 
+	 * @returns {string}
+	 */
+	function printSymbol(nextNode) { 
+		if (nextNode instanceof NegativeNode || nextNode instanceof RealNumberNode && nextNode.value < 0) {
+			return '<span class="operator minus"></span>';
+		}
 	}
 }
 
@@ -1134,7 +1159,7 @@ Object.extend(CommutativeOpNode, MultiplicationNode);
  */
 function MultiplicationNode(_leftNode, _rightNode) {
 	var self = this;
-	var $super = MultiplicationNode.$super(this, '&sdot;', 3, 1, sortNodes, multiply);
+	var $super = MultiplicationNode.$super(this, '&sdot;', 3, 1, sortNodes, multiply, printSymbol);
 	
 	if (_leftNode) {this.leftNode = _leftNode;}
 	if (_rightNode) {this.rightNode = _rightNode;}
@@ -1148,25 +1173,6 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		var aIndex = OP_SEQ.indexOf(a.constructor), bIndex = OP_SEQ.indexOf(b.constructor);
 		if (aIndex > -1 && bIndex > -1) {return aIndex - bIndex;} 
 	}
-	 
-	this.simplify = function() { 
-		$super.simplify();
-		for (var i = 1; i <= self.nodes.length; i++) {
-			var a = self.nodes[self.nodes.length - i];
-			for (var j = self.nodes.length - 1; j >= 0; j--) {
-				var b = self.nodes[j];
-				if (a !== b) {
-					var result = multiply(a, b);
-					if (result) {
-						result = result.simplify() || result;
-						self.replace(b, null);
-						self.replace(a, result);
-						a = result;
-					}
-				}
-			}
-		}
-	};
 	
 	function multiply(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
@@ -1185,31 +1191,15 @@ function MultiplicationNode(_leftNode, _rightNode) {
 		return a;
 	}
 	
-	this.toString = function() {
-		if (self.rightNode instanceof VariableNode || self.rightNode.leftNode instanceof VariableNode) {
-			self.printVals.before = self.printVals.before.replace('node', 'node coefficient');
-		} 
-		return $super.toString();
-	};
-	/*
-	this.isCoefficient = function() {
-		for (var i = 0; i < SIDES.length; i++) { 
-			var node = self[SIDES[i]];
-			if (!(node instanceof LeafNode || node instanceof ExponentNode && node.leftNode instanceof LeafNode ||
-					node instanceof MultiplicationNode && node.isCoefficient())) {
-				return false;
-			}
+	/** 
+	 * @param {BaseNode} nextNode
+	 * @returns {string}
+	 */
+	function printSymbol(nextNode) {
+		if (nextNode instanceof VariableNode || nextNode.leftNode instanceof VariableNode) {
+			return '<span class="operator coefficient"></span>';
 		}
-		return true;
-	};
-	
-	this.toString = function() {
-		if (self.isCoefficient()) {
-			self.printVals.before = self.printVals.before.replace('node', 'node coefficient');
-		} 
-		return $super.toString();
-	}; 
-	*/
+	}
    
 }
 

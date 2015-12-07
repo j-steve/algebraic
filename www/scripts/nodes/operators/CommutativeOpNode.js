@@ -24,6 +24,22 @@ function CommutativeOpNode(_debugSymbol, _stickinesss, identityNumber, opSortSeq
 	
 	this.simplify = function() {
 		$super.simplify();
-		self.nodes = self.nodes.filter(function(n) {return !n.equals(identityNumber);});
+		self.nodes = self.nodes.filter(function(n) {return !n.equals(identityNumber);}); 
+		
+		for (var i = 1; i <= self.nodes.length; i++) {
+			var a = self.nodes[self.nodes.length - i];
+			for (var j = self.nodes.length - 1; j >= 0; j--) {
+				var b = self.nodes[j];
+				if (a !== b) {
+					var result = operate(a, b);
+					if (result) {
+						result = result.simplify() || result;
+						self.replace(b, null);
+						self.replace(a, result);
+						a = result;
+					}
+				}
+			}
+		}
 	};
 }

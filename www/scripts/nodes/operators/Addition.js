@@ -3,6 +3,7 @@
 
 //TODO: -4*-4/2x+4-2-2 -> 8/x + 0
 
+Object.extend(CommutativeOpNode, AdditionNode);
 /**
  * @constructor
  * @extends {CommutativeOpNode}
@@ -34,25 +35,6 @@ function AdditionNode(_leftNode, _rightNode) {
 		}
 	}
 	
-	this.simplify = function() {
-		$super.simplify();
-		for (var i = 1; i <= self.nodes.length; i++) {
-			var a = self.nodes[self.nodes.length - i];
-			for (var j = self.nodes.length - 1; j >= 0; j--) {
-				var b = self.nodes[j];
-				if (a !== b) {
-					var result = add(a, b);
-					if (result) {
-						result = result.simplify() || result;
-						self.replace(b, null);
-						self.replace(a, result);
-						a = result;
-					}
-				}
-			}
-		}
-	};
-	
 	function add(a, b) {
 		if (a instanceof RealNumberNode && b instanceof RealNumberNode) {
 			a.value += b.value;
@@ -83,8 +65,6 @@ function AdditionNode(_leftNode, _rightNode) {
 		return true;
 	}
 }
-Object.extend(CommutativeOpNode, AdditionNode);
-
 
 Object.extend(OperatorNode, PlusOrMinusNode);
 /**

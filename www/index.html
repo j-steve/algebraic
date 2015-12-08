@@ -5,34 +5,63 @@
 	<title>Algebraic</title>
 	<link rel="stylesheet" href="style.css">
 	<link rel="shortcut icon" href="favicon.ico">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 </head>
-<body>
-
-	<form oninput="compute(equation, treeTable, formattedInput, exactResult, approxResult); return false;">
-		<label>
-			<span>Input:</span>
-			<input type="text" name="equation" autocomplete="off" autofocus/>
-		</label>
-		<div class="output">
-			<label>
-				<span>Tree Structure:</span>
-				<output name="treeTable" class="treeTable"></output>
-			</label>
-			<label>
-				<span>Formatted Input:</span>
-				<output name="formattedInput"></output>
-			</label>
-			<label>
-				<span>Result (Simplified):</span>
-				<output name="exactResult"></output>
-			</label>
-			<label>
-				<span>Result (Calculated):</span>
-				<output name="approxResult"></output>
-			</label>
+<body style="padding-top:70px;">
+<nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Algebrizer</a></li>
+            <li><a href="#about">What can I type?</a></li>
+            <li><a href="#about">About</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+	<div class="jumbotron">
+		<div class="container">
+			<img src="algebraic.png" alt="Algebraic logo" style="float:left; margin-right:50px;"/>
+			<h1>Algebraic</h1>
 		</div>
-	</form>
-
+	</div>
+	<div class="container">
+		<form oninput="compute(equation, treeTable, formattedInput, exactResult, approxResult); return false;">
+			<label>
+				<span>Input:</span>
+				<input type="text" name="equation" autocomplete="off" autofocus/>
+			</label>
+			<div class="row">
+				<div class="col-sm-4">
+				<div class="btn-group btn-group-justified" role="group" aria-label="display type">
+					<a href="#" class="btn btn-default" role="button">what we see</a>
+					<a href="#" class="btn btn-default" role="button">what it sees</a>
+				</div> 
+				</div>
+			<div class="/row">
+			<div class="output">
+				<label>
+					<span>Tree Structure:</span>
+					<output name="treeTable" class="treeTable"></output>
+				</label>
+				<label>
+					<span>Formatted Input:</span>
+					<output name="formattedInput"></output>
+				</label>
+				<label>
+					<span>Result (Simplified):</span>
+					<output name="exactResult"></output>
+				</label>
+				<label>
+					<span>Result (Calculated):</span>
+					<output name="approxResult"></output>
+				</label>
+			</div>
+		</form>
+	</div>
+	
 	<script src="scripts/algebraic.js"></script> 
 </body>
 </html>

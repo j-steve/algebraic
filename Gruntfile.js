@@ -19,7 +19,7 @@ module.exports = function (grunt) {
 		
 		watch: {
 			files: ['www/**/*'],
-			tasks: ['clean', 'copy', 'concat']
+			tasks: ['clean:build', 'copy', 'concat']
 		},
 		
 		clean: { 

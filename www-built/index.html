@@ -17,68 +17,85 @@
 <nav class="navbar navbar-inverse">
       <div class="container">
         <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Algebrizer</a></li>
-            <li><a href="#type">What can I type?</a></li>
-            <li><a href="#about">About</a></li>
-              </ul>
-            </li>
+          <ul class="nav navbar-nav" data-toggle-group="page">
+            <li data-toggle-id="main" style="font-size:125%;"><a href="#">Algebrizer</a></li>
+            <li data-toggle-id="type"><a href="#type">What can I type?</a></li>
+            <li data-toggle-id="about"><a href="#about">About</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
-	<div class="container">
+	<div class="container" data-toggle-on="main">
 		<form oninput="compute(equation, treeTable, formattedInput, exactResult, approxResult); return false;">
 			<label style="margin-bottom:25px;">
 				<span>Input:</span>
-				<input type="text" name="equation" autocomplete="off" autofocus/>
+				<input type="text" name="equation" placeholder="example: 2x+3x^3=2" autocomplete="off" autofocus />
 			</label>
 			<div class="row">
 				<div class="col-sm-4">
-				<div id="output-display-type" class="btn-group btn-group-justified" role="group" aria-label="display type">
-					<a href="#" class="btn btn-default active" data-toggle="formatted" role="button">formatted</a>
-					<a href="#" class="btn btn-default" data-toggle="equation" role="button">equation structure</a>
+				<div id="output-display-type" class="btn-group btn-group-justified" data-toggle-group="output" aria-label="display type">
+					<a href="#" class="btn btn-default" data-toggle-id="formatted" role="button">formatted</a>
+					<a href="#" class="btn btn-default" data-toggle-id="equation" role="button">equation structure</a>
 				</div> 
 				</div>
 			</div>
 			<div id="output-display" class="row output">
 				<label>
-					<span>Input:</span>
+					<span style="width:75px;">Input:</span>
 					<output name="treeTable" class="treeTable" data-toggle-on="equation"></output>
 					<output name="formattedInput" data-toggle-on="formatted" ></output>
 				</label>
 				<label>
-					<span>Result:</span>
+					<span style="width:75px;">Result:</span>
 					<output name="exactResult" data-toggle-on="equation"></output>
 					<output name="approxResult" data-toggle-on="formatted" ></output>
 				</label>
 			</div>
 		</form>
 	</div>
+	<div class="container" data-toggle-on="type">
+		Try typing the following values:
+		<table id="valid-input-list">
+			<tr><th>TYPE:</th><th>TO GET:</td></th>
+			<tr><th>pi</th><td>&pi;</td></tr>
+			<tr><th>e</th><td><i>e</i></td></tr>
+			<tr><th>log(x)</th><td>log<sub>10</sub>x</td></tr>
+			<tr><th>log(x, n)</th><td>log<sub>n</sub>x</td></tr>
+			<tr><th>ln(x)</th><td>lnx = log<sub><i>e</i></sub>x</td></tr>
+			<tr><th>lg(x)</th><td>lgx = log<sub>2</sub>x</td></tr>
+		</table>
+	
+	</div>
+	<div class="container" data-toggle-on="about">
+		This. Is. Algebraic.
+	</div>
 	
 	<script src="scripts/algebraic.js"></script>
 	<script>
 	(function() {
-		var btnGroup = document.getElementById('output-display-type');
-		var activeBtn = btnGroup.getElementsByClassName('active')[0];
-		var outputElements = document.getElementById('output-display').querySelectorAll('[data-toggle-on]');
-		
-		[].slice.call(btnGroup.getElementsByClassName('btn')).forEach(function(btn) {
-			btn.onclick = function() {
-				activeBtn.className = activeBtn.className.replace(/ active/g, ''); 
-				btn.className += ' active';
-				activeBtn = btn;
-				toggleOutputElements();
-			};
+		selectElements('[data-toggle-group]').forEach(function(btnGroup) { 
+			var activeButton = null;
+			selectElements('[data-toggle-id]', btnGroup).forEach(function(btn, i) {
+				btn.toggleSelected = function(isSelected) {
+					if (isSelected) {
+						if (activeButton) {activeButton.toggleSelected(false);}
+						activeButton = btn;
+						btn.className += ' active';
+					} else {
+						btn.className = btn.className.replace(/(^|\s)active(?!\S)/g, '');
+					}
+					selectElements('[data-toggle-on=' + btn.dataset.toggleId + ']').forEach(function(btnElement) {
+						btnElement.style.display = isSelected ? '' : 'none';
+					});
+				};
+				btn.onclick = btn.toggleSelected.bind(null, true);
+				btn.toggleSelected(i === 0); // activate the first button
+			});
 		});
 		
-		toggleOutputElements();
-		
-		function toggleOutputElements() {
-			[].slice.call(outputElements).forEach(function(output) {
-				var isShown = output.dataset.toggleOn === activeBtn.dataset.toggle;
-				output.style.display = isShown ? 'initial' : 'none';
-			});
+		function selectElements(selector, container) {
+			if (container == null) {container = document;}
+			return [].slice.call(container.querySelectorAll(selector));
 		}
 	})();
 	</script>

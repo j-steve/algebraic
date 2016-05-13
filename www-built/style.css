@@ -118,3 +118,11 @@ output.formatted .NthRootNode > .leftNode {
 output.formatted .NthRootNode > .operator { 
 	font-size: 70%;
 }
+
+.legal {
+    position: fixed;
+    bottom: 0px;
+    text-align: center;
+    width: 100%;
+    padding: 5px;
+}
